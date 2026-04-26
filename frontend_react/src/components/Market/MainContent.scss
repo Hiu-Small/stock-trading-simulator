@@ -1,0 +1,18 @@
+// =============================================
+// MainContent.scss
+// Layout khu vực chính: Sidebar + PriceBoard
+// =============================================
+
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 48px - 72px); // trừ Navbar + MarketSummary
+
+  &__board {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    min-width: 0;
+  }
+}

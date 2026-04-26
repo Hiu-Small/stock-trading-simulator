@@ -1,0 +1,206 @@
+// =============================================
+// Sidebar.scss
+// Cột điều hướng trái: Watchlist, Công cụ
+// =============================================
+
+.sidebar {
+  width: 170px;
+  min-width: 160px;
+  background: #12122a;
+  border-right: 1px solid #2d2d44;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+
+  // ===== Section chung =====
+  &__section {
+    padding: 10px 0 6px;
+    border-bottom: 1px solid #1e1e38;
+  }
+
+  &__section-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: #6666aa;
+    letter-spacing: 0.8px;
+    padding: 0 12px 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  &__section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px 6px;
+
+    .sidebar__section-title {
+      padding: 0;
+    }
+  }
+
+  &__add-btn {
+    background: none;
+    border: 1px solid #3a3a5c;
+    color: #8888aa;
+    border-radius: 4px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+
+    &:hover {
+      border-color: #26a69a;
+      color: #26a69a;
+    }
+  }
+
+  // ===== Market Overview =====
+  &__market-overview {
+    .sidebar__overview-grid {
+      display: flex;
+      gap: 4px;
+      padding: 0 8px;
+    }
+
+    .overview-item {
+      flex: 1;
+      text-align: center;
+      padding: 4px 2px;
+      border-radius: 4px;
+      background: #1a1a30;
+
+      &__label {
+        display: block;
+        font-size: 9px;
+        color: #8888aa;
+      }
+      &__value {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      &--up .overview-item__value   { color: #26a69a; }
+      &--down .overview-item__value { color: #ef5350; }
+    }
+  }
+
+  // ===== Filter =====
+  &__filter {
+    border-bottom: 1px solid #1e1e38;
+
+    &-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      font-size: 12px;
+      color: #aaaacc;
+      cursor: pointer;
+      transition: all 0.15s;
+
+      i { font-size: 11px; }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: #e0e0f0;
+      }
+
+      &--active {
+        color: #e0e0f0;
+        background: rgba(38, 166, 154, 0.1);
+      }
+
+      .badge {
+        margin-left: auto;
+        font-size: 9px;
+        background: #26a69a22;
+        color: #26a69a;
+        border: 1px solid #26a69a55;
+        border-radius: 3px;
+        padding: 1px 5px;
+      }
+    }
+  }
+
+  // ===== Watchlist Items =====
+  &__watchlist-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    &--active {
+      background: rgba(38, 166, 154, 0.12);
+      border-left: 2px solid #26a69a;
+    }
+
+    .watchlist-item__info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #ccccdd;
+
+      i { font-size: 10px; color: #6666aa; }
+    }
+
+    .watchlist-item__name {
+      font-size: 12px;
+    }
+
+    .watchlist-item__count {
+      font-size: 10px;
+      color: #6666aa;
+      background: #1e1e38;
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  }
+
+  // ===== Tools =====
+  &__tool-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 12px;
+    color: #aaaacc;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    i { font-size: 11px; }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #e0e0f0;
+    }
+
+    .tool-badge {
+      margin-left: auto;
+      font-size: 9px;
+      border-radius: 3px;
+      padding: 1px 5px;
+
+      &--new {
+        background: #ff9800;
+        color: #000;
+        font-weight: 600;
+      }
+    }
+  }
+}

@@ -1,0 +1,223 @@
+// =============================================
+// MarketSummary.scss
+// Dải chỉ số thị trường phía trên bảng giá
+// =============================================
+
+.market-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #1a1a2e;
+  border-bottom: 1px solid #2d2d44;
+  padding: 5px 12px;
+  min-height: 72px;
+  flex-shrink: 0;
+
+  &-indices {
+    display: flex;
+    gap: 0;
+    height: 100%;
+    flex: 1;
+  }
+
+  &-time {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    padding-left: 16px;
+
+    .vn-time-label {
+      font-size: 10px;
+      color: #8888aa;
+      letter-spacing: 0.5px;
+    }
+
+    .vn-time-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e0e0f0;
+      font-family: "Courier New", monospace;
+    }
+
+    .session-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px; // Tạo khoảng cách giữa chấm tròn và chữ
+      margin-top: 2px;
+
+      // Tạo sẵn một dấu chấm tròn (chưa lên màu) cho tất cả các trạng thái
+      &::before {
+        content: "";
+        display: block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      // 1. Trạng thái OPEN (Xanh lá - Phát sáng nhấp nháy)
+      &--open {
+        background: rgba(0, 200, 5, 0.15); // Nền đen pha xanh lá
+        color: #00c805; // Chữ xanh lá
+        border: 1px solid rgba(0, 200, 5, 0.3); // Viền xanh mờ
+
+        &::before {
+          background-color: #00c805;
+          animation: pulse-green 1.5s infinite; // Gọi hiệu ứng nhịp đập
+        }
+      }
+
+      // 2. Trạng thái ATO (Cam - Phát sáng nhấp nháy)
+      &--ato {
+        background: rgba(255, 152, 0, 0.15);
+        color: #ff9800;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+
+        &::before {
+          background-color: #ff9800;
+          animation: pulse-orange 1.5s infinite;
+        }
+      }
+
+      // 3. Trạng thái ATC (Tím - Phát sáng nhấp nháy)
+      &--atc {
+        background: rgba(156, 39, 176, 0.15);
+        color: #9c27b0;
+        border: 1px solid rgba(156, 39, 176, 0.3);
+
+        &::before {
+          background-color: #9c27b0;
+          animation: pulse-purple 1.5s infinite;
+        }
+      }
+
+      // 4. Trạng thái CLOSED, PRE, PT (Xám - Đứng im, không nhấp nháy)
+      &--closed,
+      &--pre,
+      &--pt {
+        background: rgba(255, 255, 255, 0.08);
+        color: #aaaacc;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+
+        &::before {
+          background-color: #777788; // Chấm xám tĩnh
+        }
+      }
+    }
+
+    // ==========================================
+    // THÊM 3 HIỆU ỨNG NHỊP ĐẬP CHO TỪNG MÀU
+    // Đặt đoạn này ở cuối file SCSS hoặc ngoài cùng
+    // ==========================================
+
+    @keyframes pulse-green {
+      0% {
+        box-shadow: 0 0 0 0 rgba(0, 200, 5, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 4px rgba(0, 200, 5, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 200, 5, 0);
+      }
+    }
+
+    @keyframes pulse-orange {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 4px rgba(255, 152, 0, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+      }
+    }
+
+    @keyframes pulse-purple {
+      0% {
+        box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 4px rgba(156, 39, 176, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(156, 39, 176, 0);
+      }
+    }
+
+    .last-updated {
+      font-size: 9px;
+      color: #777788;
+      margin-top: 2px;
+    }
+  }
+
+  &-error {
+    color: #ef5350;
+    font-size: 12px;
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .retry-btn {
+      background: #2d2d44;
+      border: 1px solid #444466;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+
+      &:hover {
+        background: #444466;
+      }
+    }
+  }
+}
+
+// Skeleton loading animation
+@keyframes pulse {
+  0% {
+    background-color: #2a2a3e;
+  }
+  50% {
+    background-color: #3d3d5c;
+  }
+  100% {
+    background-color: #2a2a3e;
+  }
+}
+
+.index-card--loading {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 160px;
+
+  .skeleton {
+    border-radius: 4px;
+    animation: pulse 1.5s infinite ease-in-out;
+
+    &--name {
+      width: 60px;
+      height: 14px;
+    }
+
+    &--value {
+      width: 80px;
+      height: 20px;
+    }
+
+    &--change {
+      width: 100px;
+      height: 12px;
+    }
+  }
+}

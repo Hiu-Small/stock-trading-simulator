@@ -1,0 +1,86 @@
+// Khai báo biến màu chuẩn của sàn chứng khoán
+$color-green: #00c805;
+$color-red: #ff3b30;
+$color-text-gray: #8888aa;
+
+.index-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 220px;
+  flex: 1;
+  height: 100%;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* Cột 1: Thông tin giá */
+  &__info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-width: 110px;
+
+    .index-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: $color-text-gray;
+
+      .trend {
+        margin-left: 4px;
+        font-weight: 800;
+      }
+    }
+
+    .index-value {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      font-family: "Roboto", "Inter", sans-serif;
+    }
+
+    .index-change {
+      font-size: 11px;
+      font-weight: 600;
+    }
+  }
+
+  /* Cột 2: Gồm Biểu đồ (trên) và Khối lượng (dưới) */
+  &__right-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column; // Xếp dọc 2 phần tử
+    justify-content: center;
+    padding-left: 15px;
+
+    .chart-wrapper {
+      width: 100%;
+      height: 35px;
+      display: flex;
+      align-items: flex-end; // Đẩy biểu đồ sát xuống dưới để gần với chữ Khối lượng
+    }
+
+    .volume-text {
+      font-size: 10px;
+      color: $color-text-gray;
+      text-align: right; // Căn phải để đuôi số chạy sát lề thẻ
+      margin-top: 4px; // Cách biểu đồ 1 chút
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  /* Tiện ích đổi màu chữ nhanh */
+  .color-up {
+    color: $color-green;
+  }
+  .color-down {
+    color: $color-red;
+  }
+}

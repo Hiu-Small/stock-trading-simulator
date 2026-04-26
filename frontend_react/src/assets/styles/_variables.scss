@@ -1,0 +1,18 @@
+// =============================================
+// _variables.scss
+// Chứa các biến màu và mixin dùng chung toàn dự án
+// =============================================
+
+// ===== Biến màu chuẩn sàn chứng khoán (Vibrant) =====
+$color-ceiling: #ce58f5; // Tím chuẩn trần
+$color-floor: #16b1c0;   // Xanh lơ sàn
+$color-up: #00b050;      // Xanh lá tăng
+$color-down: #ff0000;    // Đỏ giảm
+$color-ref: #dfc13a;     // Vàng tham chiếu
+$color-white: #ffffff;   // Màu trắng
+
+// Mixin thiết lập màu sắc và độ đậm (Không bóng)
+@mixin price-text($color) {
+  color: $color !important;
+  font-weight: 600;
+}

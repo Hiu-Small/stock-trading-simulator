@@ -1,0 +1,301 @@
+import React, { useState, useEffect } from "react";
+import "./StockTable.scss";
+import StockRow from "./StockRow";
+import { getBoardData } from "../../services/marketApi";
+import { checkIsMarketOpen } from "../../utils/marketUtils";
+
+// Dữ liệu mẫu để hiển thị cấu trúc bảng
+const mockStocks = [
+  {
+    ticker: "ACB",
+    companyName: "Banking",
+    ceiling: 26.2,
+    ref: 24.2,
+    floor: 22.8,
+    bid3Price: 24.0,
+    bid3Vol: "2.33M",
+    bid2Price: 24.1,
+    bid2Vol: "1.23K",
+    bid1Price: 24.1,
+    bid1Vol: "3.46K",
+    matchPrice: 24.2,
+    matchVol: "3.46K",
+    matchChange: -0.3,
+    matchChangePercent: -1.22,
+    ask1Price: 24.3,
+    ask1Vol: "456.0K",
+    ask2Price: 24.5,
+    ask2Vol: "899.0K",
+    ask3Price: 24.5,
+    ask3Vol: "756.7K",
+    totalVol: "12.35M",
+    foreignBuy: "898.8K",
+    foreignSell: "1.23M",
+  },
+  {
+    ticker: "BID",
+    companyName: "Banking",
+    ceiling: 45.8,
+    ref: 42.8,
+    floor: 39.8,
+    bid3Price: 43.3,
+    bid3Vol: "778.0K",
+    bid2Price: 43.4,
+    bid2Vol: "734.5K",
+    bid1Price: 43.5,
+    bid1Vol: "107.1K",
+    matchPrice: 43.5,
+    matchVol: "708.2K",
+    matchChange: +0.7,
+    matchChangePercent: +1.64,
+    ask1Price: 43.6,
+    ask1Vol: "456.7K",
+    ask2Price: 43.8,
+    ask2Vol: "749.2K",
+    ask3Price: 43.8,
+    ask3Vol: "234.5K",
+    totalVol: "2.35M",
+    foreignBuy: "678.9K",
+    foreignSell: "234.5K",
+  },
+  {
+    ticker: "CTG",
+    companyName: "Banking",
+    ceiling: 36.9,
+    ref: 34.5,
+    floor: 32.1,
+    bid3Price: 33.9,
+    bid3Vol: "651.0K",
+    bid2Price: 34.0,
+    bid2Vol: "778.8K",
+    bid1Price: 34.0,
+    bid1Vol: "107.7K",
+    matchPrice: 34.1,
+    matchVol: "523.5K",
+    matchChange: -0.4,
+    matchChangePercent: -1.16,
+    ask1Price: 34.2,
+    ask1Vol: "749.0K",
+    ask2Price: 34.3,
+    ask2Vol: "741.2K",
+    ask3Price: 34.4,
+    ask3Vol: "234.0K",
+    totalVol: "5.68M",
+    foreignBuy: "234.5K",
+    foreignSell: "567.8K",
+  },
+  {
+    ticker: "FPT",
+    companyName: "Technology",
+    ceiling: 141.8,
+    ref: 132.5,
+    floor: 123.2,
+    bid3Price: 135.0,
+    bid3Vol: "351.0K",
+    bid2Price: 135.1,
+    bid2Vol: "234.5K",
+    bid1Price: 135.2,
+    bid1Vol: "234.5K",
+    matchPrice: 135.2,
+    matchVol: "135.4K",
+    matchChange: +2.7,
+    matchChangePercent: +2.04,
+    ask1Price: 135.3,
+    ask1Vol: "987.6K",
+    ask2Price: 135.4,
+    ask2Vol: "456.7K",
+    ask3Price: 135.5,
+    ask3Vol: "89.6K",
+    totalVol: "987.6K",
+    foreignBuy: "456.7K",
+    foreignSell: "89.6K",
+  },
+];
+
+/**
+ * StockTable - Cấu trúc bảng HTML cho bảng giá
+ * Nhận dữ liệu từ props
+ */
+const StockTable = (props) => {
+  const [displayStocks, setDisplayStocks] = useState(mockStocks);
+  const [loading, setLoading] = useState(false);
+  const [marketOpen, setMarketOpen] = useState(checkIsMarketOpen());
+
+  const fetchBoard = async () => {
+    setLoading(true);
+    // Sử dụng props.selectedGroup thay vì hard-code "VN30"
+    const result = await getBoardData(props.selectedGroup || "VN30");
+
+    if (result && result.success) {
+      if (result.data && result.data.length > 0) {
+        setDisplayStocks(result.data);
+      }
+      // Tự xác định trạng thái thị trường
+      setMarketOpen(checkIsMarketOpen());
+    }
+    setLoading(false);
+  };
+
+  // 2. Gọi API trong useEffect
+  useEffect(() => {
+    // Nếu cha đã truyền props.stocks xuống thì khỏi gọi API
+    if (props.stocks) return;
+
+    fetchBoard();
+
+    // Chỉ set interval nếu thị trường đang mở
+    let interval;
+    if (marketOpen) {
+      // Refresh mỗi 30 giây trong giờ giao dịch
+      interval = setInterval(fetchBoard, 30000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [props.stocks, props.selectedGroup, marketOpen]); // Thêm marketOpen vào dependency array
+
+  useEffect(() => {
+    let inc = 0,
+      dec = 0,
+      ref = 0,
+      ceil = 0,
+      flr = 0;
+
+    for (let i = 0; i < displayStocks.length; i++) {
+      const stock = displayStocks[i];
+      // Nếu chưa có giá khớp, ta coi như giá Tham chiếu (đứng im)
+      if (!stock.matchPrice || stock.matchPrice === 0) {
+        ref++;
+        continue;
+      }
+
+      if (stock.matchPrice > stock.refPrice) {
+        inc++;
+        if (stock.matchPrice >= stock.ceiling) ceil++;
+      } else if (stock.matchPrice < stock.refPrice) {
+        dec++;
+        if (stock.matchPrice <= stock.floor) flr++;
+      } else {
+        ref++;
+      }
+    }
+
+    // 2. SAU KHI ĐẾM XONG, GỌI HÀM CỦA CHA ĐỂ ĐẨY DỮ LIỆU LÊN!
+    if (props.onUpdateStats) {
+      props.onUpdateStats({
+        increase: inc,
+        decrease: dec,
+        ref: ref,
+        ceiling: ceil,
+        floor: flr,
+      });
+    }
+  }, [displayStocks]); // Chạy lại hàm này mỗi khi danh sách cổ phiếu cập nhật
+
+  return (
+    <div className="stock-table-wrapper">
+      {/* Hiệu ứng Loading Overlay */}
+      {loading && (
+        <div className="stock-table-loading">
+          <div className="spinner"></div>
+          <span>Đang tải dữ liệu...</span>
+        </div>
+      )}
+
+      <table className={`stock-table ${loading ? "stock-table--loading" : ""}`}>
+        <thead className="stock-table__head">
+          <tr>
+            {/* Cột cơ bản */}
+            <th className="th-ticker" rowSpan={2}>
+              Mã CK ↑
+            </th>
+            <th className="th-price th-ref" rowSpan={2}>
+              TC
+            </th>
+            <th className="th-price th-ceiling" rowSpan={2}>
+              Trần
+            </th>
+            <th className="th-price th-floor" rowSpan={2}>
+              Sàn
+            </th>
+
+            {/* BID group */}
+            <th className="th-group th-bid" colSpan={3}>
+              Bên mua
+            </th>
+
+            {/* MATCH group */}
+            <th className="th-group th-match" colSpan={3}>
+              Khớp lệnh
+            </th>
+
+            {/* ASK group */}
+            <th className="th-group th-ask" colSpan={3}>
+              Bên bán
+            </th>
+
+            {/* Tổng KL */}
+            <th className="th-total-vol" rowSpan={2}>
+              Tổng KL
+            </th>
+
+            {/* CAO / THẤP*/}
+            <th className="th-price" rowSpan={2}>
+              Cao
+            </th>
+            <th className="th-price" rowSpan={2}>
+              Thấp
+            </th>
+
+            {/* FOREIGN */}
+            <th className="th-group th-foreign" colSpan={3}>
+              Nước ngoài
+            </th>
+          </tr>
+
+          {/* Hàng thứ 2 của header */}
+          <tr>
+            {/* BID sub-headers */}
+            <th className="th-sub th-bid">Giá 3 / KL 3</th>
+            <th className="th-sub th-bid">Giá 2 / KL 2</th>
+            <th className="th-sub th-bid">Giá 1 / KL 1</th>
+
+            {/* MATCH sub-headers */}
+            <th className="th-sub th-match">Giá / KL</th>
+            <th className="th-sub th-match">+/-</th>
+            <th className="th-sub th-match">+/- (%)</th>
+
+            {/* ASK sub-headers */}
+            <th className="th-sub th-ask">Giá 1 / KL 1</th>
+            <th className="th-sub th-ask">Giá 2 / KL 2</th>
+            <th className="th-sub th-ask">Giá 3 / KL 3</th>
+
+            {/* FOREIGN sub-headers */}
+            <th className="th-sub th-foreign">NN Mua</th>
+            <th className="th-sub th-foreign">NN Bán</th>
+            <th className="th-sub th-foreign">Room</th>
+          </tr>
+        </thead>
+
+        <tbody className="stock-table__body">
+          {displayStocks.map((stock, index) => (
+            <StockRow
+              key={stock.symbol || index}
+              stock={stock}
+              onRowClick={props.onRowClick}
+              isSelected={props.selectedTicker === stock.symbol}
+            />
+          ))}
+        </tbody>
+      </table>
+
+      {/* Footer tổng số mã */}
+      <div className="stock-table__footer">
+        Showing {displayStocks.length} / {displayStocks.length} stocks
+      </div>
+    </div>
+  );
+};
+
+export default StockTable;

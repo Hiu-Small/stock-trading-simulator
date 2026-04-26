@@ -1,0 +1,104 @@
+// =============================================
+// StockRow.scss
+// Từng dòng cổ phiếu trong bảng giá
+// =============================================
+
+.stock-row {
+  cursor: pointer;
+
+  td {
+    padding: 4px 2px;
+    text-align: center;
+    font-size: 11.5px;
+    vertical-align: middle;
+    white-space: nowrap;
+    color: #ccccdd;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  // ===== Trạng thái được chọn =====
+  &--selected {
+    background: rgba(38, 166, 154, 0.08) !important;
+    outline: 1px solid #26a69a44;
+  }
+
+  // ===== Cột ticker =====
+  .col-ticker {
+    text-align: left;
+    padding-left: 10px;
+
+    .ticker-symbol {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #e0e0f0;
+    }
+
+    .ticker-company {
+      display: block;
+      font-size: 8.5px;
+      color: #6666aa;
+    }
+  }
+
+  // ===== Cột giá =====
+  .col-price {
+    font-weight: 600;
+    font-size: 12px;
+    background-color: #262630;
+  }
+
+  // ===== Cột BID/ASK =====
+  .col-bid,
+  .col-ask {
+    .cell-price {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .cell-vol {
+      font-size: 9.5px;
+      color: #aaaacc;
+      line-height: 1.1;
+    }
+  }
+
+  // ===== Cột khớp lệnh =====
+  .col-match {
+    background-color: #262630;
+    .cell-price--bold {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .cell-vol {
+      font-size: 9.5px;
+      color: #aaaacc;
+    }
+  }
+
+  // ===== Cột thay đổi =====
+  .col-change,
+  .col-change-pct {
+    font-weight: 600;
+    font-size: 12px;
+    background-color: #262630;
+  }
+
+  // ===== Tổng KL =====
+  .col-total-vol {
+    font-size: 12px;
+    font-weight: 600;
+    color: #ccccdd;
+    background-color: #262630;
+  }
+
+  // ===== Khối ngoại =====
+  .col-foreign {
+    font-size: 12px;
+    font-weight: 600;
+  }
+}

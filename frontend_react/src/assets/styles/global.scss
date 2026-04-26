@@ -1,0 +1,30 @@
+@import "./variables";
+
+// =============================================
+// global.scss
+// Chứa các class helper dùng chung toàn dự án
+// =============================================
+
+.price--ceiling {
+  @include price-text($color-ceiling);
+}
+
+.price--floor {
+  @include price-text($color-floor);
+}
+
+.price--up {
+  @include price-text($color-up);
+}
+
+.price--down {
+  @include price-text($color-down);
+}
+
+.price--ref {
+  @include price-text($color-ref);
+}
+
+.price--white {
+  @include price-text($color-white);
+}

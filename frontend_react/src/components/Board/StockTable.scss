@@ -1,0 +1,146 @@
+// ===== Wrapper =====
+.stock-table-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.stock-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  table-layout: fixed;
+
+  // ===== Head =====
+  &__head {
+    background: #1a1a30;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
+    th {
+      padding: 4px 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #8888aa;
+      text-align: center;
+      box-shadow: inset 0 -1px 0 #2d2d44; // Thay thế border-bottom bằng box-shadow
+      white-space: nowrap;
+      user-select: none;
+      background: #1a1a30; // Đảm bảo background cho từng th để sticky hoạt động tốt
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    // Group headers
+    .th-group {
+      font-size: 12px;
+      letter-spacing: 0.2px;
+      box-shadow: inset 0 -1px 0 #2d2d44 !important;
+      color: #aaaabb !important;
+      padding: 10px;
+    }
+
+    .th-ticker {
+      text-align: left;
+      padding-left: 10px;
+      width: 65px;
+      font-size: 11px;
+    }
+    .th-price {
+      width: 48px;
+    }
+    .th-sub {
+      font-size: 10px;
+      width: 50px;
+      color: #8888aa;
+      padding: 8px;
+
+      &.th-match {
+        width: 35px; // Hẹp lại cho +/- và +/- %
+
+        &:first-of-type {
+          width: 55px; // Rộng hơn cho cột Giá / KL
+        }
+      }
+    }
+  }
+
+  // ===== Body =====
+  &__body tr {
+    background: #1a1a30; // Dòng lẻ trùng màu với Header/Web
+    border-bottom: 1px solid #2d2d44;
+    transition: background 0.1s;
+
+    &:nth-child(even) {
+      background: #111111; // Dòng chẵn tối hơn
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+
+  // ===== Footer =====
+  &__footer {
+    padding: 6px 12px;
+    font-size: 11px;
+    color: #6666aa;
+    border-top: 1px solid #2d2d44;
+    background: #12122a;
+    flex-shrink: 0;
+  }
+}
+
+// ===== Loading Styles =====
+.stock-table-wrapper {
+  position: relative;
+  min-height: 300px; // Đảm bảo có không gian hiển thị spinner
+}
+
+.stock-table-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000; // Đưa lên trên cùng
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5); // Nền tối hơn
+  backdrop-filter: blur(6px); // Tăng độ mờ cho bảng bên dưới
+  color: #fff;
+  gap: 15px;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.1);
+    border-top: 5px solid #26a69a; // Màu xanh đậm nét hơn
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    box-shadow: 0 0 15px rgba(38, 166, 154, 0.3);
+  }
+
+  span {
+    font-size: 15px;
+    font-weight: 600;
+    color: #26a69a; // Chữ cùng tông màu spinner cho chuyên nghiệp
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+}
+
+.stock-table--loading {
+  filter: blur(2px) grayscale(0.5); // Làm mờ và giảm bớt màu của bảng khi load
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
