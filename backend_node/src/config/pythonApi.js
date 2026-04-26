@@ -11,6 +11,7 @@ const PYTHON_API = {
   INDEX_HISTORY: (symbol) => `${PYTHON_API_BASE}/api/indices/${symbol}/history`,
   HEALTH: `${PYTHON_API_BASE}/api/health`,
   BOARD: (group) => `${PYTHON_API_BASE}/api/board/${group}`,
+  STOCK: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}`,
 };
 
 export default PYTHON_API;

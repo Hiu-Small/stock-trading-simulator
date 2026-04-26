@@ -7,7 +7,7 @@ import { checkIsMarketOpen } from "../../utils/marketUtils";
 // Dữ liệu mẫu để hiển thị cấu trúc bảng
 const mockStocks = [
   {
-    ticker: "ACB",
+    symbol: "ACB",
     companyName: "Banking",
     ceiling: 26.2,
     ref: 24.2,
@@ -33,7 +33,7 @@ const mockStocks = [
     foreignSell: "1.23M",
   },
   {
-    ticker: "BID",
+    symbol: "BID",
     companyName: "Banking",
     ceiling: 45.8,
     ref: 42.8,
@@ -59,7 +59,7 @@ const mockStocks = [
     foreignSell: "234.5K",
   },
   {
-    ticker: "CTG",
+    symbol: "CTG",
     companyName: "Banking",
     ceiling: 36.9,
     ref: 34.5,
@@ -85,7 +85,7 @@ const mockStocks = [
     foreignSell: "567.8K",
   },
   {
-    ticker: "FPT",
+    symbol: "FPT",
     companyName: "Technology",
     ceiling: 141.8,
     ref: 132.5,
@@ -120,6 +120,7 @@ const StockTable = (props) => {
   const [displayStocks, setDisplayStocks] = useState(mockStocks);
   const [loading, setLoading] = useState(false);
   const [marketOpen, setMarketOpen] = useState(checkIsMarketOpen());
+  const [sortOrder, setSortOrder] = useState("asc");
 
   const fetchBoard = async () => {
     setLoading(true);
@@ -136,7 +137,14 @@ const StockTable = (props) => {
     setLoading(false);
   };
 
-  // 2. Gọi API trong useEffect
+  // 2. Đồng bộ dữ liệu khi props.stocks thay đổi (Dùng cho Tìm kiếm)
+  useEffect(() => {
+    if (props.stocks) {
+      setDisplayStocks(props.stocks);
+    }
+  }, [props.stocks]);
+
+  // 3. Gọi API trong useEffect
   useEffect(() => {
     // Nếu cha đã truyền props.stocks xuống thì khỏi gọi API
     if (props.stocks) return;
@@ -193,6 +201,21 @@ const StockTable = (props) => {
     }
   }, [displayStocks]); // Chạy lại hàm này mỗi khi danh sách cổ phiếu cập nhật
 
+  const handleSortSymbol = () => {
+    const newOrder = sortOrder === "asc" ? "desc" : "asc";
+    setSortOrder(newOrder);
+
+    const sortedData = [...displayStocks].sort((a, b) => {
+      if (newOrder === "asc") {
+        return a.symbol.localeCompare(b.symbol);
+      } else {
+        return b.symbol.localeCompare(a.symbol);
+      }
+    });
+
+    setDisplayStocks(sortedData);
+  };
+
   return (
     <div className="stock-table-wrapper">
       {/* Hiệu ứng Loading Overlay */}
@@ -207,8 +230,16 @@ const StockTable = (props) => {
         <thead className="stock-table__head">
           <tr>
             {/* Cột cơ bản */}
-            <th className="th-ticker" rowSpan={2}>
-              Mã CK ↑
+            <th
+              className="th-ticker"
+              rowSpan={2}
+              onClick={() => handleSortSymbol()}
+              style={{ cursor: "pointer" }}
+            >
+              Mã CK{" "}
+              <span className="sort-icon">
+                {sortOrder === "asc" ? "↑" : "↓"}
+              </span>
             </th>
             <th className="th-price th-ref" rowSpan={2}>
               TC
@@ -279,20 +310,35 @@ const StockTable = (props) => {
         </thead>
 
         <tbody className="stock-table__body">
-          {displayStocks.map((stock, index) => (
-            <StockRow
-              key={stock.symbol || index}
-              stock={stock}
-              onRowClick={props.onRowClick}
-              isSelected={props.selectedTicker === stock.symbol}
-            />
-          ))}
+          {displayStocks
+            .filter((stock) => {
+              if (props.showActiveOnly) {
+                return (stock.totalVolume || 0) > 0;
+              }
+              return true;
+            })
+            .map((stock, index) => (
+              <StockRow
+                key={stock.symbol || index}
+                stock={stock}
+                onRowClick={props.onRowClick}
+                isSelected={props.selectedTicker === stock.symbol}
+              />
+            ))}
         </tbody>
       </table>
 
       {/* Footer tổng số mã */}
       <div className="stock-table__footer">
-        Showing {displayStocks.length} / {displayStocks.length} stocks
+        {props.showActiveOnly ? (
+          <span>
+            Showing {displayStocks.filter(s => (s.totalVolume || 0) > 0).length} / {displayStocks.length} active stocks
+          </span>
+        ) : (
+          <span>
+            Showing {displayStocks.length} / {displayStocks.length} stocks
+          </span>
+        )}
       </div>
     </div>
   );

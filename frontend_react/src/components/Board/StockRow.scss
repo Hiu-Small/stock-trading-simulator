@@ -28,12 +28,19 @@
   .col-ticker {
     text-align: left;
     padding-left: 10px;
+    min-width: 95px;
+    max-width: 105px; // Khóa luôn độ rộng tối đa để bảng không bị xô lệch
+    padding-right: 8px; // Thêm khoảng trống để chữ không dính sát vào vách cột TC
 
     .ticker-symbol {
       display: block;
       font-size: 13px;
       font-weight: 700;
       color: #e0e0f0;
+
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .ticker-company {

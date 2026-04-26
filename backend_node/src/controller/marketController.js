@@ -129,10 +129,40 @@ const checkHealth = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/market/stock/:symbol
+ * Lấy chi tiết 1 cổ phiếu
+ */
+const getStockDetail = async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    if (!symbol) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu tham số symbol",
+      });
+    }
+
+    const data = await marketService.getStockDetail(symbol.toUpperCase());
+    if (data && data.success === false) {
+      return res.status(404).json(data);
+    }
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("[marketController] getStockDetail lỗi:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy chi tiết cổ phiếu",
+      error: err.message,
+    });
+  }
+};
+
 export default {
   getAllIndices,
   getIndexBySymbol,
   getIndexHistory,
   getBoardByGroup,
+  getStockDetail,
   checkHealth,
 };

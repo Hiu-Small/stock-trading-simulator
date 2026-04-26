@@ -55,8 +55,9 @@ const BoardHeader = (props) => {
       {/* ===== Bộ lọc & Cài đặt ===== */}
       <div className="board-header__actions">
         <button
-          className="board-action-btn board-action-btn--active"
+          className={`board-action-btn ${props.showActiveOnly ? "board-action-btn--active" : ""}`}
           id="btn-active-only"
+          onClick={props.onToggleActiveOnly}
         >
           <i className="fa-solid fa-filter"></i>
           Active Only
@@ -66,12 +67,6 @@ const BoardHeader = (props) => {
           <i className="fa-solid fa-table-columns"></i>
           Columns
         </button>
-
-        {/* Giờ phiên ATO / ATC */}
-        <div className="board-header__session-time">
-          <i className="fa-solid fa-clock"></i>
-          <span>14:22:35</span>
-        </div>
       </div>
     </div>
   );

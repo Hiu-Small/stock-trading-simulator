@@ -8,6 +8,7 @@ import { checkIsMarketOpen, getMarketStatus } from "../../utils/marketUtils";
 const HomePage = () => {
   const [isMarketOpen, setIsMarketOpen] = useState(checkIsMarketOpen());
   const [marketStatus, setMarketStatus] = useState(getMarketStatus());
+  const [searchTicker, setSearchTicker] = useState(null);
 
   // Cập nhật trạng thái mỗi phút
   useEffect(() => {
@@ -18,16 +19,24 @@ const HomePage = () => {
     return () => clearInterval(timer);
   }, []);
 
+  const handleSearch = (symbol) => {
+    setSearchTicker(symbol);
+  };
+
   return (
     <>
       {/* Navbar trên cùng */}
-      <Nav isMarketOpen={isMarketOpen} marketStatus={marketStatus} />
+      <Nav 
+        isMarketOpen={isMarketOpen} 
+        marketStatus={marketStatus} 
+        onSearch={handleSearch}
+      />
 
       {/* Dải chỉ số thị trường */}
       <MarketSummary onStatusChange={setIsMarketOpen} />
 
       {/* Khu vực chính: Sidebar + PriceBoard */}
-      <MainContent />
+      <MainContent searchTicker={searchTicker} />
     </>
   );
 };

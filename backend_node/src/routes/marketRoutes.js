@@ -27,6 +27,10 @@ const initMarketRoutes = (app) => {
   // VD: /api/market/board/VN30
   router.get("/board/:group", marketController.getBoardByGroup);
 
+  // GET /api/market/stock/:symbol - Lấy chi tiết 1 cổ phiếu
+  // VD: /api/market/stock/AAA
+  router.get("/stock/:symbol", marketController.getStockDetail);
+
   return app.use("/api/market", router);
 };
 

@@ -219,5 +219,62 @@ def get_stock_board(group: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/stock/{symbol}")
+def get_stock_detail(symbol: str):
+    """
+    Lấy thông tin chi tiết của một mã cổ phiếu (AAA, FPT, ACB...).
+    """
+    symbol = symbol.upper()
+    try:
+        from vnstock import Trading
+        # Lấy dữ liệu bảng giá cho 1 mã duy nhất
+        board_df = Trading(source='vci').price_board([symbol])
+        
+        if board_df is None or board_df.empty:
+            raise HTTPException(status_code=404, detail=f"Không tìm thấy dữ liệu cho mã {symbol}")
+            
+        row = board_df.iloc[0]
+        def get_val(col_tuple, default=0):
+            val = row.get(col_tuple, default)
+            if pd.isna(val): return default
+            return val.item() if hasattr(val, 'item') else val
+
+        record = {
+            "symbol": symbol,
+            "refPrice": get_val(('listing', 'ref_price')),
+            "ceiling": get_val(('listing', 'ceiling')),
+            "floor": get_val(('listing', 'floor')),
+            "matchPrice": get_val(('match', 'match_price')),
+            "matchVolume": get_val(('match', 'match_vol')),
+            "totalVolume": get_val(('match', 'accumulated_volume')),
+            "high": get_val(('match', 'highest')),
+            "low": get_val(('match', 'lowest')),
+            "bid1Price": get_val(('bid_ask', 'bid_1_price')),
+            "bid1Vol": get_val(('bid_ask', 'bid_1_volume')),
+            "bid2Price": get_val(('bid_ask', 'bid_2_price')),
+            "bid2Vol": get_val(('bid_ask', 'bid_2_volume')),
+            "bid3Price": get_val(('bid_ask', 'bid_3_price')),
+            "bid3Vol": get_val(('bid_ask', 'bid_3_volume')),
+            "ask1Price": get_val(('bid_ask', 'ask_1_price')),
+            "ask1Vol": get_val(('bid_ask', 'ask_1_volume')),
+            "ask2Price": get_val(('bid_ask', 'ask_2_price')),
+            "ask2Vol": get_val(('bid_ask', 'ask_2_volume')),
+            "ask3Price": get_val(('bid_ask', 'ask_3_price')),
+            "ask3Vol": get_val(('bid_ask', 'ask_3_volume')),
+            "foreignBuy": get_val(('match', 'foreign_buy_volume')),
+            "foreignSell": get_val(('match', 'foreign_sell_volume')),
+            "currentRoom": get_val(('match', 'current_room')),
+        }
+            
+        return {
+            "success": True,
+            "data": record,
+            "updatedAt": datetime.now().isoformat()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

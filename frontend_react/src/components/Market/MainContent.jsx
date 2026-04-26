@@ -7,7 +7,7 @@ import PriceBoard from "../Board/PriceBoard";
  * MainContent - Khu vực chính bên dưới thanh MarketSummary
  * Layout: Sidebar (trái) + PriceBoard (giữa/phải)
  */
-const MainContent = () => {
+const MainContent = (props) => {
   return (
     <div className="main-content">
       {/* ===== Sidebar bên trái ===== */}
@@ -15,7 +15,7 @@ const MainContent = () => {
 
       {/* ===== Bảng giá trung tâm ===== */}
       <div className="main-content__board">
-        <PriceBoard />
+        <PriceBoard searchTicker={props.searchTicker} />
       </div>
     </div>
   );

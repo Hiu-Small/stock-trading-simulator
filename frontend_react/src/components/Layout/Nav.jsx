@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Nav.scss";
 import { NavLink } from "react-router-dom";
 
 const Nav = (props) => {
+  const [searchTerm, setSearchTerm] = useState("");
   return (
     <div className="nav-container">
       <div className="left-container">
@@ -38,7 +39,17 @@ const Nav = (props) => {
             <i className="fa-solid fa-magnifying-glass"></i>
           </div>
           <div className="input-search">
-            <input placeholder="Search Ticker..." />
+            <input 
+              placeholder="Search Ticker..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  props.onSearch(searchTerm);
+                  setSearchTerm(""); // Reset sau khi tìm
+                }
+              }}
+            />
           </div>
         </div>
 

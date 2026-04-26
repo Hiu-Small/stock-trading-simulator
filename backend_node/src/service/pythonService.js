@@ -38,6 +38,13 @@ const fetchBoardByGroup = (group) => {
 };
 
 /**
+ * Gọi API lấy thông tin chi tiết cổ phiếu
+ */
+const fetchStockDetail = (symbol) => {
+  return axios.get(PYTHON_API.STOCK(symbol), { timeout: 8000 });
+};
+
+/**
  * Kiểm tra sức khỏe Python API
  */
 const fetchHealth = () => {
@@ -49,5 +56,6 @@ export default {
   fetchIndexBySymbol,
   fetchIndexHistory,
   fetchBoardByGroup,
+  fetchStockDetail,
   fetchHealth,
 };

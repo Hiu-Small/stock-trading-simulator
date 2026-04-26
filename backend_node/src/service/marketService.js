@@ -108,6 +108,23 @@ const getBoardByGroup = async (group) => {
 };
 
 /**
+ * Lấy chi tiết 1 cổ phiếu
+ */
+const getStockDetail = async (symbol) => {
+  try {
+    const res = await pythonService.fetchStockDetail(symbol);
+    return res.data;
+  } catch (err) {
+    console.error(`[marketService] Lỗi lấy chi tiết ${symbol}:`, err.message);
+    return {
+      success: false,
+      pythonError: err.message,
+      data: null,
+    };
+  }
+};
+
+/**
  * Kiểm tra Python API có đang chạy không
  */
 const checkPythonHealth = async () => {
@@ -184,5 +201,6 @@ export default {
   getIndexBySymbol,
   getIndexHistory,
   getBoardByGroup,
+  getStockDetail,
   checkPythonHealth,
 };

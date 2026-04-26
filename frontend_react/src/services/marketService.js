@@ -14,7 +14,7 @@ const fetchIndexBySymbol = (symbol) => {
 
 const fetchIndexHistory = (symbol, days, interval) => {
   return axios.get(`/api/market/indices/${symbol}/history`, {
-    params: { days, interval }
+    params: { days, interval },
   });
 };
 
@@ -26,10 +26,15 @@ const fetchBoardByGroup = (group) => {
   return axios.get(`/api/market/board/${group}`);
 };
 
+const fetchStockDetail = (symbol) => {
+  return axios.get(`/api/market/stock/${symbol}`);
+};
+
 export {
   fetchAllIndices,
   fetchIndexBySymbol,
   fetchIndexHistory,
   fetchBoardByGroup,
-  checkBackendHealth
+  checkBackendHealth,
+  fetchStockDetail,
 };

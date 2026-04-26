@@ -47,6 +47,13 @@
       padding-left: 10px;
       width: 65px;
       font-size: 11px;
+
+      .sort-icon {
+        font-weight: 900;
+        font-size: 15px;
+        line-height: 1;
+        margin-left: 5px;
+      }
     }
     .th-price {
       width: 48px;
@@ -141,6 +148,10 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

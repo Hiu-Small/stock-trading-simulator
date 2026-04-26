@@ -7,7 +7,7 @@ import * as marketService from "./marketService";
 const fetchAllIndices = async () => {
   try {
     const res = await marketService.fetchAllIndices();
-    return res; 
+    return res;
   } catch (err) {
     console.error("[marketApi] fetchAllIndices lỗi:", err.message);
     return { success: false, data: getFallbackIndices() };
@@ -66,6 +66,20 @@ const getBoardData = async (group = "VN30") => {
   } catch (err) {
     console.error(`[marketApi] getBoardData ${group} lỗi:`, err.message);
     return { success: false, data: [] };
+  }
+};
+
+/**
+ * Lấy thông tin chi tiết của 1 mã cổ phiếu
+ * @param {string} symbol - Mã CK (VD: "AAA")
+ */
+const fetchStockDetail = async (symbol) => {
+  try {
+    const response = await marketService.fetchStockDetail(symbol);
+    return response;
+  } catch (err) {
+    console.error(`[marketApi] fetchStockDetail ${symbol} lỗi:`, err.message);
+    return { success: false, data: null };
   }
 };
 
@@ -139,4 +153,5 @@ export {
   fetchIndexHistory,
   checkBackendHealth,
   getBoardData,
+  fetchStockDetail,
 };
