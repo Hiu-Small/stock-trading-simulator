@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import "./PriceBoard.scss";
 import BoardHeader from "./BoardHeader";
 import StockTable from "./StockTable";
-import StockDetailPanel from "./StockDetailPanel";
 import { toast } from "react-toastify";
+import StockDetailModal from "../StockModal/StockDetailModal";
 import { fetchStockDetail } from "../../services/marketApi";
 
 /**
@@ -13,6 +13,7 @@ import { fetchStockDetail } from "../../services/marketApi";
 const PriceBoard = (props) => {
   // State: mã cổ phiếu đang được click để hiển thị chi tiết
   const [selectedTicker, setSelectedTicker] = useState(null);
+  const [selectedStockData, setSelectedStockData] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState("VN30"); // Nhóm đang chọn: VN30, HNX30, HOSE...
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [searchResults, setSearchResults] = useState(null);
@@ -43,23 +44,41 @@ const PriceBoard = (props) => {
     floor: 0,
   });
 
-  const handleRowClick = (ticker) => {
-    // Toggle: click vào mã đang chọn thì đóng panel
-    setSelectedTicker((prev) => (prev === ticker ? null : ticker));
+  const handleRowClick = async (ticker) => {
+    // Nếu click mã đang chọn thì đóng
+    if (selectedTicker === ticker) {
+      setSelectedTicker(null);
+      setSelectedStockData(null);
+      return;
+    }
+
+    setSelectedTicker(ticker);
+    // Gọi API lấy chi tiết ngay lập tức
+    try {
+      const result = await fetchStockDetail(ticker);
+      if (result && result.success) {
+        setSelectedStockData(result.data);
+      }
+    } catch (error) {
+      console.error("Lỗi lấy chi tiết cổ phiếu:", error);
+    }
   };
 
   const handleCloseDetail = () => {
     setSelectedTicker(null);
+    setSelectedStockData(null);
   };
 
   const handleUpdateStats = (newStats) => {
     setStateStock(newStats);
+    // Đẩy thống kê lên HomePage để đồng bộ với MarketSummary
+    if (props.onUpdateGroupStats) {
+      props.onUpdateGroupStats(selectedGroup, newStats);
+    }
   };
 
   return (
-    <div
-      className={`price-board ${selectedTicker ? "price-board--detail-open" : ""}`}
-    >
+    <div className="price-board">
       {/* ===== Phần chính: BoardHeader + StockTable ===== */}
       <div className="price-board__main">
         <BoardHeader
@@ -90,9 +109,13 @@ const PriceBoard = (props) => {
         />
       </div>
 
-      {/* ===== Panel chi tiết cổ phiếu (hiện khi có ticker được chọn) ===== */}
+      {/* ===== Modal chi tiết cổ phiếu ===== */}
       {selectedTicker && (
-        <StockDetailPanel ticker={selectedTicker} onClose={handleCloseDetail} />
+        <StockDetailModal 
+          symbol={selectedTicker} 
+          data={selectedStockData} 
+          onClose={handleCloseDetail} 
+        />
       )}
     </div>
   );

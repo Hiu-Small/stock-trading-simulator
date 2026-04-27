@@ -37,6 +37,24 @@ const IndexCard = (props) => {
         <div className={`index-change ${colorClass}`}>
           {displayChange} &nbsp;|&nbsp; {displayChangePercent}
         </div>
+
+        {/* THỐNG KÊ MÃ TĂNG/GIẢM/TC (Phong cách chuyên nghiệp) */}
+        <div className="index-stats">
+          <span className="stats-item stats-up">
+            <i className="fa-solid fa-arrow-up"></i>
+            {props.data.advances || 0}
+            <span className="stats-sub">({props.data.ceilings || 0})</span>
+          </span>
+          <span className="stats-item stats-ref">
+            <span className="bar-ref"></span>
+            {props.data.noChange || 0}
+          </span>
+          <span className="stats-item stats-down">
+            <i className="fa-solid fa-arrow-down"></i>
+            {props.data.declines || 0}
+            <span className="stats-sub">({props.data.floors || 0})</span>
+          </span>
+        </div>
       </div>
 
       {/* CỘT 2: Nhóm Biểu đồ và Khối lượng */}

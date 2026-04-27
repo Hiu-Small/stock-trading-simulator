@@ -62,3 +62,37 @@ export const getMarketStatus = () => {
 
   return "CLOSED";
 };
+
+/**
+ * Tính toán thống kê Tăng/Giảm/Trần/Sàn từ danh sách cổ phiếu
+ */
+export const calculateMarketStats = (stocks) => {
+  let increase = 0,
+    decrease = 0,
+    ref = 0,
+    ceiling = 0,
+    floor = 0;
+
+  if (!stocks || !Array.isArray(stocks)) {
+    return { increase, decrease, ref, ceiling, floor };
+  }
+
+  for (let i = 0; i < stocks.length; i++) {
+    const stock = stocks[i];
+
+    // CHỈ tính toán cho CỔ PHIẾU (3 ký tự) và CÓ GIAO DỊCH
+    if (stock.symbol && stock.symbol.length === 3 && (stock.totalVolume || 0) > 0) {
+      if (stock.matchPrice === stock.refPrice) {
+        ref++;
+      } else if (stock.matchPrice > stock.refPrice) {
+        increase++;
+        if (stock.matchPrice >= stock.ceiling) ceiling++;
+      } else if (stock.matchPrice < stock.refPrice) {
+        decrease++;
+        if (stock.matchPrice <= stock.floor) floor++;
+      }
+    }
+  }
+
+  return { increase, decrease, ref, ceiling, floor };
+};

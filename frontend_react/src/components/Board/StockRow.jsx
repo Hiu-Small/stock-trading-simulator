@@ -58,7 +58,6 @@ const StockRow = (props) => {
         <span className={`ticker-symbol ${getPriceColor(stock.matchPrice)}`}>
           {stock.symbol}
         </span>
-        <span className="ticker-company">{stock.companyName}</span>
       </td>
 
       {/* ===== Giá Tham Chiếu / Trần / Sàn ===== */}

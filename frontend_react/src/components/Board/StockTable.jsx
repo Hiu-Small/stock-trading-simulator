@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./StockTable.scss";
 import StockRow from "./StockRow";
 import { getBoardData } from "../../services/marketApi";
-import { checkIsMarketOpen } from "../../utils/marketUtils";
+import { checkIsMarketOpen, calculateMarketStats } from "../../utils/marketUtils";
 
 // Dữ liệu mẫu để hiển thị cấu trúc bảng
 const mockStocks = [
@@ -164,39 +164,16 @@ const StockTable = (props) => {
   }, [props.stocks, props.selectedGroup, marketOpen]); // Thêm marketOpen vào dependency array
 
   useEffect(() => {
-    let inc = 0,
-      dec = 0,
-      ref = 0,
-      ceil = 0,
-      flr = 0;
-
-    for (let i = 0; i < displayStocks.length; i++) {
-      const stock = displayStocks[i];
-      // Nếu chưa có giá khớp, ta coi như giá Tham chiếu (đứng im)
-      if (!stock.matchPrice || stock.matchPrice === 0) {
-        ref++;
-        continue;
-      }
-
-      if (stock.matchPrice > stock.refPrice) {
-        inc++;
-        if (stock.matchPrice >= stock.ceiling) ceil++;
-      } else if (stock.matchPrice < stock.refPrice) {
-        dec++;
-        if (stock.matchPrice <= stock.floor) flr++;
-      } else {
-        ref++;
-      }
-    }
-
+    const stats = calculateMarketStats(displayStocks);
+    
     // 2. SAU KHI ĐẾM XONG, GỌI HÀM CỦA CHA ĐỂ ĐẨY DỮ LIỆU LÊN!
     if (props.onUpdateStats) {
       props.onUpdateStats({
-        increase: inc,
-        decrease: dec,
-        ref: ref,
-        ceiling: ceil,
-        floor: flr,
+        increase: stats.increase,
+        decrease: stats.decrease,
+        ref: stats.ref,
+        ceiling: stats.ceiling,
+        floor: stats.floor,
       });
     }
   }, [displayStocks]); // Chạy lại hàm này mỗi khi danh sách cổ phiếu cập nhật
@@ -332,7 +309,9 @@ const StockTable = (props) => {
       <div className="stock-table__footer">
         {props.showActiveOnly ? (
           <span>
-            Showing {displayStocks.filter(s => (s.totalVolume || 0) > 0).length} / {displayStocks.length} active stocks
+            Showing{" "}
+            {displayStocks.filter((s) => (s.totalVolume || 0) > 0).length} /{" "}
+            {displayStocks.length} active stocks
           </span>
         ) : (
           <span>

@@ -13,12 +13,22 @@ import { checkIsMarketOpen } from "../../utils/marketUtils";
  * MarketSummary - Thanh chỉ số thị trường trên cùng
  * Tự động refresh mỗi 30 giây khi thị trường mở cửa
  */
-const MarketSummary = () => {
+const MarketSummary = (props) => {
   const [indices, setIndices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [marketOpenStatus, setMarketOpenStatus] = useState(checkIsMarketOpen());
+
+  // Bảng ánh xạ ID của chỉ số sang tên Nhóm trong StockTable
+  const indexToGroupMap = {
+    vnindex: "HOSE",
+    vn30: "VN30",
+    hnxindex: "HNX",
+    upindex: "UPCOM",
+  };
+
+  // ... (giữ nguyên logic fetch và thời gian)
 
   // Lấy thời gian hiện tại VN (UTC+7) cho đồng hồ
   const getVNTime = () => {
@@ -115,7 +125,23 @@ const MarketSummary = () => {
                 <div className="skeleton skeleton--change" />
               </div>
             ))
-          : indices.map((item) => <IndexCard key={item.id} data={item} />)}
+          : indices.map((item) => {
+              // Lấy thống kê từ bảng điện nếu có
+              const groupName = indexToGroupMap[item.id];
+              const tableStats = props.marketStatsMap ? props.marketStatsMap[groupName] : null;
+              
+              // Nếu có stats từ bảng điện, ghi đè lên dữ liệu từ API Index
+              const displayData = tableStats ? {
+                ...item,
+                advances: tableStats.increase,
+                declines: tableStats.decrease,
+                noChange: tableStats.ref,
+                ceilings: tableStats.ceiling,
+                floors: tableStats.floor
+              } : item;
+
+              return <IndexCard key={item.id} data={displayData} />;
+            })}
       </div>
 
       {/* Đồng hồ VN và phiên giao dịch */}

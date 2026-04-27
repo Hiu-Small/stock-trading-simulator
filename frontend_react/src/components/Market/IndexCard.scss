@@ -49,6 +49,52 @@ $color-text-gray: #8888aa;
       font-size: 11px;
       font-weight: 600;
     }
+
+    .index-stats {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+      font-family: "Roboto", sans-serif;
+
+      .stats-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 700;
+
+        i {
+          font-size: 10px;
+        }
+
+        .stats-sub {
+          font-size: 11px;
+          font-weight: 600;
+          opacity: 0.9;
+        }
+      }
+
+      .stats-up {
+        color: #00b050; // Xanh lá
+        .stats-sub { color: #ce58f5; } // Tím trần
+      }
+
+      .stats-ref {
+        color: #dfc13a; // Vàng tham chiếu
+        .bar-ref {
+          width: 8px;
+          height: 3px;
+          background-color: #dfc13a;
+          border-radius: 1px;
+        }
+      }
+
+      .stats-down {
+        color: #ff0000; // Đỏ giảm
+        .stats-sub { color: #16b1c0; } // Xanh lơ sàn
+      }
+    }
   }
 
   /* Cột 2: Gồm Biểu đồ (trên) và Khối lượng (dưới) */

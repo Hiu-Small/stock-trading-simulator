@@ -1,0 +1,52 @@
+.tab-content-giaodich {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  background-color: #1a1b24;
+
+  .left-panel {
+    flex: 2; // Chiếm 2 phần
+    min-width: 0; // Quan trọng để chart không bị tràn
+    height: 100%;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .right-panel {
+    flex: 1.5; 
+    min-width: 680px; 
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+
+    .right-panel-column {
+      flex: 0.7; // Giảm nhẹ tỷ lệ từ 1.3 xuống 1.15
+      min-width: 320px; 
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+
+      &:last-child {
+        border-right: none;
+      }
+
+      &.history-column {
+        flex: 1; // Giảm một chút diện tích cột lịch sử
+        min-width: 300px;
+      }
+    }
+
+    .right-top-section {
+      flex: 0 0 auto;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .right-middle-section {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto; // Cho phép scroll nếu nội dung quá dài
+    }
+  }
+}

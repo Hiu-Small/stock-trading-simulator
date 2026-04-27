@@ -1,0 +1,35 @@
+.modal-tabs {
+  display: flex;
+  background-color: #212330;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0 20px;
+
+  .tab-item {
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #8888aa;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #ffffff;
+    }
+
+    &.active {
+      color: #00c805; // Màu xanh active
+      font-weight: 600;
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #00c805;
+      }
+    }
+  }
+}

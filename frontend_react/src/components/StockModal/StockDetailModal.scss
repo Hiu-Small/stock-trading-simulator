@@ -1,0 +1,41 @@
+.stock-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75); // Nền đen mờ
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px); // Làm mờ thêm đằng sau
+}
+
+.stock-modal-content {
+  background-color: #1a1b24; // Màu nền modal (tối)
+  width: 95vw; // Chiếm gần hết màn hình
+  height: 90vh;
+  max-width: 1400px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  .stock-modal-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+
+    .empty-tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #8888aa;
+      font-size: 16px;
+    }
+  }
+}

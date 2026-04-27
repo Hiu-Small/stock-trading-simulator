@@ -6,12 +6,23 @@
 
 import pythonService from "./pythonService.js";
 
-// Cache đơn giản trong memory (tránh gọi liên tục)
-let indexCache = {
-  data: null,
-  lastFetched: null,
-  TTL_MS: 30_000, // Cache 30 giây
+// ==========================================
+// CẤU HÌNH CACHE TẬP TRUNG
+// ==========================================
+const CACHE_CONFIG = {
+  INDEX_TTL: 30_000,   // Cache cho các chỉ số (VNINDEX, VN30...)
+  BOARD_TTL: 30_000,   // Cache cho bảng giá nhóm (HOSE, VN30...)
+  STOCK_TTL: 30_000,   // Cache cho chi tiết mã cổ phiếu (AAA, FPT...)
 };
+
+// Bộ nhớ đệm (Cache)
+let indexCache = { data: null, lastFetched: null };
+let boardCache = {}; 
+let stockCache = {}; 
+
+// Quản lý các yêu cầu đang chạy (Dùng để gộp các yêu cầu trùng nhau)
+let pendingBoardRequests = {}; 
+let pendingStockRequests = {}; 
 
 /**
  * Lấy tất cả chỉ số thị trường từ Python API
@@ -23,7 +34,7 @@ const getAllIndices = async () => {
   if (
     indexCache.data &&
     indexCache.lastFetched &&
-    now - indexCache.lastFetched < indexCache.TTL_MS
+    now - indexCache.lastFetched < CACHE_CONFIG.INDEX_TTL
   ) {
     return { ...indexCache.data, fromCache: true };
   }
@@ -90,38 +101,89 @@ const getIndexHistory = async (symbol, days = 30, interval = "1D") => {
   }
 };
 
+// Xóa các biến khai báo rải rác cũ
+
 /**
  * Lấy dữ liệu bảng giá theo nhóm (VN30, HNX30, etc.)
  */
 const getBoardByGroup = async (group) => {
-  try {
-    const res = await pythonService.fetchBoardByGroup(group);
-    return res.data;
-  } catch (err) {
-    console.error(`[marketService] Lỗi lấy bảng giá ${group}:`, err.message);
-    return {
-      success: false,
-      pythonError: err.message,
-      data: [],
-    };
+  const now = Date.now();
+  const upperGroup = group.toUpperCase();
+  
+  // 1. Kiểm tra cache
+  if (
+    boardCache[upperGroup] && 
+    now - boardCache[upperGroup].lastFetched < CACHE_CONFIG.BOARD_TTL
+  ) {
+    return { ...boardCache[upperGroup].data, fromCache: true };
   }
+
+  // 2. Nếu ĐANG có yêu cầu trùng lặp đang chạy, hãy đợi nó
+  if (pendingBoardRequests[upperGroup]) {
+    return pendingBoardRequests[upperGroup];
+  }
+
+  // 3. Nếu chưa có, tạo yêu cầu mới
+  pendingBoardRequests[upperGroup] = (async () => {
+    try {
+      const res = await pythonService.fetchBoardByGroup(upperGroup);
+      const data = res.data;
+
+      boardCache[upperGroup] = {
+        data: data,
+        lastFetched: Date.now()
+      };
+      return { ...data, fromCache: false };
+    } catch (err) {
+      console.error(`[marketService] Lỗi lấy bảng giá ${upperGroup}:`, err.message);
+      return { success: false, data: [] };
+    } finally {
+      delete pendingBoardRequests[upperGroup];
+    }
+  })();
+
+  return pendingBoardRequests[upperGroup];
 };
+
+// Xóa các biến khai báo rải rác cũ
 
 /**
  * Lấy chi tiết 1 cổ phiếu
  */
 const getStockDetail = async (symbol) => {
-  try {
-    const res = await pythonService.fetchStockDetail(symbol);
-    return res.data;
-  } catch (err) {
-    console.error(`[marketService] Lỗi lấy chi tiết ${symbol}:`, err.message);
-    return {
-      success: false,
-      pythonError: err.message,
-      data: null,
-    };
+  const now = Date.now();
+  const upperSymbol = symbol.toUpperCase();
+
+  if (
+    stockCache[upperSymbol] && 
+    now - stockCache[upperSymbol].lastFetched < CACHE_CONFIG.STOCK_TTL
+  ) {
+    return { ...stockCache[upperSymbol].data, fromCache: true };
   }
+
+  if (pendingStockRequests[upperSymbol]) {
+    return pendingStockRequests[upperSymbol];
+  }
+
+  pendingStockRequests[upperSymbol] = (async () => {
+    try {
+      const res = await pythonService.fetchStockDetail(upperSymbol);
+      const data = res.data;
+
+      stockCache[upperSymbol] = {
+        data: data,
+        lastFetched: Date.now()
+      };
+      return { ...data, fromCache: false };
+    } catch (err) {
+      console.error(`[marketService] Lỗi lấy chi tiết ${upperSymbol}:`, err.message);
+      return { success: false, data: null };
+    } finally {
+      delete pendingStockRequests[upperSymbol];
+    }
+  })();
+
+  return pendingStockRequests[upperSymbol];
 };
 
 /**
