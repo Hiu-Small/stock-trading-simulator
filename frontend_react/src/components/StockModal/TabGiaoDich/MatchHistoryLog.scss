@@ -7,7 +7,7 @@
   .history-header {
     padding: 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    
+
     .title {
       font-size: 13px;
       font-weight: 600;
@@ -19,12 +19,9 @@
     .summary {
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 500;
       color: #8888aa;
-
-      .color-up { color: #00c805; }
-      .color-down { color: #ff3b30; }
     }
   }
 
@@ -62,28 +59,42 @@
         font-size: 12px;
         font-weight: 500;
         border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-        
+
         &:hover {
           background-color: rgba(255, 255, 255, 0.03);
         }
 
-        .col-time { color: #8888aa; }
+        .col-time {
+          color: #8888aa;
+        }
       }
     }
 
     // Các cột
-    .col-time { flex: 1.5; }
-    .col-vol { flex: 1.2; }
-    .col-price { flex: 1; }
-    .col-change { flex: 1; }
-    .col-percent { flex: 1; }
-    .col-side { flex: 0.5; }
+    .col-time {
+      flex: 1.5;
+    }
+    .col-vol {
+      flex: 1.2;
+    }
+    .col-price {
+      flex: 1;
+    }
+    .col-change {
+      flex: 1;
+    }
+    .col-percent {
+      flex: 1;
+    }
+    .col-side {
+      flex: 0.5;
+    }
 
-    .text-right { text-align: right; }
-    .text-center { text-align: center; }
-
-    .color-up { color: #00c805; }
-    .color-down { color: #ff3b30; }
-    .color-ref { color: #dfc13a; }
+    .text-right {
+      text-align: right;
+    }
+    .text-center {
+      text-align: center;
+    }
   }
 }

@@ -1,15 +1,31 @@
 import React from "react";
 import "./IndexCard.scss";
+import "../../assets/styles/global.scss";
 
 const IndexCard = (props) => {
   if (!props.data) return null;
 
-  const isUp = props.data.chartUp;
-  const colorClass = isUp ? "color-up" : "color-down";
-  const trendIcon = isUp ? "↗" : "↘";
+  // Kiểm tra xem có phải trước phiên (trước 9h sáng) không
+  const checkPreMarket = () => {
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+    const totalMinutes = now.getHours() * 60 + now.getMinutes();
+    //const totalMinutes = 0; //test
+    return totalMinutes < 540; // 540 = 9h * 60
+  };
+
+  const isPreMarket = checkPreMarket();
+
+  // Logic màu sắc và icon
+  let isUp = props.data.chartUp && !isPreMarket;
+  let isDown = !props.data.chartUp && !isPreMarket && props.data.change !== 0;
+  let isRef = isPreMarket || props.data.change === 0;
+
+  const colorClass = isUp ? "price--up" : isDown ? "price--down" : "price--ref";
+  const trendIcon = isPreMarket ? "—" : (isUp ? "↗" : isDown ? "↘" : "—");
 
   const formatPositive = (value) => {
-    const strValue = String(value);
+    if (value === undefined || value === null || isPreMarket) return "0.00";
+    const strValue = Number(value).toFixed(2);
     if (isUp && !strValue.startsWith("+")) {
       return `+${strValue}`;
     }
@@ -18,7 +34,7 @@ const IndexCard = (props) => {
 
   // Hàm format Khối lượng hiển thị cho đẹp (vd: 1,500,000)
   const formatVolume = (vol) => {
-    if (!vol) return "0";
+    if (!vol || isPreMarket) return "0";
     return Number(vol).toLocaleString("vi-VN");
   };
 
@@ -35,24 +51,24 @@ const IndexCard = (props) => {
         </div>
         <div className={`index-value ${colorClass}`}>{props.data.value}</div>
         <div className={`index-change ${colorClass}`}>
-          {displayChange} &nbsp;|&nbsp; {displayChangePercent}
+          {displayChange} &nbsp;|&nbsp; {displayChangePercent}%
         </div>
 
         {/* THỐNG KÊ MÃ TĂNG/GIẢM/TC (Phong cách chuyên nghiệp) */}
         <div className="index-stats">
           <span className="stats-item stats-up">
             <i className="fa-solid fa-arrow-up"></i>
-            {props.data.advances || 0}
-            <span className="stats-sub">({props.data.ceilings || 0})</span>
+            {isPreMarket ? 0 : (props.data.advances || 0)}
+            <span className="stats-sub">({isPreMarket ? 0 : (props.data.ceilings || 0)})</span>
           </span>
           <span className="stats-item stats-ref">
             <span className="bar-ref"></span>
-            {props.data.noChange || 0}
+            {isPreMarket ? 0 : (props.data.noChange || 0)}
           </span>
           <span className="stats-item stats-down">
             <i className="fa-solid fa-arrow-down"></i>
-            {props.data.declines || 0}
-            <span className="stats-sub">({props.data.floors || 0})</span>
+            {isPreMarket ? 0 : (props.data.declines || 0)}
+            <span className="stats-sub">({isPreMarket ? 0 : (props.data.floors || 0)})</span>
           </span>
         </div>
       </div>
@@ -76,9 +92,18 @@ const IndexCard = (props) => {
                 <stop offset="0%" stopColor="#FF3B30" stopOpacity="0.4" />
                 <stop offset="100%" stopColor="#FF3B30" stopOpacity="0" />
               </linearGradient>
+              <linearGradient id="grad-ref" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FFD300" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#FFD300" stopOpacity="0" />
+              </linearGradient>
             </defs>
 
-            {isUp ? (
+            {isPreMarket ? (
+              <>
+                <line x1="0" y1="17" x2="100" y2="17" stroke="#FFD300" strokeWidth="2" />
+                <rect x="0" y="17" width="100" height="18" fill="url(#grad-ref)" />
+              </>
+            ) : isUp ? (
               <>
                 <polygon
                   points="0,35 0,10 25,12 50,5 75,15 100,2 100,35"

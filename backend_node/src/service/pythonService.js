@@ -45,6 +45,23 @@ const fetchStockDetail = (symbol) => {
 };
 
 /**
+ * Gọi API lấy lịch sử khớp lệnh trong ngày
+ */
+const fetchStockIntraday = (symbol) => {
+  return axios.get(PYTHON_API.STOCK_INTRADAY(symbol), { timeout: 8000 });
+};
+
+/**
+ * Gọi API lấy lịch sử OHLCV cổ phiếu
+ */
+const fetchStockHistory = (symbol, days, resolution) => {
+  return axios.get(PYTHON_API.STOCK_HISTORY(symbol), {
+    params: { days, resolution },
+    timeout: 15000,
+  });
+};
+
+/**
  * Kiểm tra sức khỏe Python API
  */
 const fetchHealth = () => {
@@ -57,5 +74,7 @@ export default {
   fetchIndexHistory,
   fetchBoardByGroup,
   fetchStockDetail,
+  fetchStockIntraday,
+  fetchStockHistory,
   fetchHealth,
 };

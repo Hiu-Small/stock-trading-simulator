@@ -13,7 +13,6 @@ import { fetchStockDetail } from "../../services/marketApi";
 const PriceBoard = (props) => {
   // State: mã cổ phiếu đang được click để hiển thị chi tiết
   const [selectedTicker, setSelectedTicker] = useState(null);
-  const [selectedStockData, setSelectedStockData] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState("VN30"); // Nhóm đang chọn: VN30, HNX30, HOSE...
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [searchResults, setSearchResults] = useState(null);
@@ -48,25 +47,14 @@ const PriceBoard = (props) => {
     // Nếu click mã đang chọn thì đóng
     if (selectedTicker === ticker) {
       setSelectedTicker(null);
-      setSelectedStockData(null);
       return;
     }
 
     setSelectedTicker(ticker);
-    // Gọi API lấy chi tiết ngay lập tức
-    try {
-      const result = await fetchStockDetail(ticker);
-      if (result && result.success) {
-        setSelectedStockData(result.data);
-      }
-    } catch (error) {
-      console.error("Lỗi lấy chi tiết cổ phiếu:", error);
-    }
   };
 
   const handleCloseDetail = () => {
     setSelectedTicker(null);
-    setSelectedStockData(null);
   };
 
   const handleUpdateStats = (newStats) => {
@@ -113,7 +101,6 @@ const PriceBoard = (props) => {
       {selectedTicker && (
         <StockDetailModal 
           symbol={selectedTicker} 
-          data={selectedStockData} 
           onClose={handleCloseDetail} 
         />
       )}

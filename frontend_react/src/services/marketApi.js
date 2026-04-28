@@ -83,6 +83,29 @@ const fetchStockDetail = async (symbol) => {
   }
 };
 
+const fetchMatchingDetail = async (symbol) => {
+  try {
+    const response = await marketService.fetchMatchingDetail(symbol);
+    return response;
+  } catch (err) {
+    console.error(
+      `[marketApi] fetchMatchingDetail ${symbol} lỗi:`,
+      err.message,
+    );
+    return { success: false, data: null };
+  }
+};
+
+const fetchStockHistory = async (symbol, days = 90, interval = "1D") => {
+  try {
+    const response = await marketService.fetchStockHistory(symbol, days, interval);
+    return response;
+  } catch (err) {
+    console.error(`[marketApi] fetchStockHistory ${symbol} lỗi:`, err.message);
+    return { success: false, data: [] };
+  }
+};
+
 /**
  * Fallback data khi không kết nối được backend
  * (Giá trị tĩnh để UI không bị trống)
@@ -162,4 +185,6 @@ export {
   checkBackendHealth,
   getBoardData,
   fetchStockDetail,
+  fetchMatchingDetail,
+  fetchStockHistory
 };

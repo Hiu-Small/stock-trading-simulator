@@ -14,19 +14,20 @@
     flex-direction: column;
     gap: 4px;
 
-    .grid-header, .grid-row {
+    .grid-header,
+    .grid-row {
       display: grid;
       grid-template-columns: 1.2fr 1fr 1fr 1.2fr; // Tăng nhẹ độ rộng cho 2 cột KL ở 2 đầu
       gap: 0;
       align-items: center;
-      
+
       .spacer-left {
         padding-left: 15px; // Thay margin bằng padding để không phá vỡ grid
       }
     }
 
     .grid-header {
-      font-size: 11px;
+      font-size: 13px;
       color: #8888aa;
       margin-bottom: 4px;
       padding-bottom: 4px;
@@ -37,7 +38,7 @@
       font-size: 13px;
       font-weight: 500;
       padding: 6px 0;
-      
+
       &:hover {
         background-color: rgba(255, 255, 255, 0.03);
       }
@@ -51,11 +52,17 @@
       font-weight: 600;
     }
 
-    .text-left { text-align: left; }
-    .text-right { text-align: right; }
-    
+    .text-left {
+      text-align: left;
+    }
+    .text-right {
+      text-align: right;
+    }
+
     // Tạm dùng màu đỏ (color-down) cho ví dụ, thực tế sẽ lấy theo logic refPrice
-    .color-down { color: #ff3b30; }
+    .color-down {
+      color: #ff3b30;
+    }
   }
 
   .depth-bar {
@@ -65,8 +72,12 @@
     border-radius: 2px;
     overflow: hidden;
 
-    .bar-bid { background-color: #00c805; }
-    .bar-ask { background-color: #ff3b30; }
+    .bar-bid {
+      background-color: #00c805;
+    }
+    .bar-ask {
+      background-color: #ff3b30;
+    }
   }
 
   .depth-summary {

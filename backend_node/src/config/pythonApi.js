@@ -12,6 +12,8 @@ const PYTHON_API = {
   HEALTH: `${PYTHON_API_BASE}/api/health`,
   BOARD: (group) => `${PYTHON_API_BASE}/api/board/${group}`,
   STOCK: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}`,
+  STOCK_INTRADAY: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}/intraday`,
+  STOCK_HISTORY: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}/history`,
 };
 
 export default PYTHON_API;

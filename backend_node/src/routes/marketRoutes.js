@@ -31,6 +31,12 @@ const initMarketRoutes = (app) => {
   // VD: /api/market/stock/AAA
   router.get("/stock/:symbol", marketController.getStockDetail);
 
+  // GET /api/market/stock/:symbol/intraday - Lấy lịch sử khớp lệnh trong ngày
+  router.get("/stock/:symbol/intraday", marketController.getStockIntraday);
+
+  // GET /api/market/stock/:symbol/history - Lấy lịch sử OHLCV để vẽ biểu đồ nến
+  router.get("/stock/:symbol/history", marketController.getStockHistory);
+
   return app.use("/api/market", router);
 };
 

@@ -187,6 +187,36 @@ const getStockDetail = async (symbol) => {
 };
 
 /**
+ * Lấy lịch sử khớp lệnh trong ngày (Tick-by-tick)
+ */
+const getStockIntraday = async (symbol) => {
+  try {
+    const res = await pythonService.fetchStockIntraday(symbol.toUpperCase());
+    return res.data;
+  } catch (err) {
+    console.error(`[marketService] Lỗi lấy intraday ${symbol}:`, err.message);
+    return { 
+      success: false, 
+      data: [], 
+      stats: { totalBuy: 0, totalSell: 0, total: 0 } 
+    };
+  }
+};
+
+/**
+ * Lấy lịch sử OHLCV của mã cổ phiếu (dùng cho TradingView chart)
+ */
+const getStockHistory = async (symbol, days = 90, interval = "1D") => {
+  try {
+    const res = await pythonService.fetchStockHistory(symbol.toUpperCase(), days, interval);
+    return res.data;
+  } catch (err) {
+    console.error(`[marketService] Lỗi lấy stock history ${symbol}:`, err.message);
+    return { success: false, data: [] };
+  }
+};
+
+/**
  * Kiểm tra Python API có đang chạy không
  */
 const checkPythonHealth = async () => {
@@ -264,5 +294,7 @@ export default {
   getIndexHistory,
   getBoardByGroup,
   getStockDetail,
+  getStockIntraday,
+  getStockHistory,
   checkPythonHealth,
 };

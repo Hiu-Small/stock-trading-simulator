@@ -10,14 +10,14 @@ const StockRow = (props) => {
   const { stock } = props;
 
   // 1. TÍNH TOÁN SẴN THAY ĐỔI GIÁ (Change & Change Percent)
-  const change = stock.matchPrice - stock.refPrice;
+  const change = stock.matchPrice ? stock.matchPrice - stock.refPrice : "";
   const changePercent = stock.refPrice ? (change / stock.refPrice) * 100 : 0;
 
   // 2. HÀM CHỌN MÀU THEO GIÁ
   const getPriceColor = (price) => {
     if (!price) return ""; // Trống nếu không có giá
     if (price >= stock.ceiling) return "price--ceiling";
-    if (price <= stock.floor) return "price--ceiling";
+    if (price <= stock.floor) return "price--floor";
     if (price > stock.refPrice) return "price--up";
     if (price < stock.refPrice) return "price--down";
     return "price--ref";

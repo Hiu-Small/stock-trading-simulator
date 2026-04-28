@@ -10,7 +10,7 @@ const TabContentGiaoDich = (props) => {
     <div className="tab-content-giaodich">
       {/* Nửa trái: Biểu đồ */}
       <div className="left-panel">
-        <TradingViewChart symbol={props.symbol} />
+        <TradingViewChart symbol={props.symbol} data={props.data} />
       </div>
 
       {/* Nửa phải: Dữ liệu (Sổ lệnh, Độ sâu, Lịch sử khớp) */}
@@ -20,12 +20,12 @@ const TabContentGiaoDich = (props) => {
             <OrderBookTable symbol={props.symbol} data={props.data} />
           </div>
           <div className="right-middle-section">
-            <MarketDepthChart symbol={props.symbol} />
+            <MarketDepthChart symbol={props.symbol} data={props.data} />
           </div>
         </div>
-        
+
         <div className="right-panel-column history-column">
-          <MatchHistoryLog symbol={props.symbol} />
+          <MatchHistoryLog symbol={props.symbol} data={props.data} />
         </div>
       </div>
     </div>

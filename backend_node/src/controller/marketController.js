@@ -158,11 +158,59 @@ const getStockDetail = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/market/stock/:symbol/intraday
+ * Lấy lịch sử khớp lệnh trong ngày
+ */
+const getStockIntraday = async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    if (!symbol) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu tham số symbol",
+      });
+    }
+
+    const data = await marketService.getStockIntraday(symbol.toUpperCase());
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("[marketController] getStockIntraday lỗi:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy lịch sử khớp lệnh",
+      error: err.message,
+    });
+  }
+};
+
+/**
+ * GET /api/market/stock/:symbol/history?days=90&interval=1D
+ * Lấy lịch sử OHLCV để vẽ TradingView chart
+ */
+const getStockHistory = async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const days = parseInt(req.query.days) || 90;
+    const interval = req.query.interval || "1D";
+    if (!symbol) {
+      return res.status(400).json({ success: false, message: "Thiếu tham số symbol" });
+    }
+    const data = await marketService.getStockHistory(symbol.toUpperCase(), days, interval);
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("[marketController] getStockHistory lỗi:", err);
+    return res.status(500).json({ success: false, message: "Lỗi server", error: err.message });
+  }
+};
+
 export default {
   getAllIndices,
   getIndexBySymbol,
   getIndexHistory,
   getBoardByGroup,
   getStockDetail,
+  getStockIntraday,
+  getStockHistory,
   checkHealth,
 };

@@ -20,8 +20,8 @@ app.add_middleware(
 # Cấu hình API Key cho vnstock (đã tích hợp từ trước)
 vnstock.change_api_key("vnstock_6f91e0ac6e8c2723329a928451f8633a")
 
-# Cache cho tên công ty
-COMPANY_NAME_MAP = {}
+# Cache cho thông tin mã chứng khoán (tên và sàn)
+SYMBOL_INFO_MAP = {}
 
 # ==========================================
 # CẤU HÌNH CACHE TẬP TRUNG (Tính bằng giây)
@@ -30,28 +30,53 @@ CACHE_CONFIG = {
     "INDEX_TTL": 30,  # Cache cho các chỉ số thị trường
     "BOARD_TTL": 30,  # Cache cho bảng giá nhóm
     "STOCK_TTL": 30,  # Cache cho chi tiết mã cổ phiếu
+    "HISTORY_TTL": 30, # Cache cho lịch sử giá (5 phút)
+    "INTRADAY_TTL": 30, # Cache cho lịch sử khớp lệnh
 }
 
 # Bộ nhớ đệm (Cache)
 INDICES_CACHE = {"data": None, "time": 0}
+INDEX_DETAIL_CACHE = {}
+HISTORY_CACHE = {}
 BOARD_CACHE = {} 
 STOCK_CACHE = {} 
+INTRADAY_CACHE = {}
 
-def get_company_map():
-    global COMPANY_NAME_MAP
-    if not COMPANY_NAME_MAP:
+def get_symbol_info_map():
+    global SYMBOL_INFO_MAP
+    if not SYMBOL_INFO_MAP:
         try:
             ls = Listing(source='vci')
+            # 1. Lấy tên công ty
             df_symbols = ls.all_symbols()
-            # vci trả về 'symbol' và 'organ_name'
+            name_map = {}
             if 'organ_name' in df_symbols.columns:
-                COMPANY_NAME_MAP = dict(zip(df_symbols['symbol'], df_symbols['organ_name']))
+                name_map = dict(zip(df_symbols['symbol'], df_symbols['organ_name']))
+            
+            # 2. Lấy sàn giao dịch
+            exchange_map = {}
+            for ex in ['HOSE', 'HNX', 'UPCOM']:
+                try:
+                    symbols_ser = ls.symbols_by_group(ex)
+                    for s in symbols_ser:
+                        exchange_map[s] = ex
+                except:
+                    continue
+            
+            # 3. Kết hợp lại
+            all_tickers = set(name_map.keys()) | set(exchange_map.keys())
+            for t in all_tickers:
+                SYMBOL_INFO_MAP[t] = {
+                    "name": name_map.get(t, ""),
+                    "exchange": exchange_map.get(t, "")
+                }
         except Exception as e:
-            print(f"Lỗi khi lấy danh sách tên công ty: {e}")
-    return COMPANY_NAME_MAP
+            print(f"Lỗi khi lấy thông tin mã chứng khoán: {e}")
+    return SYMBOL_INFO_MAP
 
-def get_name(symbol):
-    return get_company_map().get(symbol.upper(), "")
+def get_symbol_info(symbol):
+    info = get_symbol_info_map().get(symbol.upper(), {"name": "", "exchange": ""})
+    return info
 
 def safe_float(val, default=0.0):
     """Chuyển đổi an toàn sang float"""
@@ -198,15 +223,40 @@ def get_all_indices():
 @app.get("/api/indices/{symbol}")
 def get_index_detail(symbol: str):
     symbol = symbol.upper()
+    
+    # Kiểm tra Cache
+    now = datetime.now().timestamp()
+    if symbol in INDEX_DETAIL_CACHE:
+        cached = INDEX_DETAIL_CACHE[symbol]
+        if now - cached["time"] < CACHE_CONFIG["INDEX_TTL"]:
+            print(f"--- [PYTHON CACHE HIT] --- Index Detail: {symbol}")
+            return cached["data"]
+            
+    print(f"--- [PYTHON CACHE MISS] --- Index Detail: {symbol} - FETCHING")
     data = fetch_index_data(symbol)
     if not data:
         raise HTTPException(status_code=404, detail=f"Không tìm thấy dữ liệu cho {symbol}")
-    return {"success": True, "data": data}
+        
+    result = {"success": True, "data": data}
+    INDEX_DETAIL_CACHE[symbol] = {"data": result, "time": now}
+    return result
 
 @app.get("/api/indices/{symbol}/history")
 def get_index_history(symbol: str, days: int = 30, interval: str = "1D"):
     try:
-        actual_symbol = SYMBOL_MAP.get(symbol.upper(), symbol)
+        symbol = symbol.upper()
+        cache_key = f"{symbol}_{days}_{interval}"
+        
+        # Kiểm tra Cache
+        now = datetime.now().timestamp()
+        if cache_key in HISTORY_CACHE:
+            cached = HISTORY_CACHE[cache_key]
+            if now - cached["time"] < CACHE_CONFIG["HISTORY_TTL"]:
+                print(f"--- [PYTHON CACHE HIT] --- Index History: {cache_key}")
+                return cached["data"]
+
+        print(f"--- [PYTHON CACHE MISS] --- Index History: {cache_key} - FETCHING")
+        actual_symbol = SYMBOL_MAP.get(symbol, symbol)
         quote = Quote(symbol=actual_symbol, source='VCI')
         df = quote.history(length=str(days), interval=interval)
         
@@ -226,7 +276,9 @@ def get_index_history(symbol: str, days: int = 30, interval: str = "1D"):
                     record[col] = val
             records.append(record)
             
-        return {"success": True, "data": records}
+        result = {"success": True, "data": records}
+        HISTORY_CACHE[cache_key] = {"data": result, "time": now}
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -287,7 +339,8 @@ def get_stock_board(group: str):
                 "foreignBuy": get_val(('match', 'foreign_buy_volume')),
                 "foreignSell": get_val(('match', 'foreign_sell_volume')),
                 "currentRoom": get_val(('match', 'current_room')),
-                "companyName": get_name(symbol)
+                "companyName": get_symbol_info(symbol).get("name", ""),
+                "exchange": get_symbol_info(symbol).get("exchange", "")
             }
             records.append(record)
             
@@ -362,7 +415,8 @@ def get_stock_detail(symbol: str):
             "foreignBuy": get_val(('match', 'foreign_buy_volume')),
             "foreignSell": get_val(('match', 'foreign_sell_volume')),
             "currentRoom": get_val(('match', 'current_room')),
-            "companyName": get_name(symbol),
+            "companyName": get_symbol_info(symbol).get("name", ""),
+            "exchange": get_symbol_info(symbol).get("exchange", ""),
         }
             
         result = {
@@ -376,9 +430,153 @@ def get_stock_detail(symbol: str):
         STOCK_CACHE[symbol] = {"data": result, "time": now}
         return result
 
-    except HTTPException:
-        raise
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/stock/{symbol}/history")
+def get_stock_history(symbol: str, resolution: str = "1D", days: int = 30):
+    """
+    Lấy lịch sử OHLCV của một mã cổ phiếu.
+    resolution: "1", "5", "15", "30", "1H", "1D", "1W", "1M"
+    days: Số lượng nến muốn lấy (length)
+    """
+    symbol = symbol.upper()
+    cache_key = f"stock_{symbol}_{resolution}_{days}"
+    
+    now = datetime.now().timestamp()
+    if cache_key in HISTORY_CACHE:
+        cached = HISTORY_CACHE[cache_key]
+        if now - cached["time"] < CACHE_CONFIG["HISTORY_TTL"]:
+            print(f"--- [PYTHON CACHE HIT] --- Stock History: {cache_key}")
+            return cached["data"]
+    
+    print(f"--- [PYTHON CACHE MISS] --- Stock History: {cache_key} - CALLING VCI")
+    try:
+        from vnstock import Quote
+        quote = Quote(symbol=symbol, source='VCI')
+        # length trong vnstock là số lượng nến
+        df = quote.history(length=str(days), interval=resolution)
+        
+        if df is None or df.empty:
+            return {"success": True, "symbol": symbol, "data": []}
+        
+        records = []
+        for _, row in df.iterrows():
+            def safe_float(val, default=0.0):
+                try:
+                    import math
+                    v = float(val)
+                    return default if math.isnan(v) else v
+                except:
+                    return default
+            
+            # Xử lý thời gian
+            t = row.get('time', row.get('date', None))
+            if t is None: continue
+            
+            # Chuyển về Unix timestamp (giây)
+            if hasattr(t, 'timestamp'):
+                time_val = int(t.timestamp())
+            elif isinstance(t, str):
+                try:
+                    time_val = int(datetime.fromisoformat(t.replace('Z', '+00:00')).timestamp())
+                except:
+                    time_val = t
+            else:
+                time_val = str(t)
+            
+            records.append({
+                "time": time_val,
+                "open": safe_float(row.get('open')),
+                "high": safe_float(row.get('high')),
+                "low": safe_float(row.get('low')),
+                "close": safe_float(row.get('close')),
+                "volume": int(safe_float(row.get('volume', 0))),
+            })
+        
+        # Sắp xếp tăng dần theo thời gian (lightweight-charts yêu cầu)
+        records.sort(key=lambda x: x["time"])
+
+        result = {
+            "success": True,
+            "symbol": symbol,
+            "resolution": resolution,
+            "data": records
+        }
+        
+        HISTORY_CACHE[cache_key] = {"data": result, "time": now}
+        return result
+        
+    except Exception as e:
+        print(f"Lỗi lấy stock history {symbol}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/stock/{symbol}/intraday")
+def get_stock_intraday(symbol: str, page_size: int = 7000):
+    """
+    Lấy lịch sử khớp lệnh chi tiết (Tick-by-tick) trong ngày.
+    Mặc định lấy 7000 lệnh mới nhất để bao quát toàn bộ phiên.
+    """
+    symbol = symbol.upper()
+    
+    # Kiểm tra Cache
+    now = datetime.now().timestamp()
+    if symbol in INTRADAY_CACHE:
+        cached = INTRADAY_CACHE[symbol]
+        if now - cached["time"] < CACHE_CONFIG["INTRADAY_TTL"]:
+            print(f"--- [PYTHON CACHE HIT] --- Intraday: {symbol}")
+            return cached["data"]
+
+    print(f"--- [PYTHON CACHE MISS] --- Intraday: {symbol} - CALLING VCI")
+    try:
+        # 1. Lấy dữ liệu khớp lệnh
+        quote = Quote(symbol=symbol, source='vci')
+        df = quote.intraday(page_size=page_size)
+        
+        if df is None or df.empty:
+            result = {"success": True, "data": [], "stats": {"totalBuy": 0, "totalSell": 0, "total": 0}}
+            return result
+        
+        # Sắp xếp mới nhất lên đầu
+        df = df.sort_values('time', ascending=False)
+        
+        records = []
+        total_buy = 0
+        total_sell = 0
+        
+        for _, row in df.iterrows():
+            price = float(row['price'])
+            vol = int(row['volume'])
+            m_type = str(row['match_type']) # 'Buy' hoặc 'Sell'
+            
+            # Map sang định dạng tiếng Việt M/B
+            side = "M" if m_type == "Buy" else "B"
+            if side == "M": total_buy += vol
+            else: total_sell += vol
+            
+            records.append({
+                "time": row['time'].strftime("%H:%M:%S") if hasattr(row['time'], 'strftime') else str(row['time']),
+                "price": price,
+                "volume": vol,
+                "side": side
+            })
+            
+        result = {
+            "success": True,
+            "symbol": symbol,
+            "stats": {
+                "totalBuy": total_buy,
+                "totalSell": total_sell,
+                "total": total_buy + total_sell
+            },
+            "match": records
+        }
+        
+        # Lưu vào Cache
+        INTRADAY_CACHE[symbol] = {"data": result, "time": now}
+        return result
+    except Exception as e:
+        print(f"Lỗi lấy intraday cho {symbol}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

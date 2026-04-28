@@ -30,6 +30,16 @@ const fetchStockDetail = (symbol) => {
   return axios.get(`/api/market/stock/${symbol}`);
 };
 
+const fetchMatchingDetail = (symbol) => {
+  return axios.get(`/api/market/stock/${symbol}/intraday`);
+};
+
+const fetchStockHistory = (symbol, days = 90, interval = "1D") => {
+  return axios.get(`/api/market/stock/${symbol}/history`, {
+    params: { days, interval },
+  });
+};
+
 export {
   fetchAllIndices,
   fetchIndexBySymbol,
@@ -37,4 +47,6 @@ export {
   fetchBoardByGroup,
   checkBackendHealth,
   fetchStockDetail,
+  fetchMatchingDetail,
+  fetchStockHistory,
 };

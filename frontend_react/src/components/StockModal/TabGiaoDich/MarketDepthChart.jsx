@@ -1,48 +1,182 @@
-import React from "react";
+import React, { useState } from "react";
 import "./MarketDepthChart.scss";
 
 const MarketDepthChart = (props) => {
+  // Trạng thái lưu trữ dữ liệu Tooltip
+  const [tooltip, setTooltip] = useState(null);
+
+  if (!props.data)
+    return <div className="market-depth-container">Đang tải...</div>;
+
+  const formatPrice = (price) => {
+    if (!price) return "";
+    return (price / 1000).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  // Hàm format Khối lượng (vd: 403800 -> 403,800)
+  const formatVolume = (vol) => {
+    if (vol === undefined || vol === null || vol === 0) return "0";
+    return Number(vol).toLocaleString("vi-VN");
+  };
+
+  const safeNumber = (val) => Number(val) || 0;
+
+  // 1. TÍNH KHỐI LƯỢNG CỘNG DỒN (CUMULATIVE)
+  const cumBid1 = safeNumber(props.data.bid1Vol);
+  const cumBid2 = cumBid1 + safeNumber(props.data.bid2Vol);
+  const cumBid3 = cumBid2 + safeNumber(props.data.bid3Vol);
+
+  const cumAsk1 = safeNumber(props.data.ask1Vol);
+  const cumAsk2 = cumAsk1 + safeNumber(props.data.ask2Vol);
+  const cumAsk3 = cumAsk2 + safeNumber(props.data.ask3Vol);
+
+  // 2. TÌM ĐỈNH VÀ LÀM TRÒN "TRẦN" BIỂU ĐỒ
+  const actualMaxVolume = Math.max(cumBid3, cumAsk3);
+
+  const getChartMax = (maxVal) => {
+    if (maxVal === 0) return 100;
+    const bufferedMax = maxVal * 1.15;
+    const order = Math.floor(Math.log10(bufferedMax));
+    const magnitude = Math.pow(10, order - 1);
+    return Math.ceil(bufferedMax / magnitude) * magnitude;
+  };
+
+  const chartMax = getChartMax(actualMaxVolume);
+
+  const calcHeight = (vol) => {
+    if (chartMax === 0) return 0;
+    return (vol / chartMax) * 100;
+  };
+
+  const yLabels = [
+    chartMax,
+    chartMax * 0.75,
+    chartMax * 0.5,
+    chartMax * 0.25,
+    0,
+  ];
+
+  const formatYAxis = (num) => {
+    if (num === 0) return "0";
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(0) + "K";
+    return num.toString();
+  };
+
+  // ==========================================
+  // HÀM XỬ LÝ SỰ KIỆN CHUỘT (TOOLTIP)
+  // ==========================================
+  const handleMouseMove = (e, type, price, vol) => {
+    setTooltip({
+      type: type,
+      price: formatPrice(price),
+      vol: formatVolume(vol),
+      x: e.clientX, // Lấy toạ độ X của chuột trên màn hình
+      y: e.clientY, // Lấy toạ độ Y của chuột trên màn hình
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTooltip(null); // Giấu tooltip đi khi đưa chuột ra ngoài
+  };
+
   return (
     <div className="market-depth-container">
       <div className="section-title">Biểu đồ độ sâu thị trường</div>
-      
+
       <div className="depth-chart-area">
-        {/* Y-axis labels */}
         <div className="y-axis">
-          <span>3M-</span>
-          <span>2.25M-</span>
-          <span>1.5M-</span>
-          <span>750K-</span>
-          <span>0-</span>
+          {yLabels.map((val, idx) => (
+            <span key={idx}>{formatYAxis(val)}-</span>
+          ))}
         </div>
-        
-        {/* Chart content (Mocking the depth shape with CSS) */}
+
         <div className="chart-bars">
-          {/* Mua (Xanh) */}
+          {/* MUA */}
           <div className="bid-area">
-            <div className="depth-step bid-step" style={{ height: '75%', width: '30%' }}></div>
-            <div className="depth-step bid-step" style={{ height: '30%', width: '40%' }}></div>
-            <div className="depth-step bid-step" style={{ height: '10%', width: '30%' }}></div>
+            <div
+              className="depth-step bid-step"
+              style={{ height: `${calcHeight(cumBid3)}%`, width: "33%" }}
+              onMouseMove={(e) =>
+                handleMouseMove(e, "Bên mua", props.data.bid3Price, cumBid3)
+              }
+              onMouseLeave={handleMouseLeave}
+            ></div>
+            <div
+              className="depth-step bid-step"
+              style={{ height: `${calcHeight(cumBid2)}%`, width: "33%" }}
+              onMouseMove={(e) =>
+                handleMouseMove(e, "Bên mua", props.data.bid2Price, cumBid2)
+              }
+              onMouseLeave={handleMouseLeave}
+            ></div>
+            <div
+              className="depth-step bid-step"
+              style={{ height: `${calcHeight(cumBid1)}%`, width: "33%" }}
+              onMouseMove={(e) =>
+                handleMouseMove(e, "Bên mua", props.data.bid1Price, cumBid1)
+              }
+              onMouseLeave={handleMouseLeave}
+            ></div>
           </div>
-          
-          {/* Bán (Đỏ) */}
+
+          {/* BÁN */}
           <div className="ask-area">
-            <div className="depth-step ask-step" style={{ height: '5%', width: '20%' }}></div>
-            <div className="depth-step ask-step" style={{ height: '15%', width: '30%' }}></div>
-            <div className="depth-step ask-step" style={{ height: '40%', width: '50%' }}></div>
+            <div
+              className="depth-step ask-step"
+              style={{ height: `${calcHeight(cumAsk1)}%`, width: "33%" }}
+              onMouseMove={(e) =>
+                handleMouseMove(e, "Bên bán", props.data.ask1Price, cumAsk1)
+              }
+              onMouseLeave={handleMouseLeave}
+            ></div>
+            <div
+              className="depth-step ask-step"
+              style={{ height: `${calcHeight(cumAsk2)}%`, width: "33%" }}
+              onMouseMove={(e) =>
+                handleMouseMove(e, "Bên bán", props.data.ask2Price, cumAsk2)
+              }
+              onMouseLeave={handleMouseLeave}
+            ></div>
+            <div
+              className="depth-step ask-step"
+              style={{ height: `${calcHeight(cumAsk3)}%`, width: "33%" }}
+              onMouseMove={(e) =>
+                handleMouseMove(e, "Bên bán", props.data.ask3Price, cumAsk3)
+              }
+              onMouseLeave={handleMouseLeave}
+            ></div>
           </div>
         </div>
       </div>
-      
-      {/* X-axis labels (Prices) */}
+
       <div className="x-axis">
-        <span>23.30</span>
-        <span>23.35</span>
-        <span>23.40</span>
-        <span>23.45</span>
-        <span>23.50</span>
-        <span>23.55</span>
+        <span>{formatPrice(props.data.bid3Price)}</span>
+        <span>{formatPrice(props.data.bid2Price)}</span>
+        <span>{formatPrice(props.data.bid1Price)}</span>
+        <span>{formatPrice(props.data.ask1Price)}</span>
+        <span>{formatPrice(props.data.ask2Price)}</span>
+        <span>{formatPrice(props.data.ask3Price)}</span>
       </div>
+
+      {/* COMPONENT HIỂN THỊ TOOLTIP (CHỈ RENDER KHI CÓ DỮ LIỆU TOOLTIP) */}
+      {tooltip && (
+        <div
+          className="depth-tooltip"
+          style={{ left: tooltip.x + 15, top: tooltip.y - 70 }}
+        >
+          <div className="tooltip-title">{tooltip.type}</div>
+          <div className="tooltip-row">
+            Giá: <span className="tooltip-val">{tooltip.price}</span>
+          </div>
+          <div className="tooltip-row">
+            KL tích lũy: <span className="tooltip-val">{tooltip.vol}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

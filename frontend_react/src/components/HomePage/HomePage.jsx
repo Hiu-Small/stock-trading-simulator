@@ -19,12 +19,11 @@ const HomePage = () => {
     UPCOM: null,
   });
 
-  // 1. Chạy ngầm lấy dữ liệu của 4 nhóm chính để hiện thống kê lên IndexCard
+  // 1. Chạy định kỳ lấy dữ liệu của 4 nhóm chính để hiện thống kê lên IndexCard (Real-time)
   useEffect(() => {
     const initAllMarketStats = async () => {
       const groups = ["HOSE", "VN30", "HNX", "UPCOM"];
       
-      // Chạy song song tất cả các sàn thay vì đợi từng sàn một
       try {
         const results = await Promise.all(
           groups.map(async (group) => {
@@ -38,16 +37,26 @@ const HomePage = () => {
         );
 
         const newStatsMap = { ...marketStatsMap };
+        let hasChange = false;
         results.forEach(({ group, stats }) => {
-          if (stats) newStatsMap[group] = stats;
+          if (stats) {
+            newStatsMap[group] = stats;
+            hasChange = true;
+          }
         });
-        setMarketStatsMap(newStatsMap);
+        if (hasChange) setMarketStatsMap(newStatsMap);
       } catch (err) {
-        console.error(`[HomePage] Lỗi lấy stats ngầm:`, err);
+        console.error(`[HomePage] Lỗi cập nhật stats định kỳ:`, err);
       }
     };
 
+    // Gọi lần đầu ngay khi load
     initAllMarketStats();
+
+    // Thiết lập vòng lặp 15 giây (Real-time)
+    const interval = setInterval(initAllMarketStats, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Cập nhật trạng thái mỗi phút
