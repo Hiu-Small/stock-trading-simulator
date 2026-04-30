@@ -7,7 +7,9 @@ const IndexCard = (props) => {
 
   // Kiểm tra xem có phải trước phiên (trước 9h sáng) không
   const checkPreMarket = () => {
-    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+    const now = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
+    );
     const totalMinutes = now.getHours() * 60 + now.getMinutes();
     //const totalMinutes = 0; //test
     return totalMinutes < 540; // 540 = 9h * 60
@@ -21,7 +23,7 @@ const IndexCard = (props) => {
   let isRef = isPreMarket || props.data.change === 0;
 
   const colorClass = isUp ? "price--up" : isDown ? "price--down" : "price--ref";
-  const trendIcon = isPreMarket ? "—" : (isUp ? "↗" : isDown ? "↘" : "—");
+  const trendIcon = isPreMarket ? "—" : isUp ? "↗" : isDown ? "↘" : "—";
 
   const formatPositive = (value) => {
     if (value === undefined || value === null || isPreMarket) return "0.00";
@@ -41,6 +43,13 @@ const IndexCard = (props) => {
   const displayChange = formatPositive(props.data.change);
   const displayChangePercent = formatPositive(props.data.changePercent);
 
+  const formatValue = (value) => {
+    return value.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   return (
     <div className="index-card">
       {/* CỘT 1: Thông tin giá */}
@@ -49,7 +58,9 @@ const IndexCard = (props) => {
           {props.data.name}
           <span className={`trend ${colorClass}`}>{trendIcon}</span>
         </div>
-        <div className={`index-value ${colorClass}`}>{props.data.value}</div>
+        <div className={`index-value ${colorClass}`}>
+          {formatValue(props.data.value)}
+        </div>
         <div className={`index-change ${colorClass}`}>
           {displayChange} &nbsp;|&nbsp; {displayChangePercent}%
         </div>
@@ -58,17 +69,21 @@ const IndexCard = (props) => {
         <div className="index-stats">
           <span className="stats-item stats-up">
             <i className="fa-solid fa-arrow-up"></i>
-            {isPreMarket ? 0 : (props.data.advances || 0)}
-            <span className="stats-sub">({isPreMarket ? 0 : (props.data.ceilings || 0)})</span>
+            {isPreMarket ? 0 : props.data.advances || 0}
+            <span className="stats-sub">
+              ({isPreMarket ? 0 : props.data.ceilings || 0})
+            </span>
           </span>
           <span className="stats-item stats-ref">
             <span className="bar-ref"></span>
-            {isPreMarket ? 0 : (props.data.noChange || 0)}
+            {isPreMarket ? 0 : props.data.noChange || 0}
           </span>
           <span className="stats-item stats-down">
             <i className="fa-solid fa-arrow-down"></i>
-            {isPreMarket ? 0 : (props.data.declines || 0)}
-            <span className="stats-sub">({isPreMarket ? 0 : (props.data.floors || 0)})</span>
+            {isPreMarket ? 0 : props.data.declines || 0}
+            <span className="stats-sub">
+              ({isPreMarket ? 0 : props.data.floors || 0})
+            </span>
           </span>
         </div>
       </div>
@@ -100,8 +115,21 @@ const IndexCard = (props) => {
 
             {isPreMarket ? (
               <>
-                <line x1="0" y1="17" x2="100" y2="17" stroke="#FFD300" strokeWidth="2" />
-                <rect x="0" y="17" width="100" height="18" fill="url(#grad-ref)" />
+                <line
+                  x1="0"
+                  y1="17"
+                  x2="100"
+                  y2="17"
+                  stroke="#FFD300"
+                  strokeWidth="2"
+                />
+                <rect
+                  x="0"
+                  y="17"
+                  width="100"
+                  height="18"
+                  fill="url(#grad-ref)"
+                />
               </>
             ) : isUp ? (
               <>

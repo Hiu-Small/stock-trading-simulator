@@ -49,7 +49,7 @@ const TradingViewChartInner = (props) => {
   const chartRef = useRef(null);
   const candleSeriesRef = useRef(null);
   const volumeSeriesRef = useRef(null);
-  
+
   const [activeInterval, setActiveInterval] = useState(null);
   const activeIntervalRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -144,7 +144,9 @@ const TradingViewChartInner = (props) => {
       }
 
       if (candle) {
-        const index = allData.findIndex((d) => d.time === (param?.time || candle.time));
+        const index = allData.findIndex(
+          (d) => d.time === (param?.time || candle.time),
+        );
         let change = 0;
         let changePercent = 0;
 
@@ -154,7 +156,10 @@ const TradingViewChartInner = (props) => {
           changePercent = (change / prevClose) * 100;
         } else if (index === 0 && props.data?.refPrice) {
           // Nếu là nến đầu tiên, so với giá tham chiếu nếu có
-          const ref = props.data.refPrice > 1000 ? props.data.refPrice / 1000 : props.data.refPrice;
+          const ref =
+            props.data.refPrice > 1000
+              ? props.data.refPrice / 1000
+              : props.data.refPrice;
           change = candle.close - ref;
           changePercent = (change / ref) * 100;
         }
@@ -180,12 +185,13 @@ const TradingViewChartInner = (props) => {
 
       // 1. Kiểm tra để hủy active nút nếu cuộn quá xa
       if (!isProgrammaticChange.current && currentActive) {
-        const intervalConfig = INTERVALS.find(i => i.value === currentActive);
+        const intervalConfig = INTERVALS.find((i) => i.value === currentActive);
         if (intervalConfig && intervalConfig.zoomDays) {
           const data = candleSeriesRef.current.data();
           if (data && data.length > 0) {
             const lastTime = data[data.length - 1].time;
-            const expectedFrom = lastTime - (intervalConfig.zoomDays * 24 * 60 * 60);
+            const expectedFrom =
+              lastTime - intervalConfig.zoomDays * 24 * 60 * 60;
             const threshold = 15 * 24 * 60 * 60;
             if (Math.abs(range.from - expectedFrom) > threshold) {
               setActiveInterval(null);
@@ -194,7 +200,7 @@ const TradingViewChartInner = (props) => {
           }
         }
       }
-      
+
       isProgrammaticChange.current = false;
 
       // 2. Logic load thêm nếu kéo hết 2000 nến
@@ -239,7 +245,12 @@ const TradingViewChartInner = (props) => {
       try {
         const res = await fetchStockHistory(props.symbol, currentLength, "1D");
 
-        if (!res || !res.success || !Array.isArray(res.data) || res.data.length === 0) {
+        if (
+          !res ||
+          !res.success ||
+          !Array.isArray(res.data) ||
+          res.data.length === 0
+        ) {
           if (isInitialLoad.current) setError("Không có dữ liệu lịch sử");
           return;
         }
@@ -283,19 +294,26 @@ const TradingViewChartInner = (props) => {
         volumeData.sort((a, b) => a.time - b.time);
 
         const seen = new Set();
-        const uniqueCandles = candleData.filter(c => !seen.has(c.time) && seen.add(c.time));
+        const uniqueCandles = candleData.filter(
+          (c) => !seen.has(c.time) && seen.add(c.time),
+        );
         const seenV = new Set();
-        const uniqueVolumes = volumeData.filter(v => !seenV.has(v.time) && seenV.add(v.time));
+        const uniqueVolumes = volumeData.filter(
+          (v) => !seenV.has(v.time) && seenV.add(v.time),
+        );
 
         if (candleSeriesRef.current) {
           candleSeriesRef.current.setData(uniqueCandles);
           volumeSeriesRef.current.setData(uniqueVolumes);
-          
+
           if (isInitialLoad.current) {
             isProgrammaticChange.current = true;
             const lastTime = uniqueCandles[uniqueCandles.length - 1].time;
-            const fromTime = lastTime - (66 * 24 * 60 * 60); // View 3M mặc định
-            chartRef.current.timeScale().setVisibleRange({ from: fromTime, to: lastTime + (5 * 24 * 60 * 60) });
+            const fromTime = lastTime - 66 * 24 * 60 * 60; // View 3M mặc định
+            chartRef.current.timeScale().setVisibleRange({
+              from: fromTime,
+              to: lastTime + 5 * 24 * 60 * 60,
+            });
             isInitialLoad.current = false;
           }
         }
@@ -326,7 +344,7 @@ const TradingViewChartInner = (props) => {
     // 1. Xác định timestamp ngày hôm nay (00:00:00 UTC)
     // Phải khớp với cách parse ở loadData
     const now = new Date();
-    const todayStr = now.toISOString().split("T")[0]; 
+    const todayStr = now.toISOString().split("T")[0];
     const today = Math.floor(new Date(todayStr).getTime() / 1000);
 
     const scalePrice = (p) => {
@@ -392,10 +410,10 @@ const TradingViewChartInner = (props) => {
         chartRef.current.timeScale().fitContent();
       }
     } else {
-      const fromTime = lastTime - (iv.zoomDays * 24 * 60 * 60);
+      const fromTime = lastTime - iv.zoomDays * 24 * 60 * 60;
       chartRef.current.timeScale().setVisibleRange({
         from: fromTime,
-        to: lastTime + (5 * 24 * 60 * 60)
+        to: lastTime + 5 * 24 * 60 * 60,
       });
     }
   };
@@ -417,21 +435,60 @@ const TradingViewChartInner = (props) => {
                 )}
                 {hoveredData && (
                   <>
-                    <span className="ohlc-item">O <span className={`val ${hoveredData.isUp ? "up" : "down"}`}>{hoveredData.open.toFixed(2)}</span></span>
-                    <span className="ohlc-item">H <span className={`val ${hoveredData.isUp ? "up" : "down"}`}>{hoveredData.high.toFixed(2)}</span></span>
-                    <span className="ohlc-item">L <span className={`val ${hoveredData.isUp ? "up" : "down"}`}>{hoveredData.low.toFixed(2)}</span></span>
-                    <span className="ohlc-item">C <span className={`val ${hoveredData.isUp ? "up" : "down"}`}>{hoveredData.close.toFixed(2)}</span></span>
-                    <span className={`ohlc-change ${hoveredData.isUp ? "up" : "down"}`}>
-                      {hoveredData.change >= 0 ? "+" : ""}{hoveredData.change.toFixed(2)} 
-                      ({hoveredData.changePercent >= 0 ? "+" : ""}{hoveredData.changePercent.toFixed(2)}%)
+                    <span className="ohlc-item">
+                      O{" "}
+                      <span
+                        className={`val ${hoveredData.isUp ? "up" : "down"}`}
+                      >
+                        {hoveredData.open.toFixed(2)}
+                      </span>
+                    </span>
+                    <span className="ohlc-item">
+                      H{" "}
+                      <span
+                        className={`val ${hoveredData.isUp ? "up" : "down"}`}
+                      >
+                        {hoveredData.high.toFixed(2)}
+                      </span>
+                    </span>
+                    <span className="ohlc-item">
+                      L{" "}
+                      <span
+                        className={`val ${hoveredData.isUp ? "up" : "down"}`}
+                      >
+                        {hoveredData.low.toFixed(2)}
+                      </span>
+                    </span>
+                    <span className="ohlc-item">
+                      C{" "}
+                      <span
+                        className={`val ${hoveredData.isUp ? "up" : "down"}`}
+                      >
+                        {hoveredData.close.toFixed(2)}
+                      </span>
+                    </span>
+                    <span
+                      className={`ohlc-change ${hoveredData.isUp ? "up" : "down"}`}
+                    >
+                      {hoveredData.change >= 0 ? "+" : ""}
+                      {hoveredData.change.toFixed(2)}(
+                      {hoveredData.changePercent >= 0 ? "+" : ""}
+                      {hoveredData.changePercent.toFixed(2)}%)
                     </span>
                   </>
                 )}
               </div>
             </div>
             <div className="volume-row">
-              Volume - Khối lượng <span className={`vol-val ${hoveredData ? (hoveredData.isUp ? "up" : "down") : (props.data?.matchPrice >= props.data?.openPrice ? "up" : "down")}`}>
-                {(hoveredData?.volume || props.data?.totalVolume || 0).toLocaleString()}
+              Volume - Khối lượng{" "}
+              <span
+                className={`vol-val ${hoveredData ? (hoveredData.isUp ? "up" : "down") : props.data?.matchPrice >= props.data?.openPrice ? "up" : "down"}`}
+              >
+                {(
+                  hoveredData?.volume ||
+                  props.data?.totalVolume ||
+                  0
+                ).toLocaleString()}
               </span>
             </div>
           </div>
@@ -469,7 +526,7 @@ const TradingViewChartInner = (props) => {
             <i className="fa-regular fa-calendar-days"></i>
           </button>
         </div>
-        
+
         <div className="footer-right">
           <span className="footer-clock">
             {currentTime.toLocaleTimeString("vi-VN", { hour12: false })} (UTC+7)

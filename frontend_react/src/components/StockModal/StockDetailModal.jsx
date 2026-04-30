@@ -3,7 +3,7 @@ import "./StockDetailModal.scss";
 import ModalHeader from "./Layout/ModalHeader";
 import ModalTabs from "./Layout/ModalTabs";
 import TabContentGiaoDich from "./TabGiaoDich/TabContent";
-import { fetchStockDetail } from "../../services/marketApi";
+import { fetchStockDetail, fetchMatchingDetail } from "../../services/marketApi";
 
 const StockDetailModal = (props) => {
   const [activeTab, setActiveTab] = useState("Giao dịch");
@@ -15,12 +15,37 @@ const StockDetailModal = (props) => {
     const refreshData = async (isInitial = false) => {
       if (isInitial) setLoading(true);
       try {
-        const result = await fetchStockDetail(props.symbol);
-        if (result && result.success && result.data) {
-          setStockData(result.data);
+        // Gọi song song cả Detail (snapshot) và Intraday (lịch sử khớp lệnh)
+        const [detailRes, matchingRes] = await Promise.all([
+          fetchStockDetail(props.symbol),
+          fetchMatchingDetail(props.symbol),
+        ]);
+
+        if (detailRes && detailRes.success && detailRes.data) {
+          const combinedData = { ...detailRes.data };
+
+          // Nếu có dữ liệu khớp lệnh mới nhất, cập nhật vào snapshot để Header đồng bộ
+          if (
+            matchingRes &&
+            matchingRes.success &&
+            matchingRes.match &&
+            matchingRes.match.length > 0
+          ) {
+            const latestMatch = matchingRes.match[0];
+            // Đồng bộ giá: API history trả về 23.5, snapshot cần 23500
+            combinedData.matchPrice = latestMatch.price * 1000;
+            // Lưu luôn history và stats vào stockData để các con dùng chung, không cần gọi lại
+            combinedData.matchHistory = matchingRes.match;
+            combinedData.matchStats = matchingRes.stats;
+          }
+
+          setStockData(combinedData);
         }
       } catch (err) {
-        console.error(`[StockDetailModal] Lỗi refresh dữ liệu ${props.symbol}:`, err);
+        console.error(
+          `[StockDetailModal] Lỗi refresh dữ liệu ${props.symbol}:`,
+          err,
+        );
       } finally {
         if (isInitial) setLoading(false);
       }

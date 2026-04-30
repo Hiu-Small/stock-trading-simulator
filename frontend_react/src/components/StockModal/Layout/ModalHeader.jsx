@@ -9,26 +9,30 @@ const ModalHeader = (props) => {
   // Tính toán các giá trị hiển thị
   const matchPrice = props.data.matchPrice || 0;
   const refPrice = props.data.refPrice || 0;
-  const change =
-    props.data.matchChange !== undefined
+  const totalVolume = props.data.totalVolume || 0;
+
+  const hasTraded = matchPrice > 0;
+
+  const change = hasTraded
+    ? props.data.matchChange !== undefined
       ? props.data.matchChange
-      : matchPrice - refPrice;
-  const changePercent =
-    props.data.matchChangePercent !== undefined
+      : matchPrice - refPrice
+    : 0;
+  const changePercent = hasTraded
+    ? props.data.matchChangePercent !== undefined
       ? props.data.matchChangePercent
       : refPrice
         ? (change / refPrice) * 100
-        : 0;
-
-  const isDown = change < 0;
-  const isUp = change > 0;
+        : 0
+    : 0;
 
   const formatPrice = (p) => (p / 1000).toFixed(2);
   const formatVol = (v) => (v ? v.toLocaleString("vi-VN") : "0");
 
   // Hàm lấy class màu sắc dựa trên giá
   const getPriceClass = (price) => {
-    if (!price || !props.data.refPrice) return "price--ref";
+    if (!hasTraded || !price || price === 0) return "price--white";
+    if (!props.data.refPrice) return "price--ref";
     if (price >= props.data.ceiling) return "price--ceiling";
     if (price <= props.data.floor) return "price--floor";
     if (price > props.data.refPrice) return "price--up";
@@ -36,7 +40,10 @@ const ModalHeader = (props) => {
     return "price--ref";
   };
 
-  const avgPrice = (props.data.high + props.data.low) / 2;
+  const avgPrice =
+    hasTraded && props.data.high && props.data.low
+      ? (props.data.high + props.data.low) / 2
+      : 0;
 
   return (
     <div className="modal-header">
@@ -60,21 +67,21 @@ const ModalHeader = (props) => {
 
       <div className="header-info">
         <div className="price-section">
-          <div
-            className={`current-price ${getPriceClass(props.data.matchPrice)}`}
-          >
-            {formatPrice(matchPrice)}
+          <div className={`current-price ${getPriceClass(matchPrice)}`}>
+            {hasTraded ? formatPrice(matchPrice) : "-"}
           </div>
-          <div
-            className={`price-change ${getPriceClass(props.data.matchPrice)}`}
-          >
+          <div className={`price-change ${getPriceClass(matchPrice)}`}>
             <div>
-              {change > 0 ? "+" : ""}
-              {formatPrice(change)}
+              {hasTraded
+                ? (change > 0 ? "+" : "") + formatPrice(change)
+                : "0.00"}
             </div>
             <div>
-              {changePercent > 0 ? "+" : ""}
-              {changePercent.toFixed(2)}%
+              {hasTraded
+                ? (changePercent > 0 ? "+" : "") +
+                  changePercent.toFixed(2) +
+                  "%"
+                : "0.00%"}
             </div>
           </div>
         </div>
@@ -83,25 +90,41 @@ const ModalHeader = (props) => {
           <div className="stat-row">
             <span className="label">CAO/THẤP:</span>
             <span className="value">
-              <span className={getPriceClass(props.data.high)}>
-                {formatPrice(props.data.high || 0)}
-              </span>{" "}
-              /{" "}
-              <span className={getPriceClass(props.data.low)}>
-                {formatPrice(props.data.low || 0)}
-              </span>
+              {hasTraded && props.data.high ? (
+                <span className={getPriceClass(props.data.high)}>
+                  {formatPrice(props.data.high)}
+                </span>
+              ) : (
+                "-"
+              )}
+              {" / "}
+              {hasTraded && props.data.low ? (
+                <span className={getPriceClass(props.data.low)}>
+                  {formatPrice(props.data.low)}
+                </span>
+              ) : (
+                "-"
+              )}
             </span>
           </div>
           <div className="stat-row">
             <span className="label">MỞ CỬA/TRUNG BÌNH:</span>
             <span className="value">
-              <span className={getPriceClass(props.data.openPrice)}>
-                {formatPrice(props.data.openPrice)}
-              </span>{" "}
-              /{" "}
-              <span className={getPriceClass(avgPrice)}>
-                {formatPrice(avgPrice)}
-              </span>
+              {hasTraded && props.data.openPrice ? (
+                <span className={getPriceClass(props.data.openPrice)}>
+                  {formatPrice(props.data.openPrice)}
+                </span>
+              ) : (
+                "-"
+              )}
+              {" / "}
+              {hasTraded && avgPrice ? (
+                <span className={getPriceClass(avgPrice)}>
+                  {formatPrice(avgPrice)}
+                </span>
+              ) : (
+                "-"
+              )}
             </span>
           </div>
         </div>
@@ -125,7 +148,9 @@ const ModalHeader = (props) => {
           </div>
           <div className="ref-item total-vol">
             <span className="label">TỔNG KL:</span>
-            <span className="value">{formatVol(props.data.totalVolume)}</span>
+            <span className="value">
+              {totalVolume > 0 ? formatVol(totalVolume) : ""}
+            </span>
           </div>
         </div>
       </div>

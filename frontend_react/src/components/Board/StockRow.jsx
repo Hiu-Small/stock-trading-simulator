@@ -93,8 +93,12 @@ const StockRow = (props) => {
           change > 0 ? "price--up" : change < 0 ? "price--down" : "price--ref"
         }`}
       >
-        {change > 0 ? "+" : ""}
-        {formatChange(change)}
+        {stock.matchPrice > 0 && (
+          <>
+            {change > 0 ? "+" : ""}
+            {formatChange(change)}
+          </>
+        )}
       </td>
 
       {/* Cột Biến động giá phần trăm (%) */}
@@ -103,8 +107,12 @@ const StockRow = (props) => {
           change > 0 ? "price--up" : change < 0 ? "price--down" : "price--ref"
         }`}
       >
-        {change > 0 ? "+" : ""}
-        {changePercent.toFixed(2)}%
+        {stock.matchPrice > 0 && (
+          <>
+            {change > 0 ? "+" : ""}
+            {changePercent.toFixed(2)}%
+          </>
+        )}
       </td>
 
       {/* ===== ASK: G1 → G3 ===== */}
