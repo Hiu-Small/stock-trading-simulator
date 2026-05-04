@@ -40,10 +40,15 @@ const fetchStockHistory = (symbol, days = 90, interval = "1D") => {
   });
 };
 
+const fetchIndexIntraday = (symbol) => {
+  return axios.get(`/api/market/indices/${symbol}/intraday`);
+};
+
 export {
   fetchAllIndices,
   fetchIndexBySymbol,
   fetchIndexHistory,
+  fetchIndexIntraday,
   fetchBoardByGroup,
   checkBackendHealth,
   fetchStockDetail,

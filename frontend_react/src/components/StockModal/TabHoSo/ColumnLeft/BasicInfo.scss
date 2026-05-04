@@ -1,0 +1,37 @@
+.basic-info {
+  font-size: 13px;
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    .label {
+      color: #8888aa;
+      flex: 1;
+      padding-right: 16px;
+    }
+
+    .value {
+      color: #fff;
+      font-weight: 500;
+      text-align: right;
+      flex: 2;
+      
+      // Xử lý text dài (như chi nhánh, địa chỉ)
+      word-break: break-word;
+      white-space: pre-line;
+    }
+    
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .contact-info {
+    margin-top: 24px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-top: 12px;
+  }
+}

@@ -1,124 +1,130 @@
-// Khai báo biến màu chuẩn của sàn chứng khoán
-$color-green: #00c805;
-$color-red: #ff3b30;
-$color-text-gray: #8888aa;
-
 .index-card {
+  background-color: #1a1b24;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 4px 10px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  min-width: 220px;
-  flex: 1;
-  height: 100%;
-  cursor: pointer;
-  transition: background 0.2s;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1; 
+  min-width: 0; 
+  transition: transform 0.2s, box-shadow 0.2s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
-  /* Cột 1: Thông tin giá */
-  &__info {
+  // Lớp màu sắc chuyên dụng
+  .color-ceiling { color: #ff00ff !important; }
+  .color-floor { color: #00ffff !important; }
+
+  &__chart-section {
+    height: 90px; 
+    width: calc(100% + 20px); // Bù lại padding của cha để sát mép
+    margin-left: -10px;
+    margin-right: -10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 2px;
+  }
+
+  &__details {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 3px;
-    min-width: 110px;
+    gap: 8px;
 
-    .index-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: $color-text-gray;
-
-      .trend {
-        margin-left: 4px;
-        font-weight: 800;
-      }
-    }
-
-    .index-value {
-      font-size: 22px;
-      font-weight: 700;
-      line-height: 1;
-      font-family: "Roboto", "Inter", sans-serif;
-    }
-
-    .index-change {
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .index-stats {
+    .detail-row {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      margin-top: 4px;
-      font-family: "Roboto", sans-serif;
+    }
 
-      .stats-item {
+    .main-row {
+      .index-symbol {
+        color: #fff;
+        font-weight: 600;
+        font-size: 13px;
         display: flex;
         align-items: center;
         gap: 4px;
-        font-size: 13px;
-        font-weight: 700;
 
         i {
-          font-size: 10px;
+          font-size: 9px;
+          color: #8888aa;
         }
+      }
 
-        .stats-sub {
-          font-size: 11px;
-          font-weight: 600;
+      .index-price-info {
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        flex-direction: row; 
+        align-items: center;
+        gap: 6px;
+
+        .change-info {
+          font-size: 12px;
           opacity: 0.9;
         }
       }
+    }
 
-      .stats-up {
-        color: #00b050; // Xanh lá
-        .stats-sub { color: #ce58f5; } // Tím trần
+    .secondary-row {
+      font-size: 11px;
+      color: #fff;
+      font-weight: 500;
+
+      .vol-info {
+        color: #8888aa;
+        font-size: 11px;
       }
+    }
 
-      .stats-ref {
-        color: #dfc13a; // Vàng tham chiếu
-        .bar-ref {
-          width: 8px;
-          height: 3px;
-          background-color: #dfc13a;
-          border-radius: 1px;
+    .stats-row {
+      margin-top: 2px;
+      justify-content: space-between;
+
+      .stats-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+
+        .stats-item {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          font-size: 12px; // Số to ra
+          font-weight: 600;
+
+          &.up { color: #00c805; }
+          &.ref { color: #ffd300; }
+          &.down { color: #ff3b30; }
+
+          .sub {
+            font-size: 12px; // Số trần/sàn to bằng số thường
+            font-weight: 600;
+          }
+
+          .ref-dot {
+            width: 10px;
+            height: 2px;
+            background-color: #ffd300;
+            border-radius: 1px;
+          }
         }
       }
 
-      .stats-down {
-        color: #ff0000; // Đỏ giảm
-        .stats-sub { color: #16b1c0; } // Xanh lơ sàn
+      .vol-info {
+        color: #8888aa;
+        font-size: 12px;
+        font-weight: 500;
       }
     }
   }
-
-  /* Cột 2: Gồm Biểu đồ (trên) và Khối lượng (dưới) */
-  &__right-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column; // Xếp dọc 2 phần tử
-    justify-content: center;
-    padding-left: 15px;
-
-    .chart-wrapper {
-      width: 100%;
-      height: 35px;
-      display: flex;
-      align-items: flex-end; // Đẩy biểu đồ sát xuống dưới để gần với chữ Khối lượng
-    }
-
-    .volume-text {
-      font-size: 10px;
-      color: $color-text-gray;
-      text-align: right; // Căn phải để đuôi số chạy sát lề thẻ
-      margin-top: 4px; // Cách biểu đồ 1 chút
-      font-weight: 500;
-      letter-spacing: 0.5px;
-    }
-  }
 }
+
+// Global price classes (nếu chưa có trong global.scss)
+.price--up { color: #00c805 !important; }
+.price--down { color: #ff3b30 !important; }
+.price--ref { color: #ffd300 !important; }
+.price--ceiling { color: #ff00ff !important; }
+.price--floor { color: #00ffff !important; }

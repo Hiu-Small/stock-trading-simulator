@@ -11,16 +11,19 @@ import pythonService from "./pythonService.js";
 // ==========================================
 const CACHE_CONFIG = {
   INDEX_TTL: 30_000,   // Cache cho các chỉ số (VNINDEX, VN30...)
+  INDEX_INTRADAY_TTL: 60_000, // Cache cho đồ thị phút chỉ số (1 phút)
   BOARD_TTL: 30_000,   // Cache cho bảng giá nhóm (HOSE, VN30...)
   STOCK_TTL: 30_000,   // Cache cho chi tiết mã cổ phiếu (AAA, FPT...)
 };
 
 // Bộ nhớ đệm (Cache)
 let indexCache = { data: null, lastFetched: null };
+let indexIntradayCache = {};
 let boardCache = {}; 
 let stockCache = {}; 
 
 // Quản lý các yêu cầu đang chạy (Dùng để gộp các yêu cầu trùng nhau)
+let pendingIndexIntradayRequests = {};
 let pendingBoardRequests = {}; 
 let pendingStockRequests = {}; 
 
@@ -82,6 +85,45 @@ const getIndexBySymbol = async (symbol) => {
       data: found || null,
     };
   }
+};
+
+/**
+ * Lấy dữ liệu đồ thị phút của chỉ số
+ */
+const getIndexIntraday = async (symbol) => {
+  const now = Date.now();
+  const upperSymbol = symbol.toUpperCase();
+
+  if (
+    indexIntradayCache[upperSymbol] && 
+    now - indexIntradayCache[upperSymbol].lastFetched < CACHE_CONFIG.INDEX_INTRADAY_TTL
+  ) {
+    return { ...indexIntradayCache[upperSymbol].data, fromCache: true };
+  }
+
+  if (pendingIndexIntradayRequests[upperSymbol]) {
+    return pendingIndexIntradayRequests[upperSymbol];
+  }
+
+  pendingIndexIntradayRequests[upperSymbol] = (async () => {
+    try {
+      const res = await pythonService.fetchIndexIntraday(upperSymbol);
+      const data = res.data;
+
+      indexIntradayCache[upperSymbol] = {
+        data: data,
+        lastFetched: Date.now()
+      };
+      return { ...data, fromCache: false };
+    } catch (err) {
+      console.error(`[marketService] Lỗi lấy intraday chỉ số ${upperSymbol}:`, err.message);
+      return { success: false, data: [] };
+    } finally {
+      delete pendingIndexIntradayRequests[upperSymbol];
+    }
+  })();
+
+  return pendingIndexIntradayRequests[upperSymbol];
 };
 
 /**
@@ -291,6 +333,7 @@ function getMockIndices() {
 export default {
   getAllIndices,
   getIndexBySymbol,
+  getIndexIntraday,
   getIndexHistory,
   getBoardByGroup,
   getStockDetail,

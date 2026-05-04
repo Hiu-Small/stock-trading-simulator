@@ -49,7 +49,8 @@ const MatchHistoryLog = (props) => {
             M: <span className="price--up">{formatVolToK(stats.totalBuy)}</span>
           </span>
           <span className="sell">
-            B: <span className="price--down">{formatVolToK(stats.totalSell)}</span>
+            B:{" "}
+            <span className="price--down">{formatVolToK(stats.totalSell)}</span>
           </span>
         </div>
       </div>
@@ -84,10 +85,10 @@ const MatchHistoryLog = (props) => {
                     {row.price.toFixed(2)}
                   </div>
                   <div className={`col-change text-right ${colorClass}`}>
-                    {Math.abs(change).toFixed(2)}
+                    {change.toFixed(2)}
                   </div>
                   <div className={`col-percent text-right ${colorClass}`}>
-                    {Math.abs(changePercent).toFixed(1)}
+                    {changePercent.toFixed(1)}
                   </div>
                   <div
                     className={`col-side text-right ${

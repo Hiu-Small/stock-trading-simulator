@@ -1,0 +1,39 @@
+.sub-tabs-nav {
+  display: flex;
+  gap: 20px;
+  height: 100%;
+  width: 100%;
+
+  .sub-tab-btn {
+    background: transparent;
+    border: none;
+    color: #8888aa;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+    height: 100%;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+      color: #fff;
+    }
+
+    &.active {
+      color: #fff;
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #00c805;
+      }
+    }
+  }
+}

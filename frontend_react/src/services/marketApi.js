@@ -175,6 +175,20 @@ const getFallbackIndices = () => {
   ];
 };
 
+/**
+ * Lấy dữ liệu đồ thị phút của chỉ số
+ * @param {string} symbol - "VNINDEX", "HNX-INDEX", etc.
+ */
+const fetchIndexIntraday = async (symbol) => {
+  try {
+    const res = await marketService.fetchIndexIntraday(symbol);
+    return res;
+  } catch (err) {
+    console.error(`[marketApi] fetchIndexIntraday ${symbol} lỗi:`, err.message);
+    return { success: false, data: [] };
+  }
+};
+
 // ==========================================
 // EXPORT TẤT CẢ CÁC HÀM RA MỘT CHỖ
 // ==========================================
@@ -182,9 +196,10 @@ export {
   fetchAllIndices,
   fetchIndexBySymbol,
   fetchIndexHistory,
+  fetchIndexIntraday,
   checkBackendHealth,
   getBoardData,
   fetchStockDetail,
   fetchMatchingDetail,
-  fetchStockHistory
+  fetchStockHistory,
 };

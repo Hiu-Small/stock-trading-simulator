@@ -3,6 +3,7 @@ import "./StockDetailModal.scss";
 import ModalHeader from "./Layout/ModalHeader";
 import ModalTabs from "./Layout/ModalTabs";
 import TabContentGiaoDich from "./TabGiaoDich/TabContent";
+import TabHoSoContent from "./TabHoSo/TabHoSoContent";
 import { fetchStockDetail, fetchMatchingDetail } from "../../services/marketApi";
 
 const StockDetailModal = (props) => {
@@ -81,10 +82,14 @@ const StockDetailModal = (props) => {
               {activeTab === "Giao dịch" && stockData && (
                 <TabContentGiaoDich symbol={props.symbol} data={stockData} />
               )}
-              {activeTab !== "Giao dịch" && (
+              {activeTab === "Hồ sơ" && (
+                <TabHoSoContent symbol={props.symbol} data={stockData} />
+              )}
+              {activeTab !== "Giao dịch" && activeTab !== "Hồ sơ" && (
                 <div className="empty-tab">Tính năng đang được phát triển...</div>
               )}
             </div>
+
           </>
         )}
       </div>

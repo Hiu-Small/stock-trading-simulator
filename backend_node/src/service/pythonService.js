@@ -21,6 +21,13 @@ const fetchIndexBySymbol = (symbol) => {
 };
 
 /**
+ * Gọi API lấy intraday của chỉ số (dữ liệu phút)
+ */
+const fetchIndexIntraday = (symbol) => {
+  return axios.get(PYTHON_API.INDEX_INTRADAY(symbol), { timeout: 10000 });
+};
+
+/**
  * Gọi API lấy lịch sử giá chỉ số
  */
 const fetchIndexHistory = (symbol, days, interval) => {
@@ -62,6 +69,13 @@ const fetchStockHistory = (symbol, days, resolution) => {
 };
 
 /**
+ * Gọi API lấy hồ sơ công ty
+ */
+const fetchStockProfile = (symbol) => {
+  return axios.get(PYTHON_API.STOCK_PROFILE(symbol), { timeout: 15000 });
+};
+
+/**
  * Kiểm tra sức khỏe Python API
  */
 const fetchHealth = () => {
@@ -71,10 +85,12 @@ const fetchHealth = () => {
 export default {
   fetchAllIndices,
   fetchIndexBySymbol,
+  fetchIndexIntraday,
   fetchIndexHistory,
   fetchBoardByGroup,
   fetchStockDetail,
   fetchStockIntraday,
   fetchStockHistory,
+  fetchStockProfile,
   fetchHealth,
 };

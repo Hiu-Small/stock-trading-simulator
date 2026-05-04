@@ -84,35 +84,17 @@ const StockRow = (props) => {
         <div className="cell-price cell-price--bold">
           {formatPrice(stock.matchPrice)}
         </div>
-        <div className="cell-vol">{formatVolume(stock.matchVolume)}</div>
+        {/* <div className="cell-vol">{formatVolume(stock.matchVolume)}</div> */}
       </td>
 
       {/* Cột Biến động giá tuyệt đối (+/-) */}
-      <td
-        className={`col-change ${
-          change > 0 ? "price--up" : change < 0 ? "price--down" : "price--ref"
-        }`}
-      >
-        {stock.matchPrice > 0 && (
-          <>
-            {change > 0 ? "+" : ""}
-            {formatChange(change)}
-          </>
-        )}
+      <td className={`col-change ${getPriceColor(stock.matchPrice)} `}>
+        {stock.matchPrice > 0 && <>{formatChange(change)}</>}
       </td>
 
       {/* Cột Biến động giá phần trăm (%) */}
-      <td
-        className={`col-change-pct ${
-          change > 0 ? "price--up" : change < 0 ? "price--down" : "price--ref"
-        }`}
-      >
-        {stock.matchPrice > 0 && (
-          <>
-            {change > 0 ? "+" : ""}
-            {changePercent.toFixed(2)}%
-          </>
-        )}
+      <td className={`col-change-pct ${getPriceColor(stock.matchPrice)} `}>
+        {stock.matchPrice > 0 && <>{changePercent.toFixed(2)}%</>}
       </td>
 
       {/* ===== ASK: G1 → G3 ===== */}

@@ -1,171 +1,107 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./IndexCard.scss";
 import "../../assets/styles/global.scss";
+import IndexMiniChart from "./IndexMiniChart";
+import { fetchIndexIntraday } from "../../services/marketApi";
 
 const IndexCard = (props) => {
+  const [intradayData, setIntradayData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadIntraday = async () => {
+      const symbolName = props.data?.name;
+      if (!symbolName) return;
+      
+      setLoading(true);
+      try {
+        console.log(`[IndexCard] Fetching intraday for ${symbolName}...`);
+        const res = await fetchIndexIntraday(symbolName);
+        console.log(`[IndexCard] Result for ${symbolName}:`, res);
+        
+        if (res && res.success && Array.isArray(res.data)) {
+          setIntradayData(res.data);
+        } else if (Array.isArray(res)) {
+          // Trường hợp API trả về mảng trực tiếp
+          setIntradayData(res);
+        } else {
+          console.warn(`[IndexCard] API returned unexpected format for ${symbolName}:`, res);
+        }
+      } catch (err) {
+        console.error(`[IndexCard] Failed to load intraday for ${symbolName}:`, err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadIntraday();
+    const interval = setInterval(loadIntraday, 60000);
+    return () => clearInterval(interval);
+  }, [props.data?.name]);
+
   if (!props.data) return null;
 
-  // Kiểm tra xem có phải trước phiên (trước 9h sáng) không
-  const checkPreMarket = () => {
-    const now = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
-    );
-    const totalMinutes = now.getHours() * 60 + now.getMinutes();
-    //const totalMinutes = 0; //test
-    return totalMinutes < 540; // 540 = 9h * 60
-  };
-
-  const isPreMarket = checkPreMarket();
-
-  // Logic màu sắc và icon
-  let isUp = props.data.chartUp && !isPreMarket;
-  let isDown = !props.data.chartUp && !isPreMarket && props.data.change !== 0;
-  let isRef = isPreMarket || props.data.change === 0;
-
+  const isUp = props.data.change > 0;
+  const isDown = props.data.change < 0;
   const colorClass = isUp ? "price--up" : isDown ? "price--down" : "price--ref";
-  const trendIcon = isPreMarket ? "—" : isUp ? "↗" : isDown ? "↘" : "—";
 
-  const formatPositive = (value) => {
-    if (value === undefined || value === null || isPreMarket) return "0.00";
-    const strValue = Number(value).toFixed(2);
-    if (isUp && !strValue.startsWith("+")) {
-      return `+${strValue}`;
-    }
-    return strValue;
-  };
-
-  // Hàm format Khối lượng hiển thị cho đẹp (vd: 1,500,000)
-  const formatVolume = (vol) => {
-    if (!vol || isPreMarket) return "0";
-    return Number(vol).toLocaleString("vi-VN");
-  };
-
-  const displayChange = formatPositive(props.data.change);
-  const displayChangePercent = formatPositive(props.data.changePercent);
-
-  const formatValue = (value) => {
-    return value.toLocaleString("en-US", {
+  const formatValue = (val) => {
+    return Number(val).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
   };
 
+  const formatVolume = (vol) => {
+    if (!vol) return "0";
+    return Number(vol).toLocaleString("vi-VN");
+  };
+
   return (
     <div className="index-card">
-      {/* CỘT 1: Thông tin giá */}
-      <div className="index-card__info">
-        <div className="index-name">
-          {props.data.name}
-          <span className={`trend ${colorClass}`}>{trendIcon}</span>
-        </div>
-        <div className={`index-value ${colorClass}`}>
-          {formatValue(props.data.value)}
-        </div>
-        <div className={`index-change ${colorClass}`}>
-          {displayChange} &nbsp;|&nbsp; {displayChangePercent}%
-        </div>
-
-        {/* THỐNG KÊ MÃ TĂNG/GIẢM/TC (Phong cách chuyên nghiệp) */}
-        <div className="index-stats">
-          <span className="stats-item stats-up">
-            <i className="fa-solid fa-arrow-up"></i>
-            {isPreMarket ? 0 : props.data.advances || 0}
-            <span className="stats-sub">
-              ({isPreMarket ? 0 : props.data.ceilings || 0})
-            </span>
-          </span>
-          <span className="stats-item stats-ref">
-            <span className="bar-ref"></span>
-            {isPreMarket ? 0 : props.data.noChange || 0}
-          </span>
-          <span className="stats-item stats-down">
-            <i className="fa-solid fa-arrow-down"></i>
-            {isPreMarket ? 0 : props.data.declines || 0}
-            <span className="stats-sub">
-              ({isPreMarket ? 0 : props.data.floors || 0})
-            </span>
-          </span>
-        </div>
+      {/* PHẦN 1: BIỂU ĐỒ (CHIẾM PHẦN LỚN) */}
+      <div className="index-card__chart-section">
+        <IndexMiniChart 
+          data={intradayData} 
+          refPrice={props.data.refPrice || props.data.value - props.data.change} 
+        />
       </div>
 
-      {/* CỘT 2: Nhóm Biểu đồ và Khối lượng */}
-      <div className="index-card__right-col">
-        {/* Biểu đồ Mini */}
-        <div className="chart-wrapper">
-          <svg
-            width="100%"
-            height="35"
-            viewBox="0 0 100 35"
-            preserveAspectRatio="none"
-          >
-            <defs>
-              <linearGradient id="grad-up" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#00C805" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#00C805" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient id="grad-down" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#FF3B30" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#FF3B30" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient id="grad-ref" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#FFD300" stopOpacity="0.2" />
-                <stop offset="100%" stopColor="#FFD300" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-
-            {isPreMarket ? (
-              <>
-                <line
-                  x1="0"
-                  y1="17"
-                  x2="100"
-                  y2="17"
-                  stroke="#FFD300"
-                  strokeWidth="2"
-                />
-                <rect
-                  x="0"
-                  y="17"
-                  width="100"
-                  height="18"
-                  fill="url(#grad-ref)"
-                />
-              </>
-            ) : isUp ? (
-              <>
-                <polygon
-                  points="0,35 0,10 25,12 50,5 75,15 100,2 100,35"
-                  fill="url(#grad-up)"
-                />
-                <polyline
-                  points="0,10 25,12 50,5 75,15 100,2"
-                  fill="none"
-                  stroke="#00C805"
-                  strokeWidth="2"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </>
-            ) : (
-              <>
-                <polygon
-                  points="0,35 0,5 25,15 50,10 75,25 100,18 100,35"
-                  fill="url(#grad-down)"
-                />
-                <polyline
-                  points="0,5 25,15 50,10 75,25 100,18"
-                  fill="none"
-                  stroke="#FF3B30"
-                  strokeWidth="2"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </>
-            )}
-          </svg>
+      {/* PHẦN 2: THÔNG TIN CHI TIẾT (BOTTOM) */}
+      <div className="index-card__details">
+        {/* Hàng 1: Tên và Giá */}
+        <div className="detail-row main-row">
+          <div className={`index-symbol ${colorClass}`}>
+            {props.data.name}
+          </div>
+          <div className={`index-price-info ${colorClass}`}>
+            <span className="current-value">
+              {isUp ? "↑" : isDown ? "↓" : ""} {formatValue(props.data.value)}
+            </span>
+            <span className="change-info">
+              ({props.data.change > 0 ? "+" : ""}{props.data.change.toFixed(2)} {props.data.changePercent.toFixed(2)}%)
+            </span>
+          </div>
         </div>
 
-        {/* Khối lượng hiển thị dưới chart */}
-        <div className="volume-text">
-          KL: {formatVolume(props.data.volume)} CP
+        {/* Hàng 2: Thống kê và Khối lượng */}
+        <div className="detail-row stats-row">
+          <div className="stats-group">
+            <span className="stats-item up">
+              <i className="fa-solid fa-arrow-up"></i> {props.data.advances || 0} 
+              <span className="sub color-ceiling"> ({props.data.ceilings || 0})</span>
+            </span>
+            <span className="stats-item ref">
+              <span className="ref-dot"></span> {props.data.noChange || 0}
+            </span>
+            <span className="stats-item down">
+              <i className="fa-solid fa-arrow-down"></i> {props.data.declines || 0}
+              <span className="sub color-floor"> ({props.data.floors || 0})</span>
+            </span>
+          </div>
+          <div className="vol-info">
+           KL: {formatVolume(props.data.volume)} CP
+          </div>
         </div>
       </div>
     </div>

@@ -19,6 +19,9 @@ const initMarketRoutes = (app) => {
   // VD: /api/market/indices/VNINDEX
   router.get("/indices/:symbol", marketController.getIndexBySymbol);
 
+  // GET /api/market/indices/:symbol/intraday - Lấy đồ thị phút
+  router.get("/indices/:symbol/intraday", marketController.getIndexIntraday);
+
   // GET /api/market/indices/:symbol/history - Lấy lịch sử giá
   // VD: /api/market/indices/VNINDEX/history?days=30&interval=1D
   router.get("/indices/:symbol/history", marketController.getIndexHistory);

@@ -56,6 +56,24 @@ const getIndexBySymbol = async (req, res) => {
 };
 
 /**
+ * GET /api/market/indices/:symbol/intraday
+ * Lấy đồ thị phút của chỉ số
+ */
+const getIndexIntraday = async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    if (!symbol) {
+      return res.status(400).json({ success: false, message: "Thiếu symbol" });
+    }
+    const data = await marketService.getIndexIntraday(symbol.toUpperCase());
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("[marketController] getIndexIntraday lỗi:", err);
+    return res.status(500).json({ success: false, message: "Lỗi server", error: err.message });
+  }
+};
+
+/**
  * GET /api/market/indices/:symbol/history?days=30&interval=1D
  * Lấy lịch sử giá của chỉ số để vẽ chart
  */
@@ -207,6 +225,7 @@ const getStockHistory = async (req, res) => {
 export default {
   getAllIndices,
   getIndexBySymbol,
+  getIndexIntraday,
   getIndexHistory,
   getBoardByGroup,
   getStockDetail,
