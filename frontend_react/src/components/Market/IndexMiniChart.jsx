@@ -69,28 +69,61 @@ const IndexMiniChart = (props) => {
     { label: "15h", time: "15:00" }
   ];
 
-  // Vẽ các đoạn đường giá
+  // Vẽ các đoạn đường giá (có xử lý cắt tại đường tham chiếu để đổi màu chính xác)
   const segments = [];
   for (let i = 0; i < chartData.length - 1; i++) {
     const p1 = chartData[i];
     const p2 = chartData[i + 1];
     
-    // Nếu khoảng cách thời gian giữa 2 điểm quá lớn (> 30p), coi như nghỉ trưa, không nối dây
     const x1 = getXByTime(p1.time);
-    const x2 = getXByTime(p2.time);
     const y1 = getY(p1.value);
+    const x2 = getXByTime(p2.time);
     const y2 = getY(p2.value);
-    const color = p2.value >= refPrice ? "#00c805" : "#ff3b30";
-    
-    segments.push(
-      <line 
-        key={i} 
-        x1={x1} y1={y1} x2={x2} y2={y2} 
-        stroke={color} 
-        strokeWidth="1.2" 
-        vectorEffect="non-scaling-stroke"
-      />
-    );
+
+    const v1 = p1.value;
+    const v2 = p2.value;
+
+    // Kiểm tra cắt đường tham chiếu
+    const crossesRef = (v1 > refPrice && v2 < refPrice) || (v1 < refPrice && v2 > refPrice);
+
+    if (crossesRef) {
+      const ratio = Math.abs(refPrice - v1) / Math.abs(v2 - v1);
+      const xMid = x1 + (x2 - x1) * ratio;
+      const yMid = getY(refPrice);
+
+      const color1 = v1 >= refPrice ? "#00c805" : "#ff3b30";
+      segments.push(
+        <line 
+          key={`${i}-a`} 
+          x1={x1} y1={y1} x2={xMid} y2={yMid} 
+          stroke={color1} 
+          strokeWidth="1.2" 
+          vectorEffect="non-scaling-stroke"
+        />
+      );
+
+      const color2 = v2 >= refPrice ? "#00c805" : "#ff3b30";
+      segments.push(
+        <line 
+          key={`${i}-b`} 
+          x1={xMid} y1={yMid} x2={x2} y2={y2} 
+          stroke={color2} 
+          strokeWidth="1.2" 
+          vectorEffect="non-scaling-stroke"
+        />
+      );
+    } else {
+      const color = v2 >= refPrice ? "#00c805" : "#ff3b30";
+      segments.push(
+        <line 
+          key={i} 
+          x1={x1} y1={y1} x2={x2} y2={y2} 
+          stroke={color} 
+          strokeWidth="1.2" 
+          vectorEffect="non-scaling-stroke"
+        />
+      );
+    }
   }
 
   // Vẽ Volume
@@ -137,12 +170,26 @@ const IndexMiniChart = (props) => {
           stroke="rgba(255, 255, 255, 0.3)"
           strokeWidth="0.8"
           strokeDasharray="2,2"
+          vectorEffect="non-scaling-stroke"
         />
+
 
         {volumeBars}
         {segments}
       </svg>
       
+      {/* Nhãn giá tham chiếu (Dùng HTML để không bị méo chữ khi SVG stretch) */}
+      <div 
+        className="chart-ref-label" 
+        style={{ 
+          top: `${(refY / height) * 100}%`, 
+          left: '50%',
+          transform: 'translate(-50%, calc(-100% - 13px))'
+        }}
+      >
+        {refPrice.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
+      </div>
+
       {/* Hiển thị mốc giờ phía dưới */}
       <div className="chart-time-labels">
         {timeLabels.map((tm, idx) => {

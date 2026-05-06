@@ -341,11 +341,16 @@ const TradingViewChartInner = (props) => {
     )
       return;
 
-    // 1. Xác định timestamp ngày hôm nay (00:00:00 UTC)
-    // Phải khớp với cách parse ở loadData
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
-    const today = Math.floor(new Date(todayStr).getTime() / 1000);
+    // 0. Kiểm tra giờ giao dịch: Chỉ cập nhật nến mới sau khi vào phiên sáng (9:00 AM VN)
+    // Tránh việc hiện nến mới khi chưa có giao dịch thực tế
+    const vnNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+    const currentMins = vnNow.getHours() * 60 + vnNow.getMinutes();
+    const isWeekend = vnNow.getDay() === 0 || vnNow.getDay() === 6;
+    if (isWeekend || currentMins < 540) return;
+
+    // 1. Xác định timestamp ngày hôm nay (00:00:00 theo ngày VN)
+    const vnDateStr = vnNow.toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }); // Định dạng YYYY-MM-DD
+    const today = Math.floor(new Date(vnDateStr).getTime() / 1000);
 
     const scalePrice = (p) => {
       if (!p || isNaN(Number(p))) return null;

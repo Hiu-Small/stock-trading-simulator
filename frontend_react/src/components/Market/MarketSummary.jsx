@@ -77,7 +77,7 @@ const MarketSummary = (props) => {
   // Auto-refresh mỗi 30 giây CHỈ trong giờ giao dịch
   useEffect(() => {
     let refreshTimer;
-    
+
     if (marketOpenStatus) {
       refreshTimer = setInterval(() => {
         loadIndices();
@@ -100,12 +100,12 @@ const MarketSummary = (props) => {
     const day = now.getDay();
 
     if (day === 0 || day === 6) return { label: "CLOSED", type: "closed" };
-    
-    if (total < 540) return { label: "PRE", type: "pre" };
-    if (total < 545) return { label: "ATO", type: "ato" };
+
+    if (total < 480 && total < 540) return { label: "PRE", type: "pre" };
+    if (total < 555) return { label: "ATO", type: "ato" };
     if (total < 690) return { label: "OPEN", type: "open" }; // Sáng đến 11:30
     if (total < 780) return { label: "BREAK", type: "closed" }; // Nghỉ trưa 11:30 - 13:00
-    if (total < 885) return { label: "OPEN", type: "open" }; // Chiều đến 14:45
+    if (total < 870) return { label: "OPEN", type: "open" }; // Chiều đến 14:45
     if (total < 900) return { label: "ATC", type: "atc" }; // ATC 14:45 - 15:00
     return { label: "CLOSED", type: "closed" };
   };
@@ -128,17 +128,21 @@ const MarketSummary = (props) => {
           : indices.map((item) => {
               // Lấy thống kê từ bảng điện nếu có
               const groupName = indexToGroupMap[item.id];
-              const tableStats = props.marketStatsMap ? props.marketStatsMap[groupName] : null;
-              
+              const tableStats = props.marketStatsMap
+                ? props.marketStatsMap[groupName]
+                : null;
+
               // Nếu có stats từ bảng điện, ghi đè lên dữ liệu từ API Index
-              const displayData = tableStats ? {
-                ...item,
-                advances: tableStats.increase,
-                declines: tableStats.decrease,
-                noChange: tableStats.ref,
-                ceilings: tableStats.ceiling,
-                floors: tableStats.floor
-              } : item;
+              const displayData = tableStats
+                ? {
+                    ...item,
+                    advances: tableStats.increase,
+                    declines: tableStats.decrease,
+                    noChange: tableStats.ref,
+                    ceilings: tableStats.ceiling,
+                    floors: tableStats.floor,
+                  }
+                : item;
 
               return <IndexCard key={item.id} data={displayData} />;
             })}

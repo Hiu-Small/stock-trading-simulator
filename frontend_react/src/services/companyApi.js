@@ -14,6 +14,28 @@ const fetchCompanyProfile = async (symbol) => {
   }
 };
 
+const fetchShareholders = async (symbol) => {
+  try {
+    const res = await companyService.fetchShareholders(symbol);
+    return res;
+  } catch (err) {
+    console.error(`[companyApi] fetchShareholders ${symbol} lỗi:`, err.message);
+    return { success: false, data: [] };
+  }
+};
+
+const fetchOwnership = async (symbol) => {
+  try {
+    const res = await companyService.fetchOwnership(symbol);
+    return res;
+  } catch (err) {
+    console.error(`[companyApi] fetchOwnership ${symbol} lỗi:`, err.message);
+    return { success: false, data: {} };
+  }
+};
+
 export {
   fetchCompanyProfile,
+  fetchShareholders,
+  fetchOwnership,
 };

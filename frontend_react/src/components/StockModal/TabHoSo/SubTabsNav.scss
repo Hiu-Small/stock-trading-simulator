@@ -24,6 +24,7 @@
 
     &.active {
       color: #fff;
+      font-weight: 600;
 
       &::after {
         content: "";

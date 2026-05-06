@@ -16,6 +16,9 @@ const PYTHON_API = {
   STOCK_INTRADAY: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}/intraday`,
   STOCK_HISTORY: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}/history`,
   STOCK_PROFILE: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}/profile`,
+  STOCK_SHAREHOLDERS: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}/shareholders`,
+  STOCK_OWNERSHIP: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}/ownership`,
+  STOCK_EVENTS: (symbol) => `${PYTHON_API_BASE}/api/stock/${symbol}/events`,
 };
 
 export default PYTHON_API;

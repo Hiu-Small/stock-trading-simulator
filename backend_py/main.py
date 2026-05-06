@@ -327,47 +327,41 @@ async def get_index_intraday(symbol: str):
     try:
         symbol_upper = symbol.upper()
         actual_symbol = SYMBOL_MAP.get(symbol_upper, symbol_upper)
-        print(f"--- FETCHING INTRADAY for {symbol_upper} (actual: {actual_symbol}) ---")
+        # Sử dụng nguồn KBS cho dữ liệu chỉ số
+        quote = Quote(symbol=actual_symbol, source='kbs')
         
-        df = None
-        for source in ['vci', 'kbs']:
-            try:
-                print(f"Trying source: {source}")
-                quote = Quote(symbol=actual_symbol, source=source)
-                df = quote.history(interval='1m', length='1')
-                if df is not None and not df.empty:
-                    print(f"Success with {source}, records: {len(df)}")
-                    break
-            except Exception as ex:
-                print(f"Source {source} failed: {ex}")
-                continue
+        # Lấy dữ liệu 1 phút (1m). KBS có thể trả về cả dữ liệu phiên trước nếu dùng length
+        df = quote.history(interval='1m', length='1')
         
         if df is None or df.empty:
-            print(f"--- NO INTRADAY DATA found for {symbol_upper} ---")
             return {
                 "success": False,
                 "symbol": symbol,
                 "message": f"Không tìm thấy dữ liệu intraday cho chỉ số {symbol}"
             }
             
-        # Format dữ liệu
+        # FIX: Chỉ lấy dữ liệu của đúng ngày hôm nay
+        today = datetime.now().date()
+        df_today = df[df['time'].dt.date == today].copy()
+        
+        if df_today.empty:
+            return {
+                "success": True,
+                "symbol": symbol,
+                "count": 0,
+                "data": [],
+                "note": "Chưa có dữ liệu nến cho phiên hôm nay"
+            }
+            
+        # Format dữ liệu cho đồ thị line chart trên frontend
         data_points = []
-        for _, row in df.iterrows():
-            t = row.get('time', row.get('date'))
-            time_str = ""
-            if hasattr(t, 'strftime'):
-                time_str = t.strftime("%H:%M")
-            else:
-                time_str = str(t)[:5]
-
+        for _, row in df_today.iterrows():
             data_points.append({
-                "time": time_str,
+                "time": row['time'].strftime("%H:%M"),
                 "value": float(row['close']),
-                "volume": int(row.get('volume', 0))
+                "volume": int(row['volume'])
             })
             
-        # Sắp xếp theo thời gian tăng dần
-        data_points.sort(key=lambda x: x['time'])
             
         return {
             "success": True,
@@ -694,6 +688,89 @@ def get_stock_history(symbol: str, resolution: str = "1D", days: int = 30):
         print(f"Lỗi lấy stock history {symbol}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/stock/{symbol}/events")
+def get_stock_events(symbol: str):
+    """Lấy lịch sự kiện của cổ phiếu (Gộp VCI và KBS)"""
+    try:
+        from vnstock import Company
+        symbol = symbol.upper()
+        
+        # 1. Lấy từ VCI
+        df_vci = pd.DataFrame()
+        try:
+            df_vci = Company(symbol=symbol, source='vci').events()
+        except: pass
+            
+        # 2. Lấy từ KBS
+        df_kbs = pd.DataFrame()
+        try:
+            df_kbs = Company(symbol=symbol, source='kbs').events()
+        except: pass
+        
+        # Helper function để format ngày
+        def format_date(val):
+            if val is None or str(val) == "None" or str(val) == "nan" or not str(val).strip():
+                return "-"
+            try:
+                if isinstance(val, str) and 'T' in val:
+                    return val.split('T')[0]
+                return str(val)
+            except:
+                return str(val)
+
+        events_map = {} # Key: type + recordDate để gộp
+
+        # Duyệt VCI
+        if df_vci is not None and not df_vci.empty:
+            for _, row in df_vci.iterrows():
+                etype = str(row.get('event_name_vi', '-')).strip()
+                record_date = format_date(row.get('record_date'))
+                # Tạo key duy nhất để tránh lặp (loại sự kiện + ngày chốt)
+                key = f"{etype}_{record_date}"
+                
+                events_map[key] = {
+                    "type": etype,
+                    "exRightDate": format_date(row.get('exright_date')),
+                    "recordDate": record_date,
+                    "payoutDate": format_date(row.get('payout_date')),
+                    "content": str(row.get('event_title_vi', '-')),
+                    "publicDate": format_date(row.get('public_date'))
+                }
+
+        # Duyệt KBS (Bổ sung nếu chưa có hoặc cập nhật nếu chi tiết hơn)
+        if df_kbs is not None and not df_kbs.empty:
+            for _, row in df_kbs.iterrows():
+                # KBS columns might differ, adjust mapping if needed
+                etype = str(row.get('event_name', row.get('event_name_vi', '-'))).strip()
+                record_date = format_date(row.get('record_date', row.get('recordDate', '-')))
+                key = f"{etype}_{record_date}"
+                
+                if key not in events_map:
+                    events_map[key] = {
+                        "type": etype,
+                        "exRightDate": format_date(row.get('exright_date', row.get('ex_date', '-'))),
+                        "recordDate": record_date,
+                        "payoutDate": format_date(row.get('payout_date', row.get('payment_date', '-'))),
+                        "content": str(row.get('event_title', row.get('content', '-'))),
+                        "publicDate": format_date(row.get('public_date', row.get('announcement_date', '-')))
+                    }
+        
+        result = list(events_map.values())
+        # Sắp xếp theo ngày công bố hoặc ngày thực hiện giảm dần
+        try:
+            result.sort(key=lambda x: x['payoutDate'] if x['payoutDate'] != '-' else x['publicDate'], reverse=True)
+        except: pass
+
+        return {
+            "success": True,
+            "symbol": symbol,
+            "count": len(result),
+            "data": result
+        }
+    except Exception as e:
+        print(f"Lỗi lấy events {symbol}: {e}")
+        return {"success": False, "message": str(e)}
+
 @app.get("/api/stock/{symbol}/intraday")
 def get_stock_intraday(symbol: str, page_size: int = 7000):
     """
@@ -761,6 +838,78 @@ def get_stock_intraday(symbol: str, page_size: int = 7000):
     except Exception as e:
         print(f"Lỗi lấy intraday cho {symbol}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/stock/{symbol}/shareholders")
+def get_shareholders(symbol: str):
+    """Lấy danh sách cổ đông lớn"""
+    try:
+        from vnstock import Company
+        # Đối với vnstock v4, Company dùng nguồn 'kbs' sẽ ổn định hơn cho dữ liệu này
+        cp = Company(symbol=symbol.upper(), source='kbs')
+        df = cp.shareholders()
+        
+        if df is None or df.empty:
+            return {"success": True, "symbol": symbol, "data": []}
+            
+        # Clean data
+        df = df.fillna(0)
+        result = []
+        for _, row in df.iterrows():
+            name = str(row.get('name', ''))
+            result.append({
+                "name": name,
+                "shares": int(row.get('shares_owned', 0)),
+                "percentage": round(float(row.get('ownership_percentage', 0)), 2),
+                "type": "Tổ chức" if any(x in name for x in ["Limited", "Corporation", "Fund", "Công ty", "CTCP", "Ngân hàng", "Holdings", "Group"]) else "Cá nhân",
+                "updateDate": str(row.get('update_date', ''))[:10] if row.get('update_date') else "N/A"
+            })
+            
+        return {
+            "success": True,
+            "symbol": symbol,
+            "data": result
+        }
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+@app.get("/api/stock/{symbol}/ownership")
+def get_ownership(symbol: str):
+    """Lấy cơ cấu sở hữu (gộp thành 3 nhóm chính cho biểu đồ)"""
+    try:
+        from vnstock import Company
+        cp = Company(symbol=symbol.upper(), source='kbs')
+        df = cp.ownership()
+        
+        if df is None or df.empty:
+            return {"success": True, "symbol": symbol, "data": {}}
+            
+        state_pct = 0
+        foreign_pct = 0
+        other_pct = 0
+        
+        for _, row in df.iterrows():
+            group = str(row.get('owner_type', '')).lower()
+            pct = float(row.get('ownership_percentage', 0))
+            
+            if "nước ngoài" in group:
+                foreign_pct += pct
+            elif "nhà nước" in group:
+                state_pct += pct
+            else:
+                # Bao gồm cá nhân và tổ chức trong nước
+                other_pct += pct
+            
+        return {
+            "success": True,
+            "symbol": symbol,
+            "data": {
+                "Cổ đông nhà nước": round(state_pct, 2),
+                "Cổ đông nước ngoài": round(foreign_pct, 2),
+                "Cổ đông khác": round(other_pct, 2)
+            }
+        }
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 
 @app.get("/api/stock/{symbol}/profile")
 def get_stock_profile(symbol: str):

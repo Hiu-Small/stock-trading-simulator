@@ -8,6 +8,16 @@ const fetchCompanyProfile = (symbol) => {
   return axios.get(`/api/company/stock/${symbol}/profile`);
 };
 
+const fetchShareholders = (symbol) => {
+  return axios.get(`/api/company/stock/${symbol}/shareholders`);
+};
+
+const fetchOwnership = (symbol) => {
+  return axios.get(`/api/company/stock/${symbol}/ownership`);
+};
+
 export {
   fetchCompanyProfile,
+  fetchShareholders,
+  fetchOwnership,
 };

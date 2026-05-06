@@ -13,6 +13,21 @@
     overflow: visible;
   }
 
+  &__chart-section {
+    position: relative; // Để các nhãn absolute căn theo
+  }
+
+  .chart-ref-label {
+    position: absolute;
+    font-size: 9px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    pointer-events: none;
+    z-index: 5;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+  }
+
   .chart-time-labels {
     position: absolute;
     bottom: 2px;

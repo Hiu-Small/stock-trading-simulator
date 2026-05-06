@@ -76,6 +76,27 @@ const fetchStockProfile = (symbol) => {
 };
 
 /**
+ * Gọi API lấy danh sách cổ đông
+ */
+const fetchStockShareholders = (symbol) => {
+  return axios.get(PYTHON_API.STOCK_SHAREHOLDERS(symbol), { timeout: 15000 });
+};
+
+/**
+ * Gọi API lấy cơ cấu sở hữu
+ */
+const fetchStockOwnership = (symbol) => {
+  return axios.get(PYTHON_API.STOCK_OWNERSHIP(symbol), { timeout: 15000 });
+};
+
+/**
+ * Gọi API lấy lịch sự kiện doanh nghiệp
+ */
+const fetchStockEvents = (symbol) => {
+  return axios.get(PYTHON_API.STOCK_EVENTS(symbol), { timeout: 15000 });
+};
+
+/**
  * Kiểm tra sức khỏe Python API
  */
 const fetchHealth = () => {
@@ -92,5 +113,7 @@ export default {
   fetchStockIntraday,
   fetchStockHistory,
   fetchStockProfile,
+  fetchStockOwnership,
+  fetchStockEvents,
   fetchHealth,
 };
