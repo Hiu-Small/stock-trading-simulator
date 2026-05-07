@@ -5,6 +5,7 @@ require("dotenv").config();
 import bodyParser from "body-parser";
 import initMarketRoutes from "./routes/marketRoutes";
 import initCompanyRoutes from "./routes/companyRoutes";
+import initAuthRoutes from "./routes/authRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -33,6 +34,7 @@ app.get("/api/test", (req, res) => {
 
 initMarketRoutes(app);
 initCompanyRoutes(app);
+initAuthRoutes(app);
 
 app.listen(PORT, () => {
   console.log("backend_node is running on the port = ", PORT);

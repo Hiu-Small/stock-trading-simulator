@@ -1,0 +1,58 @@
+.events-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: #20212b;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-wrap: wrap;
+
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    label {
+      font-size: 13px;
+      color: #888;
+      white-space: nowrap;
+    }
+
+    select, input {
+      background-color: #2a2c3a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+
+      &:focus {
+        border-color: #00c805;
+      }
+    }
+
+    input[type="date"] {
+      &::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+      }
+    }
+  }
+
+  .reset-btn {
+    background-color: #313344;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: #3d4055;
+    }
+  }
+}

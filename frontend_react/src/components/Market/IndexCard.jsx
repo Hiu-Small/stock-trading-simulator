@@ -62,8 +62,10 @@ const IndexCard = (props) => {
       {/* PHẦN 1: BIỂU ĐỒ (CHIẾM PHẦN LỚN) */}
       <div className="index-card__chart-section">
         <IndexMiniChart 
+          id={props.data.id}
           data={intradayData} 
           refPrice={props.data.refPrice || props.data.value - props.data.change} 
+          session={props.session}
         />
       </div>
 

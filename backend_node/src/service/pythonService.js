@@ -113,6 +113,7 @@ export default {
   fetchStockIntraday,
   fetchStockHistory,
   fetchStockProfile,
+  fetchStockShareholders,
   fetchStockOwnership,
   fetchStockEvents,
   fetchHealth,

@@ -16,8 +16,13 @@ const fetchOwnership = (symbol) => {
   return axios.get(`/api/company/stock/${symbol}/ownership`);
 };
 
+const fetchStockEvents = (symbol) => {
+  return axios.get(`/api/company/stock/${symbol}/events`);
+};
+
 export {
   fetchCompanyProfile,
   fetchShareholders,
   fetchOwnership,
+  fetchStockEvents,
 };

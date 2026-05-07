@@ -72,26 +72,28 @@ const Nav = (props) => {
             <span>Screener</span>
           </div>
         </div>
-        <div className="function">
-          <div className="notification">
-            <i className="fa-solid fa-bell"></i>
+        <div className="nav-actions">
+          <div className="action-icons">
+            <div className="notification">
+              <i className="fa-solid fa-bell"></i>
+            </div>
+            <div className="theme-toggle">
+              <i className="fa-solid fa-moon"></i>
+            </div>
+            <div className="language">
+              <svg width="20" height="20" viewBox="0 0 512 512" style={{borderRadius: '50%'}}>
+                <rect width="512" height="512" fill="#da251d"/>
+                <polygon 
+                  fill="#ff0" 
+                  points="256,92 298,223 436,223 325,303 367,435 256,355 145,435 187,303 76,223 214,223"
+                />
+              </svg>
+            </div>
           </div>
-          <div className="diagram">
-            <i className="fa-solid fa-chart-line"></i>
-          </div>
-          <div className="setting">
-            <i className="fa-solid fa-gear"></i>
-          </div>
-        </div>
-        <div className="profile">
-          <div className="avatar">
-            <i className="fa-solid fa-circle-user"></i>
-          </div>
-          <div className="name">
-            <span>Investor</span>
-          </div>
-          <div className="angle-down">
-            <i className="fa-solid fa-angle-down"></i>
+          <div className="separator"></div>
+          <div className="auth-buttons">
+            <button className="btn-open-account">Mở tài khoản</button>
+            <button className="btn-login">Đăng nhập</button>
           </div>
         </div>
       </div>

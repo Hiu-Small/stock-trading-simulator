@@ -1,0 +1,24 @@
+.tab-events-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #1a1b24;
+  color: #e0e0e0;
+  overflow: hidden;
+
+  .tab-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #888;
+  }
+
+  .tab-error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #ff3b30;
+  }
+}

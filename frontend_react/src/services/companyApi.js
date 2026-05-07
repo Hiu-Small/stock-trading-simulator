@@ -34,8 +34,19 @@ const fetchOwnership = async (symbol) => {
   }
 };
 
+const fetchStockEvents = async (symbol) => {
+  try {
+    const res = await companyService.fetchStockEvents(symbol);
+    return res;
+  } catch (err) {
+    console.error(`[companyApi] fetchStockEvents ${symbol} lỗi:`, err.message);
+    return { success: false, data: [] };
+  }
+};
+
 export {
   fetchCompanyProfile,
   fetchShareholders,
   fetchOwnership,
+  fetchStockEvents,
 };

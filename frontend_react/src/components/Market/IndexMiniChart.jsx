@@ -4,27 +4,47 @@ import "./IndexMiniChart.scss";
 const IndexMiniChart = (props) => {
   const { data, refPrice } = props;
 
-  // Cấu hình thời gian phiên giao dịch (phút)
-  const sessionMins = [
-    { start: 9 * 60, end: 11 * 60 + 30 }, // 09:00 - 11:30
-    { start: 13 * 60, end: 15 * 0 }      // 13:00 - 15:00 (Sẽ fix sau)
-  ];
-
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
     
+    // Xác định thời điểm bắt đầu khớp lệnh của sàn
+    // VNINDEX/VN30 (HOSE) bắt đầu từ 9:15 sau ATO
+    // HNX/UPCOM bắt đầu từ 9:00
+    const startPointTime = (props.id === "vnindex" || props.id === "vn30") ? "09:15" : "09:00";
+
     // 1. Loại bỏ trùng lặp thời gian
     const uniqueMap = new Map();
     data.forEach(item => {
       uniqueMap.set(item.time, item);
     });
     
-    return Array.from(uniqueMap.values()).sort((a, b) => a.time.localeCompare(b.time));
-  }, [data]);
+    let sortedData = Array.from(uniqueMap.values()).sort((a, b) => a.time.localeCompare(b.time));
 
-  if (chartData.length === 0) {
-    return <div className="index-mini-chart-empty">No data</div>;
-  }
+    // 1.5 Lọc bỏ các điểm trước giờ bắt đầu (nếu API trả về dữ liệu cũ hoặc dữ liệu ATO chưa chuẩn)
+    sortedData = sortedData.filter(item => item.time >= startPointTime);
+
+    // 2. Ép điểm bắt đầu từ đường tham chiếu nếu chưa có điểm đúng giờ bắt đầu
+    if (sortedData.length > 0 && sortedData[0].time > startPointTime) {
+      sortedData.unshift({
+        time: startPointTime,
+        value: refPrice,
+        volume: 0
+      });
+    } else if (sortedData.length > 0 && sortedData[0].time === startPointTime) {
+      sortedData[0].value = refPrice;
+    } else if (sortedData.length === 0) {
+      // Nếu không có dữ liệu nào, vẫn tạo 1 điểm bắt đầu để hiện đường tham chiếu (nếu không phải PRE)
+      sortedData = [{
+        time: startPointTime,
+        value: refPrice,
+        volume: 0
+      }];
+    }
+
+    return sortedData;
+  }, [data, refPrice, props.id]);
+
+  const isPreOrClosed = props.session?.type === "pre";
 
   const width = 100;
   const height = 60; 
@@ -40,7 +60,9 @@ const IndexMiniChart = (props) => {
   maxPrice += priceDiff * 0.05;
 
   const getY = (price) => chartHeight - ((price - minPrice) / (maxPrice - minPrice)) * chartHeight;
-  const refY = getY(refPrice);
+  
+  // Nếu là trước phiên (PRE) hoặc đóng cửa (CLOSED), ép đường tham chiếu ra giữa
+  const refY = isPreOrClosed ? chartHeight / 2 : getY(refPrice);
 
   // Tính toán vị trí X dựa trên thời gian thực tế để trục X là tuyến tính
   // Hàm chuyển HH:MM thành số phút từ đầu ngày
@@ -174,8 +196,8 @@ const IndexMiniChart = (props) => {
         />
 
 
-        {volumeBars}
-        {segments}
+        {!isPreOrClosed && volumeBars}
+        {!isPreOrClosed && segments}
       </svg>
       
       {/* Nhãn giá tham chiếu (Dùng HTML để không bị méo chữ khi SVG stretch) */}

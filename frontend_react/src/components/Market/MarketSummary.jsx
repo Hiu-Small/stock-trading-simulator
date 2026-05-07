@@ -101,12 +101,13 @@ const MarketSummary = (props) => {
 
     if (day === 0 || day === 6) return { label: "CLOSED", type: "closed" };
 
-    if (total < 480 && total < 540) return { label: "PRE", type: "pre" };
-    if (total < 555) return { label: "ATO", type: "ato" };
+    if (total < 480) return { label: "CLOSED", type: "closed" }; // Trước 08:00
+    if (total < 540) return { label: "PRE", type: "pre" }; // 08:00 - 09:00
+    if (total < 555) return { label: "ATO", type: "ato" }; // 09:00 - 09:15
     if (total < 690) return { label: "OPEN", type: "open" }; // Sáng đến 11:30
     if (total < 780) return { label: "BREAK", type: "closed" }; // Nghỉ trưa 11:30 - 13:00
-    if (total < 870) return { label: "OPEN", type: "open" }; // Chiều đến 14:45
-    if (total < 900) return { label: "ATC", type: "atc" }; // ATC 14:45 - 15:00
+    if (total < 870) return { label: "OPEN", type: "open" }; // Chiều đến 14:30
+    if (total < 885) return { label: "ATC", type: "atc" }; // ATC 14:30 - 14:45
     return { label: "CLOSED", type: "closed" };
   };
 
@@ -144,7 +145,7 @@ const MarketSummary = (props) => {
                   }
                 : item;
 
-              return <IndexCard key={item.id} data={displayData} />;
+              return <IndexCard key={item.id} data={displayData} session={session} />;
             })}
       </div>
 
