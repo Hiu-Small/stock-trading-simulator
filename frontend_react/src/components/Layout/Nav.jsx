@@ -1,9 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import "./Nav.scss";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import LoginModal from "../Auth/LoginModal";
+import { toast } from "react-toastify";
+import { UserContext } from "../../context/UserContext";
 
 const Nav = (props) => {
+  const { user, logoutContext } = useContext(UserContext);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showLogin, setShowLogin] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isUserArea = location.pathname === "/profile" || location.pathname === "/account";
+
+  const handleLogout = () => {
+    logoutContext();
+    sessionStorage.removeItem("account");
+    toast.success("Đăng xuất thành công!");
+    navigate("/");
+  };
+
+  // Kiểm tra trạng thái Onboarding
+  React.useEffect(() => {
+    if (user?.isAuthenticated && user?.account?.status !== 'ACTIVE' && user?.account?.role !== 'ADMIN') {
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/onboarding' && currentPath !== '/register' && currentPath !== '/profile' && currentPath !== '/account') {
+        toast.info("Vui lòng hoàn thiện hồ sơ để bắt đầu giao dịch", {
+          toastId: 'onboarding-notice'
+        });
+        // Tự động chuyển hướng sau một khoảng thời gian ngắn
+        const timer = setTimeout(() => {
+          navigate('/onboarding');
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user, navigate]);
+
   return (
     <div className="nav-container">
       <div className="left-container">
@@ -34,27 +68,29 @@ const Nav = (props) => {
           </NavLink>
         </div>
 
-        <div className="search">
-          <div className="icon-search">
-            <i className="fa-solid fa-magnifying-glass"></i>
+        {!isUserArea && (
+          <div className="search">
+            <div className="icon-search">
+              <i className="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <div className="input-search">
+              <input 
+                placeholder="Search Ticker..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    props.onSearch(searchTerm);
+                    setSearchTerm(""); 
+                  }
+                }}
+              />
+            </div>
           </div>
-          <div className="input-search">
-            <input 
-              placeholder="Search Ticker..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  props.onSearch(searchTerm);
-                  setSearchTerm(""); // Reset sau khi tìm
-                }
-              }}
-            />
-          </div>
-        </div>
+        )}
 
-        <div className={`status-market status--${props.marketStatus.toLowerCase()}`}>
-          <span className="dot"></span> {/* Dấu chấm tròn */}
+        <div className={`status-market status--${props.marketStatus?.toLowerCase()}`}>
+          <span className="dot"></span> 
           <span className="text">
             {props.marketStatus === "OPEN" && "MARKET OPEN"}
             {props.marketStatus === "BREAK" && "LUNCH BREAK"}
@@ -91,12 +127,53 @@ const Nav = (props) => {
             </div>
           </div>
           <div className="separator"></div>
-          <div className="auth-buttons">
-            <button className="btn-open-account">Mở tài khoản</button>
-            <button className="btn-login">Đăng nhập</button>
-          </div>
+          
+          {user?.isAuthenticated ? (
+            <div className="user-profile-dropdown">
+              <div className="user-info">
+                <div className="avatar">
+                  <i className="fa-solid fa-user"></i>
+                </div>
+                <span className="username">{user?.account?.username}</span>
+                <i className="fa-solid fa-chevron-down dropdown-icon"></i>
+              </div>
+              <div className="dropdown-menu-custom">
+                {user?.account?.role === 'ADMIN' && (
+                  <NavLink to="/admin" className="dropdown-item">
+                    <i className="fa-solid fa-gauge"></i> Dashboard Admin
+                  </NavLink>
+                )}
+                <NavLink to="/profile" className="dropdown-item">
+                  <i className="fa-solid fa-id-card"></i> Thông tin cá nhân
+                </NavLink>
+                <NavLink 
+                  to="/account" 
+                  className="dropdown-item"
+                  onClick={() => console.log("Navigating to Account Settings...")}
+                >
+                  <i className="fa-solid fa-user-gear"></i> Thông tin tài khoản
+                </NavLink>
+                <div className="dropdown-divider"></div>
+                <div className="dropdown-item logout" onClick={handleLogout}>
+                  <i className="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="auth-buttons">
+              <NavLink to="/register" className="btn-open-account">Mở tài khoản</NavLink>
+              <button className="btn-login" onClick={() => setShowLogin(true)}>
+                Đăng nhập
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      <LoginModal 
+        show={showLogin} 
+        handleClose={() => setShowLogin(false)} 
+      />
     </div>
   );
 };

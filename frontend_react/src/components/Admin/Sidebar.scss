@@ -1,0 +1,142 @@
+@import "./variables.scss";
+
+.admin-sidebar {
+  width: 260px;
+  background-color: $sidebar-dark;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+
+  .sidebar-logo {
+    padding: 30px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: $accent-green;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text {
+      h1 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+      }
+      span {
+        font-size: 12px;
+        color: $text-muted;
+      }
+    }
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 0 12px;
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: $text-muted;
+      text-decoration: none;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      transition: all 0.2s;
+
+      i {
+        width: 20px;
+        text-align: center;
+      }
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+        color: $text-main;
+      }
+
+      &.active {
+        background-color: rgba($accent-green, 0.1);
+        color: $accent-green;
+      }
+
+      &.home-link {
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding-bottom: 20px;
+        border-radius: 0;
+        &:hover {
+          background: transparent;
+          color: $accent-blue;
+        }
+      }
+    }
+  }
+
+  .sidebar-footer {
+    padding: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+    .sidebar-user {
+      padding: 16px;
+      background-color: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+        background-color: $accent-blue;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .user-info {
+        display: flex;
+        flex-direction: column;
+        .user-name {
+          font-size: 13px;
+          font-weight: 600;
+        }
+        .user-email {
+          font-size: 10px;
+          color: $text-muted;
+        }
+      }
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 12px;
+      background-color: rgba($accent-red, 0.05);
+      border: 1px solid rgba($accent-red, 0.1);
+      border-radius: 8px;
+      color: $accent-red;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background-color: rgba($accent-red, 0.1);
+        transform: translateY(-1px);
+      }
+    }
+  }
+}

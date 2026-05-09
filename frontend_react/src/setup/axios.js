@@ -39,23 +39,23 @@ instance.interceptors.response.use(
     
     switch (status) {
       case 400:
-        toast.error("Yêu cầu không hợp lệ. Vui lòng kiểm tra lại tham số.");
+        toast.error("Yêu cầu không hợp lệ. Vui lòng kiểm tra lại tham số.(400)");
         break;
       case 401:
-        toast.error("Phiên làm việc hết hạn. Vui lòng đăng nhập lại.");
+        toast.error("Phiên làm việc hết hạn. Vui lòng đăng nhập lại.(401)");
         // window.location.href = '/login'; // Tùy chọn chuyển hướng
         break;
       case 403:
-        toast.error("Bạn không có quyền truy cập tài nguyên này.");
+        toast.error("Bạn không có quyền truy cập tài nguyên này.(403)");
         break;
       case 404:
-        toast.error("Không tìm thấy dữ liệu yêu cầu.");
+        toast.error("Không tìm thấy dữ liệu yêu cầu.(404)");
         break;
       case 500:
-        toast.error("Lỗi hệ thống từ server. Vui lòng thử lại sau.");
+        toast.error("Lỗi hệ thống từ server. Vui lòng thử lại sau.(500)");
         break;
       case 502:
-        toast.error("Lỗi kết nối giữa các máy chủ (Gateway Error).");
+        toast.error("Lỗi kết nối giữa các máy chủ (Gateway Error).(502)");
         break;
       default:
         toast.error(

@@ -1,0 +1,39 @@
+@import "../variables.scss";
+
+.admin-dashboard {
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .dashboard-section {
+    @include dashboard-section;
+
+    .section-header {
+      margin-bottom: 20px;
+      h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+      }
+      p {
+        font-size: 13px;
+        color: $text-muted;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  .dashboard-row {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  @keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

@@ -330,8 +330,8 @@ async def get_index_intraday(symbol: str):
         # Sử dụng nguồn KBS cho dữ liệu chỉ số
         quote = Quote(symbol=actual_symbol, source='kbs')
         
-        # Lấy dữ liệu 1 phút (1m). KBS có thể trả về cả dữ liệu phiên trước nếu dùng length
-        df = quote.history(interval='1m', length='1')
+        # Tăng length lên 14 để đảm bảo lấy được ít nhất một phiên giao dịch (kể cả cuối tuần/lễ)
+        df = quote.history(interval='1m', length='14')
         
         if df is None or df.empty:
             return {
@@ -340,34 +340,37 @@ async def get_index_intraday(symbol: str):
                 "message": f"Không tìm thấy dữ liệu intraday cho chỉ số {symbol}"
             }
             
-        # FIX: Chỉ lấy dữ liệu của đúng ngày hôm nay
-        today = datetime.now().date()
-        df_today = df[df['time'].dt.date == today].copy()
-        
-        if df_today.empty:
-            return {
-                "success": True,
-                "symbol": symbol,
-                "count": 0,
-                "data": [],
-                "note": "Chưa có dữ liệu nến cho phiên hôm nay"
-            }
+        # Tìm ngày giao dịch gần nhất có trong dữ liệu
+        all_dates = df['time'].dt.date.unique()
+        if len(all_dates) == 0:
+            return {"success": False, "message": "Không có dữ liệu thời gian"}
             
+        # Lấy ngày lớn nhất (mới nhất) có dữ liệu
+        latest_trading_date = max(all_dates)
+        df_latest = df[df['time'].dt.date == latest_trading_date].copy()
+        
         # Format dữ liệu cho đồ thị line chart trên frontend
         data_points = []
-        for _, row in df_today.iterrows():
+        for _, row in df_latest.iterrows():
             data_points.append({
                 "time": row['time'].strftime("%H:%M"),
                 "value": float(row['close']),
                 "volume": int(row['volume'])
             })
             
-            
         return {
             "success": True,
             "symbol": symbol,
+            "tradingDate": latest_trading_date.strftime("%Y-%m-%d"),
             "count": len(data_points),
-            "data": data_points
+            "data": data_points,
+            "note": "Dữ liệu phiên giao dịch gần nhất" if latest_trading_date != datetime.now().date() else "Dữ liệu phiên hôm nay"
+        }
+    except Exception as e:
+        print(f"Lỗi lấy intraday index {symbol}: {e}")
+        return {
+            "success": False,
+            "message": f"Lỗi hệ thống: {str(e)}"
         }
     except Exception as e:
         print(f"Lỗi lấy intraday index {symbol}: {e}")

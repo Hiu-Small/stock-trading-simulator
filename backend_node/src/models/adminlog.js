@@ -5,7 +5,7 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class AdminLog extends Model {
     static associate(models) {
-      AdminLog.belongsTo(models.User, { foreignKey: 'admin_id', as: 'admin' });
+      AdminLog.belongsTo(models.UserAccount, { foreignKey: 'admin_id', as: 'admin' });
     }
   }
   AdminLog.init({

@@ -104,33 +104,37 @@
     .status-market {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      border-radius: 6px;
-      background: rgb(10, 10, 10);
+      justify-content: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      background: #000;
       margin-left: 15px;
       white-space: nowrap;
       transition: all 0.3s ease;
+      border: 1px solid transparent;
+      min-width: 140px;
 
       .dot {
-        width: 7px;
-        height: 7px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         position: relative;
       }
 
       .text {
-        font-size: 13px;
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
       }
 
       // Trạng thái MỞ CỬA
       &.status--open {
-        border: 1px solid rgba(0, 200, 5, 0.4);
+        border: 1px solid #00c805;
         
         .dot {
-          background-color: rgb(0, 200, 5);
-          box-shadow: 0 0 8px rgba(0, 200, 5, 0.5);
+          background-color: #00c805;
+          box-shadow: 0 0 8px rgba(0, 200, 5, 0.6);
 
           &::after {
             content: "";
@@ -146,17 +150,17 @@
           }
         }
         .text {
-          color: rgb(0, 200, 5);
+          color: #00c805;
         }
       }
 
       // Trạng thái NGHỈ TRƯA
       &.status--break {
-        border: 1px solid rgba(255, 152, 0, 0.4);
+        border: 1px solid #ff9800;
         
         .dot {
           background-color: #ff9800;
-          box-shadow: 0 0 8px rgba(255, 152, 0, 0.4);
+          box-shadow: 0 0 8px rgba(255, 152, 0, 0.5);
         }
         .text {
           color: #ff9800;
@@ -165,15 +169,13 @@
 
       // Trạng thái ĐÓNG CỬA
       &.status--closed {
-        border: 1px solid rgba(255, 77, 79, 0.3);
+        border: 1px solid #ff4d4f;
         
         .dot {
           background-color: #ff4d4f;
-          opacity: 0.6;
         }
         .text {
           color: #ff4d4f;
-          opacity: 0.8;
         }
       }
     }
@@ -286,11 +288,119 @@
         margin: 0 4px;
       }
 
+      .user-profile-dropdown {
+        position: relative;
+        cursor: pointer;
+
+        .user-info {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 6px 12px;
+          border-radius: 6px;
+          background: #23233f;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          transition: all 0.2s;
+
+          &:hover {
+            background: #2c2c4d;
+            border-color: rgba(74, 157, 255, 0.3);
+          }
+
+          .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4a9dff 0%, #00c805 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 0 10px rgba(74, 157, 255, 0.3);
+          }
+
+          .username {
+            color: #efeff1;
+            font-weight: 600;
+            font-size: 14px;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .dropdown-icon {
+            color: #888;
+            font-size: 12px;
+          }
+        }
+
+        .dropdown-menu-custom {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          width: 220px;
+          background: #1a1a30;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 8px;
+          padding: 8px 0;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(10px);
+          transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+          z-index: 1000;
+
+          .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            color: #888;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+
+            i {
+              width: 16px;
+              text-align: center;
+            }
+
+            &:hover {
+              background: rgba(255, 255, 255, 0.05);
+              color: #fff;
+            }
+
+            &.logout {
+              color: #ff4d4f;
+              &:hover {
+                background: rgba(255, 77, 79, 0.1);
+              }
+            }
+          }
+
+          .dropdown-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 8px 0;
+          }
+        }
+
+        &:hover {
+          .dropdown-menu-custom {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+          }
+        }
+      }
+
       .auth-buttons {
         display: flex;
         gap: 8px;
 
-        button {
+        button, .btn-open-account {
           padding: 6px 16px;
           border-radius: 4px;
           font-size: 13px;
@@ -299,6 +409,10 @@
           cursor: pointer;
           transition: all 0.2s;
           white-space: nowrap;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .btn-open-account {
@@ -306,6 +420,7 @@
           color: #fff;
           &:hover {
             background-color: #3d4055;
+            color: #fff;
           }
         }
 
@@ -315,6 +430,7 @@
           &:hover {
             background-color: #f5222d;
             box-shadow: 0 0 8px rgba(218, 37, 29, 0.4);
+            color: #fff;
           }
         }
       }

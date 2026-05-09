@@ -22,13 +22,15 @@ const PriceBoard = (props) => {
     if (props.searchTicker) {
       const performSearch = async () => {
         const result = await fetchStockDetail(props.searchTicker);
-        if (result && result.success && result.data) {
+        if (result && result.success && result.data && result.data.symbol && result.data.refPrice > 0) {
           // Bọc kết quả vào array để StockTable hiển thị
           setSearchResults([result.data]);
           setSelectedGroup("SEARCH"); // Đánh dấu đang ở chế độ tìm kiếm
           toast.success(`Đã tìm thấy mã ${props.searchTicker}`);
         } else {
           toast.error(`Không tìm thấy mã cổ phiếu: ${props.searchTicker}`);
+          // Xóa kết quả cũ để tránh hiện row trống như trong ảnh
+          setSearchResults(null);
         }
       };
       performSearch();

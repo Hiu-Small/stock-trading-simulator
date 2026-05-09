@@ -1,0 +1,18 @@
+// OKLCH Color System
+$bg-dark: oklch(27.99% 0.0408 260.347 / 0.445);
+$sidebar-dark: oklch(24% 0.03 260);
+$card-dark: oklch(22% 0.02 260);
+$text-main: #ffffff;
+$text-muted: oklch(75% 0.02 260);
+$accent-green: #00c805;
+$accent-red: #ff3b30;
+$accent-blue: #3b82f6;
+
+// Mixins
+@mixin dashboard-section {
+  background-color: $card-dark;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 24px;
+}

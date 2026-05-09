@@ -1,0 +1,248 @@
+@import "../variables.scss";
+
+.admin-trades-page {
+  padding: 24px;
+  color: #fff;
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+    font-size: 13px;
+    
+    .parent { color: rgba(255, 255, 255, 0.4); }
+    .separator { font-size: 10px; color: rgba(255, 255, 255, 0.2); }
+    .current { color: #fff; font-weight: 500; }
+  }
+
+  .page-header {
+    margin-bottom: 24px;
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+      h1 { font-size: 24px; font-weight: 700; margin: 0; }
+    }
+    
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      background-color: rgba($accent-green, 0.1);
+      border-radius: 20px;
+      color: $accent-green;
+      font-size: 12px;
+      font-weight: 700;
+
+      .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: $accent-green;
+        border-radius: 50%;
+        box-shadow: 0 0 8px $accent-green;
+        animation: pulse 1.5s infinite;
+      }
+    }
+
+    .refresh-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: $text-muted;
+      font-size: 13px;
+      i.spinning { animation: spin 0.8s linear infinite; }
+    }
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+
+    .tab-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      background-color: oklch(24% 0.03 260);
+      border: 2px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      color: $text-muted;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      .count {
+        padding: 2px 8px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      &:hover { border-color: rgba(255, 255, 255, 0.1); }
+
+      &.active {
+        background-color: rgba($accent-green, 0.1);
+        border-color: $accent-green;
+        color: $accent-green;
+        .count { background-color: rgba($accent-green, 0.2); color: $accent-green; }
+
+        &.danger {
+          background-color: rgba($accent-red, 0.1);
+          border-color: $accent-red;
+          color: $accent-red;
+          .count { background-color: rgba($accent-red, 0.2); color: $accent-red; }
+        }
+      }
+    }
+  }
+
+  .table-container {
+    @include dashboard-section;
+    padding: 0;
+    overflow: hidden;
+    background-color: $card-dark; // Ép màu nền card chuẩn
+  }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    
+    thead {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      th {
+        padding: 16px 20px;
+        font-size: 12px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background-color 0.2s;
+        
+        &:hover { background-color: rgba(255, 255, 255, 0.02); }
+        &:last-child { border-bottom: none; }
+
+        &.row-problematic {
+          td:first-child {
+            position: relative;
+            &::before {
+              content: "";
+              position: absolute;
+              left: 0; top: 0; bottom: 0;
+              width: 3px;
+              background-color: $accent-red;
+            }
+          }
+        }
+      }
+
+      td { 
+        padding: 18px 20px; 
+        vertical-align: middle; 
+        font-size: 14px;
+      }
+    }
+
+    .col-id { color: $text-muted; font-family: monospace; }
+    .col-time { color: $text-muted; font-size: 13px; }
+    .col-user { color: $text-muted; }
+    .col-symbol { color: #fff; font-weight: 600; }
+    .col-vol { font-weight: 600; color: #fff; }
+    .col-price { font-weight: 600; color: #fff; }
+
+    .side-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      &.buy { background-color: rgba($accent-green, 0.1); color: $accent-green; }
+      &.sell { background-color: rgba($accent-red, 0.1); color: $accent-red; }
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+      text-align: center;
+      min-width: 80px;
+
+      &.matched { background-color: rgba($accent-green, 0.1); color: $accent-green; }
+      &.pending { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+      &.stuck, &.failed { background-color: rgba($accent-red, 0.1); color: $accent-red; }
+      &.canceled { background-color: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.4); }
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 12px;
+      .btn-action {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        padding: 4px;
+        font-size: 16px;
+        transition: all 0.2s;
+        
+        &:hover {
+          color: #fff;
+          &.cancel { color: $accent-red; }
+          &.match { color: $accent-green; }
+        }
+      }
+    }
+    .no-action { color: rgba(255, 255, 255, 0.1); }
+  }
+
+  .trades-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+
+    .summary-card {
+      background-color: #0b0e14;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      .label { font-size: 12px; color: $text-muted; }
+      .value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #fff;
+        &.matched { color: $accent-green; }
+        &.pending { color: $accent-blue; }
+        &.failed { color: $accent-red; }
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

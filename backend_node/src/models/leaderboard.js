@@ -5,7 +5,7 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Leaderboard extends Model {
     static associate(models) {
-      Leaderboard.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
+      Leaderboard.belongsTo(models.UserAccount, { foreignKey: 'user_id', as: 'user' });
     }
   }
   Leaderboard.init({

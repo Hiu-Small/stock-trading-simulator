@@ -1,0 +1,152 @@
+@import "../variables.scss";
+
+.admin-users-page {
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    p {
+      color: $text-muted;
+      font-size: 14px;
+    }
+
+    .btn-export {
+      background-color: $accent-green;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      &:hover { opacity: 0.9; }
+    }
+  }
+
+  .filter-section {
+    @include dashboard-section;
+    padding: 20px;
+    margin-bottom: 24px;
+
+    .filter-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+
+      .filter-item {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+
+        input, select {
+          background: transparent;
+          border: none;
+          color: $text-main;
+          padding: 10px 8px;
+          outline: none;
+          font-size: 14px;
+          width: 100%;
+          cursor: pointer;
+          &::placeholder { color: $text-muted; }
+
+          option {
+            background-color: oklch(24% 0.03 260); // Đảm bảo option có nền tối
+            color: $text-main;
+          }
+        }
+
+        &.search { flex: 2; i { color: $text-muted; } }
+        &.select { flex: 1; select { cursor: pointer; } }
+        &.date { flex: 1; }
+      }
+    }
+
+    .filter-info {
+      font-size: 13px;
+      color: $text-muted;
+      span { color: $text-main; font-weight: 600; }
+    }
+  }
+
+  .table-container {
+    @include dashboard-section;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+
+    thead {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      th {
+        padding: 16px 20px;
+        font-size: 12px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 0.5px;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background-color 0.2s;
+        &:hover { background-color: rgba(255, 255, 255, 0.02); }
+        &:last-child { border-bottom: none; }
+      }
+
+      td {
+        padding: 18px 20px;
+        font-size: 14px;
+        vertical-align: middle;
+
+        &.user-id { color: $text-muted; font-family: monospace; }
+        &.user-name { font-weight: 600; }
+        &.user-balance { color: $accent-green; font-weight: 600; }
+        &.user-portfolio { color: $accent-blue; }
+      }
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+
+      &.active { background-color: rgba($accent-green, 0.1); color: $accent-green; }
+      &.locked { background-color: rgba($accent-red, 0.1); color: $accent-red; }
+      &.pending { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      button {
+        background: transparent;
+        border: none;
+        color: $text-muted;
+        cursor: pointer;
+        font-size: 16px;
+        transition: color 0.2s;
+        &:hover { color: $text-main; }
+      }
+    }
+  }
+}

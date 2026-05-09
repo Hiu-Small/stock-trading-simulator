@@ -1,0 +1,71 @@
+.pin-setup-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .pin-visual {
+        margin-bottom: 20px;
+        .pin-icon {
+            font-size: 48px;
+            color: #cc1e1e;
+        }
+    }
+
+    .pin-description {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 40px;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .pin-input-container {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 40px;
+    }
+
+    .pin-digit-input {
+        width: 50px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+        outline: none;
+        transition: all 0.2s;
+
+        &:focus {
+            border-color: #cc1e1e;
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    .btn-submit {
+        width: 100%;
+        background: #cc1e1e;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+
+        &:hover {
+            background: #a51818;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        &:disabled {
+            background: #444;
+            cursor: not-allowed;
+            transform: none;
+        }
+    }
+}

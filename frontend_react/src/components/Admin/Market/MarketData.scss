@@ -1,0 +1,284 @@
+@import "../variables.scss";
+
+.admin-market-page {
+  .page-header {
+    margin-bottom: 24px;
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    p { color: $text-muted; font-size: 14px; }
+  }
+
+  .market-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 30px;
+
+    .summary-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 180px;
+
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+
+        .status-info {
+          .label { font-size: 13px; color: $text-muted; display: block; margin-bottom: 12px; }
+          .market-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: 800;
+            border: 2px solid transparent;
+
+            .dot {
+              width: 12px;
+              height: 12px;
+              border-radius: 50%;
+            }
+
+            &.open {
+              background-color: rgba($accent-green, 0.1);
+              border-color: rgba($accent-green, 0.3);
+              color: $accent-green;
+              .dot { 
+                background-color: $accent-green;
+                box-shadow: 0 0 10px $accent-green;
+                animation: pulse 1.5s infinite;
+              }
+            }
+            &.closed {
+              background-color: rgba($accent-red, 0.1);
+              border-color: rgba($accent-red, 0.3);
+              color: $accent-red;
+              .dot { background-color: $accent-red; }
+            }
+          }
+
+          .big-number {
+            font-size: 40px;
+            font-weight: 700;
+            font-family: monospace;
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            .trend-icon { font-size: 20px; color: $accent-green; }
+          }
+        }
+
+        .warning-icon { font-size: 24px; color: $accent-red; }
+      }
+
+      .card-bottom {
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .control-info {
+          .title { font-size: 14px; font-weight: 600; display: block; }
+          .desc { font-size: 12px; color: $text-muted; }
+        }
+
+        &.stats {
+          flex-direction: column;
+          gap: 10px;
+          .stat-item {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            .label { color: $text-muted; }
+            .value {
+              font-weight: 700;
+              font-family: monospace;
+              &.active { color: $accent-green; }
+              &.halted { color: $accent-red; }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 16px;
+
+    .header-left {
+      h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+      p { 
+        font-size: 13px; color: $text-muted; 
+        span { color: $text-main; font-weight: 600; }
+      }
+    }
+
+    .header-right {
+      .search-box {
+        position: relative;
+        i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: $text-muted; }
+        input {
+          background-color: $card-dark;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 10px 15px 10px 40px;
+          border-radius: 8px;
+          color: $text-main;
+          width: 350px;
+          font-size: 14px;
+          outline: none;
+          &:focus { border-color: rgba($accent-blue, 0.3); }
+        }
+      }
+    }
+  }
+
+  .table-container {
+    @include dashboard-section;
+    padding: 0;
+    overflow: hidden;
+    background-color: $card-dark;
+  }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    
+    thead {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      th {
+        padding: 16px 20px;
+        font-size: 12px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background-color 0.2s;
+        
+        &:hover { background-color: rgba(255, 255, 255, 0.02); }
+        &:last-child { border-bottom: none; }
+
+        &.row-halted {
+          background-color: rgba($accent-red, 0.02);
+        }
+      }
+
+      td { 
+        padding: 18px 20px; 
+        vertical-align: middle; 
+        font-size: 14px;
+      }
+    }
+
+    .col-symbol { color: #fff; font-weight: 700; font-size: 15px; }
+    .col-company { color: $text-main; font-weight: 500; }
+    .col-price { color: #fff; font-weight: 600; font-family: monospace; font-size: 15px; }
+    .col-time { color: $text-muted; font-size: 13px; }
+
+    .change-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      
+      &.up { color: $accent-green; background-color: rgba($accent-green, 0.1); }
+      &.down { color: $accent-red; background-color: rgba($accent-red, 0.1); }
+      i { font-size: 11px; }
+    }
+
+    .status-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .status-text {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        min-width: 80px;
+        text-align: center;
+
+        &.active { background-color: rgba($accent-green, 0.1); color: $accent-green; }
+        &.halted { background-color: rgba($accent-red, 0.1); color: $accent-red; }
+      }
+    }
+  }
+}
+
+// Toggle Switch Style
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 22px;
+
+  input { opacity: 0; width: 0; height: 0; }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: .4s;
+    border-radius: 34px;
+
+    &:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+  }
+
+  input:checked + .slider {
+    background-color: $accent-green;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(22px);
+  }
+
+  &.small {
+    width: 36px;
+    height: 18px;
+    .slider:before {
+      height: 12px;
+      width: 12px;
+      left: 3px;
+      bottom: 3px;
+    }
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}

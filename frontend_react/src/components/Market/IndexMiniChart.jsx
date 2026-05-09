@@ -42,27 +42,32 @@ const IndexMiniChart = (props) => {
     }
 
     return sortedData;
-  }, [data, refPrice, props.id]);
+  }, [data, refPrice, props.id, props.session?.type]);
 
   const isPreOrClosed = props.session?.type === "pre";
+  const isEffectivelyEmpty = chartData.length <= 1;
 
   const width = 100;
   const height = 60; 
-  const chartHeight = 40; 
-  const volumeHeight = 20; 
+  const chartTop = 10; // Khoảng cách từ đỉnh SVG xuống vùng vẽ chart
+  const chartHeight = 30; // Chiều cao thực tế của vùng vẽ đường giá
+  const volumeHeight = 12; // Chiều cao tối đa của cột khối lượng
 
   // Tính toán Scale giá
   const prices = chartData.map((d) => d.value);
   let minPrice = Math.min(...prices, refPrice);
   let maxPrice = Math.max(...prices, refPrice);
-  const priceDiff = maxPrice - minPrice || 1;
-  minPrice -= priceDiff * 0.05;
-  maxPrice += priceDiff * 0.05;
-
-  const getY = (price) => chartHeight - ((price - minPrice) / (maxPrice - minPrice)) * chartHeight;
   
-  // Nếu là trước phiên (PRE) hoặc đóng cửa (CLOSED), ép đường tham chiếu ra giữa
-  const refY = isPreOrClosed ? chartHeight / 2 : getY(refPrice);
+  // Padding tương đối để dải giá cân đối
+  const priceDiff = maxPrice - minPrice || refPrice * 0.001;
+  minPrice -= priceDiff * 0.15;
+  maxPrice += priceDiff * 0.15;
+
+  // Hàm getY mới: maxPrice sẽ có Y = chartTop (10), minPrice có Y = chartTop + chartHeight (40)
+  const getY = (price) => chartTop + chartHeight - ((price - minPrice) / (maxPrice - minPrice)) * chartHeight;
+  
+  // Nếu thực sự rỗng thì mới ép đường tham chiếu ra giữa vùng chart
+  const refY = isEffectivelyEmpty ? chartTop + chartHeight / 2 : getY(refPrice);
 
   // Tính toán vị trí X dựa trên thời gian thực tế để trục X là tuyến tính
   // Hàm chuyển HH:MM thành số phút từ đầu ngày
@@ -171,14 +176,14 @@ const IndexMiniChart = (props) => {
     <div className="index-mini-chart">
       <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
         {/* Đường lưới ngang */}
-        <line x1="0" y1={chartHeight * 0.5} x2={width} y2={chartHeight * 0.5} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+        <line x1="0" y1={chartTop + chartHeight * 0.5} x2={width} y2={chartTop + chartHeight * 0.5} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
         
         {/* Đường lưới dọc và mốc giờ */}
         {timeLabels.map((tm) => {
           const x = getXByTime(tm.time);
           return (
             <React.Fragment key={tm.label}>
-              <line x1={x} y1="0" x2={x} y2={chartHeight} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+              <line x1={x} y1={chartTop} x2={x} y2={chartTop + chartHeight} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
             </React.Fragment>
           );
         })}
@@ -206,7 +211,8 @@ const IndexMiniChart = (props) => {
         style={{ 
           top: `${(refY / height) * 100}%`, 
           left: '50%',
-          transform: 'translate(-50%, calc(-100% - 13px))'
+          transform: 'translate(-50%, -100%)',
+          marginTop: '-2px'
         }}
       >
         {refPrice.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
