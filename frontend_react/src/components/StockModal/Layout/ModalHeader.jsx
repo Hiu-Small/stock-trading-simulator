@@ -88,8 +88,8 @@ const ModalHeader = (props) => {
 
         <div className="stats-section">
           <div className="stat-row">
-            <span className="label">CAO/THẤP:</span>
-            <span className="value">
+              <span className="label">CAO/THẤP:</span>
+              <span className="value">
               {hasTraded && props.data.high ? (
                 <span className={getPriceClass(props.data.high)}>
                   {formatPrice(props.data.high)}
@@ -105,11 +105,11 @@ const ModalHeader = (props) => {
               ) : (
                 "-"
               )}
-            </span>
-          </div>
+              </span>
+            </div>
           <div className="stat-row">
-            <span className="label">MỞ CỬA/TRUNG BÌNH:</span>
-            <span className="value">
+              <span className="label">MỞ CỬA/TRUNG BÌNH:</span>
+              <span className="value">
               {hasTraded && props.data.openPrice ? (
                 <span className={getPriceClass(props.data.openPrice)}>
                   {formatPrice(props.data.openPrice)}
@@ -125,29 +125,29 @@ const ModalHeader = (props) => {
               ) : (
                 "-"
               )}
-            </span>
+              </span>
+            </div>
           </div>
-        </div>
 
         <div className="ref-section">
-          <div className="ref-item">
-            <span className="label">Trần</span>
+            <div className="ref-item">
+              <span className="label">Trần</span>
             <span className="value color-ceiling">
               {formatPrice(props.data.ceiling || 0)}
             </span>
-          </div>
-          <div className="ref-item">
-            <span className="label">Sàn</span>
+            </div>
+            <div className="ref-item">
+              <span className="label">Sàn</span>
             <span className="value color-floor">
               {formatPrice(props.data.floor || 0)}
             </span>
-          </div>
-          <div className="ref-item">
-            <span className="label">Tham chiếu</span>
-            <span className="value color-ref">{formatPrice(refPrice)}</span>
-          </div>
+            </div>
+            <div className="ref-item">
+              <span className="label">Tham chiếu</span>
+              <span className="value color-ref">{formatPrice(refPrice)}</span>
+            </div>
           <div className="ref-item total-vol">
-            <span className="label">TỔNG KL:</span>
+              <span className="label">TỔNG KL:</span>
             <span className="value">
               {totalVolume > 0 ? formatVol(totalVolume) : ""}
             </span>

@@ -6,8 +6,6 @@ import { getBoardData } from "../../services/marketApi";
 import { calculateMarketStats } from "../../utils/marketUtils";
 
 const HomePage = () => {
-  const [searchTicker, setSearchTicker] = useState(null);
-
   // Lưu trữ thống kê của các nhóm mã (Dùng để hiển thị lên IndexCard)
   const [marketStatsMap, setMarketStatsMap] = useState({
     HOSE: null,
@@ -56,9 +54,6 @@ const HomePage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSearch = (symbol) => {
-    setSearchTicker(symbol);
-  };
 
   // Cập nhật thống kê cho một nhóm cụ thể
   const handleUpdateGroupStats = (group, stats) => {
@@ -77,7 +72,6 @@ const HomePage = () => {
 
       {/* Khu vực chính: Sidebar + PriceBoard - Truyền hàm cập nhật stats */}
       <MainContent 
-        searchTicker={searchTicker} 
         onUpdateGroupStats={handleUpdateGroupStats}
       />
     </>

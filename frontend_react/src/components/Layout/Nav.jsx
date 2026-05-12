@@ -4,9 +4,11 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import LoginModal from "../Auth/LoginModal";
 import { toast } from "react-toastify";
 import { UserContext } from "../../context/UserContext";
+import { SearchContext } from "../../context/SearchContext";
 
 const Nav = (props) => {
   const { user, logoutContext } = useContext(UserContext);
+  const { handleSearch, clearSearch } = useContext(SearchContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [showLogin, setShowLogin] = useState(false);
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ const Nav = (props) => {
   const isUserArea = location.pathname === "/profile" || location.pathname === "/account";
 
   const handleLogout = () => {
+    clearSearch();
     logoutContext();
     sessionStorage.removeItem("account");
     toast.success("Đăng xuất thành công!");
@@ -103,8 +106,12 @@ const Nav = (props) => {
                 onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    props.onSearch(searchTerm);
-                    setSearchTerm(""); 
+                    handleSearch(searchTerm);
+                    setSearchTerm("");
+                    // Đảm bảo chuyển về trang market nếu đang ở trang khác
+                    if (location.pathname !== "/market") {
+                      navigate("/market");
+                    }
                   }
                 }}
               />

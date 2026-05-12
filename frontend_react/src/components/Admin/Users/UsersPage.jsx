@@ -173,9 +173,9 @@ const UsersPage = () => {
               <option value="pending">Pending</option>
             </select>
           </div>
-          <div className="filter-item date">
+          {/* <div className="filter-item date">
             <input type="date" placeholder="dd/mm/yyyy" />
-          </div>
+          </div> */}
         </div>
         <div className="filter-info">
           Showing <span>{filteredUsers.length} of {users.length}</span> users

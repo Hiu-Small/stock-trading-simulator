@@ -9,12 +9,14 @@ import OnboardingProcess from "./components/Onboarding/OnboardingProcess";
 import Profile from "./components/User/Profile";
 import AccountSettings from "./components/User/AccountSettings";
 import { UserProvider } from "./context/UserContext";
+import { SearchProvider } from "./context/SearchContext";
 import MainLayout from "./components/Layout/MainLayout";
 
 function App() {
   return (
     <UserProvider>
-      <Router>
+      <SearchProvider>
+        <Router>
       <Routes>
         {/* Route cho quản trị viên (Admin) */}
         <Route path="/admin/*" element={<AdminLayout />} />
@@ -49,6 +51,7 @@ function App() {
         theme="dark"
       />
       </Router>
+      </SearchProvider>
     </UserProvider>
   );
 }

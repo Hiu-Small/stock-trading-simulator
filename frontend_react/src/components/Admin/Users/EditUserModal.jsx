@@ -5,7 +5,6 @@ import { updateUser, resetPassword, resetPin } from '../../../services/adminServ
 import './EditUserModal.scss';
 
 const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
-    const [activeTab, setActiveTab] = useState('general');
     const [formData, setFormData] = useState({
         userId: '',
         full_name: '',
@@ -46,16 +45,6 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
         return displayDate;
     };
 
-    // Helper to convert YYYY-MM-DD from picker to DD/MM/YYYY
-    const convertPickerToDisplay = (pickerDate) => {
-        if (!pickerDate) return '';
-        const parts = pickerDate.split('-');
-        if (parts.length === 3) {
-            return `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-        return pickerDate;
-    };
-
     useEffect(() => {
         if (userData) {
             setFormData({
@@ -82,7 +71,6 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
 
     const handleSubmit = async () => {
         try {
-            // Convert dates back to YYYY-MM-DD before sending
             const dataToSend = {
                 ...formData,
                 dob: formatDateForBackend(formData.dob),
@@ -91,7 +79,7 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
             };
             const res = await updateUser(dataToSend);
             if (res && +res.EC === 0) {
-                toast.success("Cập nhật thông tin người dùng thành công!");
+                toast.success("Cập nhật thành công!");
                 onSuccess();
                 handleClose();
             } else {
@@ -157,59 +145,22 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
             <Modal.Header closeButton>
                 <Modal.Title>Chỉnh sửa thông tin người dùng</Modal.Title>
             </Modal.Header>
-            <div className="modal-tabs">
-                <button 
-                    className={`tab-item ${activeTab === 'general' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('general')}
-                >
-                    Thông tin chung
-                </button>
-                <button 
-                    className={`tab-item ${activeTab === 'kyc' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('kyc')}
-                >
-                    Định danh (KYC)
-                </button>
-                <button 
-                    className={`tab-item ${activeTab === 'security' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('security')}
-                >
-                    Bảo mật
-                </button>
-            </div>
-            <Modal.Body>
-                {activeTab === 'general' && (
-                    <div className="tab-content">
-                        <div className="form-group">
-                            <label>Họ và tên</label>
-                            <input 
-                                type="text" 
-                                name="full_name"
-                                value={formData.full_name}
-                                onChange={handleInputChange}
-                                placeholder="Nhập họ tên"
-                            />
-                        </div>
+            <Modal.Body className="edit-modal-scrollable">
+                <div className="edit-section-header">Thông tin tài khoản</div>
+                <div className="row">
+                    <div className="col-md-6">
                         <div className="form-group">
                             <label>Email</label>
-                            <input 
-                                type="email" 
-                                name="email"
-                                value={formData.email}
-                                onChange={handleInputChange}
-                                placeholder="example@gmail.com"
-                            />
+                            <input type="email" name="email" value={formData.email} onChange={handleInputChange} />
                         </div>
+                    </div>
+                    <div className="col-md-6">
                         <div className="form-group">
                             <label>Số điện thoại</label>
-                            <input 
-                                type="text" 
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleInputChange}
-                                placeholder="Nhập số điện thoại"
-                            />
+                            <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} />
                         </div>
+                    </div>
+                    <div className="col-md-6">
                         <div className="form-group">
                             <label>Quyền hạn</label>
                             <select name="role" value={formData.role} onChange={handleInputChange}>
@@ -218,145 +169,77 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
                             </select>
                         </div>
                     </div>
-                )}
+                </div>
 
-                {activeTab === 'kyc' && (
-                    <div className="tab-content scrollable">
+                <hr className="my-4 border-secondary opacity-25" />
+
+                <div className="edit-section-header">Thông tin cá nhân & Định danh</div>
+                <div className="form-group">
+                    <label>Họ và tên</label>
+                    <input type="text" name="full_name" value={formData.full_name} onChange={handleInputChange} />
+                </div>
+                <div className="row">
+                    <div className="col-md-6">
                         <div className="form-group">
-                            <label>Số CMND/CCCD</label>
-                            <input 
-                                type="text" 
-                                name="id_card_number"
-                                value={formData.id_card_number}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-                        <div className="row">
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Ngày sinh</label>
-                                    <div className="date-input-wrapper">
-                                        <input 
-                                            type="text" 
-                                            name="dob"
-                                            value={formData.dob}
-                                            onChange={handleInputChange}
-                                            placeholder="DD/MM/YYYY"
-                                        />
-                                        <input 
-                                            type="date" 
-                                            className="hidden-date-picker"
-                                            onChange={(e) => setFormData(prev => ({ ...prev, dob: convertPickerToDisplay(e.target.value) }))}
-                                        />
-                                        <i className="fa-regular fa-calendar-days calendar-icon"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Giới tính</label>
-                                    <select name="gender" value={formData.gender} onChange={handleInputChange}>
-                                        <option value="Nam">Nam</option>
-                                        <option value="Nữ">Nữ</option>
-                                        <option value="Khác">Khác</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="row">
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Ngày cấp</label>
-                                    <div className="date-input-wrapper">
-                                        <input 
-                                            type="text" 
-                                            name="id_card_issue_date"
-                                            value={formData.id_card_issue_date}
-                                            onChange={handleInputChange}
-                                            placeholder="DD/MM/YYYY"
-                                        />
-                                        <input 
-                                            type="date" 
-                                            className="hidden-date-picker"
-                                            onChange={(e) => setFormData(prev => ({ ...prev, id_card_issue_date: convertPickerToDisplay(e.target.value) }))}
-                                        />
-                                        <i className="fa-regular fa-calendar-days calendar-icon"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Ngày hết hạn</label>
-                                    <div className="date-input-wrapper">
-                                        <input 
-                                            type="text" 
-                                            name="id_card_expiry_date"
-                                            value={formData.id_card_expiry_date}
-                                            onChange={handleInputChange}
-                                            placeholder="DD/MM/YYYY"
-                                        />
-                                        <input 
-                                            type="date" 
-                                            className="hidden-date-picker"
-                                            onChange={(e) => setFormData(prev => ({ ...prev, id_card_expiry_date: convertPickerToDisplay(e.target.value) }))}
-                                        />
-                                        <i className="fa-regular fa-calendar-days calendar-icon"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label>Nơi cấp CCCD (Tỉnh/Thành phố)</label>
-                            <input 
-                                type="text" 
-                                name="id_card_issue_place"
-                                value={formData.id_card_issue_place}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Địa chỉ liên hệ</label>
-                            <textarea 
-                                name="address"
-                                value={formData.address}
-                                onChange={handleInputChange}
-                            ></textarea>
+                            <label>Ngày sinh (dd/mm/yyyy)</label>
+                            <input type="text" name="dob" value={formData.dob} onChange={handleInputChange} placeholder="dd/mm/yyyy" />
                         </div>
                     </div>
-                )}
-
-                {activeTab === 'security' && (
-                    <div className="tab-content">
-                        <div className="security-card">
-                            <div className="card-icon">
-                                <i className="fa-solid fa-lock"></i>
-                            </div>
-                            <div className="card-info">
-                                <h6>Reset Mật khẩu</h6>
-                                <p>Hệ thống sẽ đặt lại mật khẩu của người dùng về mặc định: <strong>12345678</strong></p>
-                            </div>
-                            <button className="btn-reset" onClick={handleResetPass}>Reset Password</button>
-                        </div>
-
-                        <div className="security-card">
-                            <div className="card-icon">
-                                <i className="fa-solid fa-shield-halved"></i>
-                            </div>
-                            <div className="card-info">
-                                <h6>Reset Mã PIN</h6>
-                                <p>Hệ thống sẽ đặt lại mã PIN giao dịch về mặc định: <strong>123456</strong></p>
-                            </div>
-                            <button className="btn-reset" onClick={handleResetPinAction}>Reset PIN</button>
+                    <div className="col-md-6">
+                        <div className="form-group">
+                            <label>Giới tính</label>
+                            <select name="gender" value={formData.gender} onChange={handleInputChange}>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
                         </div>
                     </div>
-                )}
+                </div>
+                <div className="form-group">
+                    <label>Số CMND/CCCD</label>
+                    <input type="text" name="id_card_number" value={formData.id_card_number} onChange={handleInputChange} />
+                </div>
+                <div className="row">
+                    <div className="col-md-6">
+                        <div className="form-group">
+                            <label>Ngày cấp (dd/mm/yyyy)</label>
+                            <input type="text" name="id_card_issue_date" value={formData.id_card_issue_date} onChange={handleInputChange} placeholder="dd/mm/yyyy" />
+                        </div>
+                    </div>
+                    <div className="col-md-6">
+                        <div className="form-group">
+                            <label>Ngày hết hạn (dd/mm/yyyy)</label>
+                            <input type="text" name="id_card_expiry_date" value={formData.id_card_expiry_date} onChange={handleInputChange} placeholder="dd/mm/yyyy" />
+                        </div>
+                    </div>
+                </div>
+                <div className="form-group">
+                    <label>Nơi cấp</label>
+                    <input type="text" name="id_card_issue_place" value={formData.id_card_issue_place} onChange={handleInputChange} />
+                </div>
+                <div className="form-group">
+                    <label>Địa chỉ</label>
+                    <textarea name="address" value={formData.address} onChange={handleInputChange} rows="3"></textarea>
+                </div>
+
+                <hr className="my-4 border-secondary opacity-25" />
+
+                <div className="edit-section-header">Bảo mật & Hệ thống</div>
+                <div className="security-actions">
+                    <button className="btn btn-outline-warning w-100 mb-2" onClick={handleResetPass}>
+                        <i className="fa-solid fa-key me-2"></i> Reset Mật khẩu (12345678)
+                    </button>
+                    <button className="btn btn-outline-info w-100" onClick={handleResetPinAction}>
+                        <i className="fa-solid fa-shield me-2"></i> Reset mã PIN (123456)
+                    </button>
+                </div>
             </Modal.Body>
             <Modal.Footer>
-                <button className="btn-cancel" onClick={handleClose}>Hủy</button>
-                <button className="btn-save" onClick={handleSubmit}>Lưu thay đổi</button>
+                <button className="btn btn-secondary" onClick={handleClose}>Hủy</button>
+                <button className="btn btn-primary" onClick={handleSubmit}>Lưu thay đổi</button>
             </Modal.Footer>
 
-            {/* Confirmation Modal */}
             <Modal 
                 show={confirmModal.show} 
                 onHide={() => setConfirmModal(prev => ({ ...prev, show: false }))}
@@ -364,27 +247,17 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
                 size="sm"
                 className="confirm-sub-modal"
             >
-                <Modal.Body className="text-center py-4">
-                    <div className="confirm-icon mb-3">
-                        <i className="fa-solid fa-triangle-exclamation"></i>
+                <Modal.Body className="text-center py-4 bg-dark text-white rounded">
+                    <div className="confirm-icon mb-3 text-warning">
+                        <i className="fa-solid fa-triangle-exclamation fa-2x"></i>
                     </div>
-                    <h5>{confirmModal.title}</h5>
-                    <p>{confirmModal.message}</p>
+                    <h5 className="mb-2">{confirmModal.title}</h5>
+                    <p className="small mb-4">{confirmModal.message}</p>
+                    <div className="d-flex gap-2 justify-content-center">
+                        <button className="btn btn-sm btn-secondary" onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}>Hủy bỏ</button>
+                        <button className="btn btn-sm btn-primary" onClick={confirmModal.onConfirm}>Xác nhận</button>
+                    </div>
                 </Modal.Body>
-                <Modal.Footer className="justify-content-center border-0 pb-4">
-                    <button 
-                        className="btn-confirm-cancel" 
-                        onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
-                    >
-                        Hủy bỏ
-                    </button>
-                    <button 
-                        className="btn-confirm-ok" 
-                        onClick={confirmModal.onConfirm}
-                    >
-                        Xác nhận
-                    </button>
-                </Modal.Footer>
             </Modal>
         </Modal>
     );

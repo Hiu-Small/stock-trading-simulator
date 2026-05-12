@@ -12,6 +12,7 @@ const initAdminRoutes = (app) => {
     router.post("/update-user", checkUserJWT, checkAdminRole, adminController.handleUpdateUser);
     router.post("/reset-password", checkUserJWT, checkAdminRole, adminController.handleResetPassword);
     router.post("/reset-pin", checkUserJWT, checkAdminRole, adminController.handleResetPin);
+    router.get("/system-logs", checkUserJWT, checkAdminRole, adminController.handleGetSystemLogs);
 
     return app.use("/api/admin", router);
 };

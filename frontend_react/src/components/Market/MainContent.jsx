@@ -16,7 +16,6 @@ const MainContent = (props) => {
       {/* ===== Bảng giá trung tâm ===== */}
       <div className="main-content__board">
         <PriceBoard 
-          searchTicker={props.searchTicker} 
           onUpdateGroupStats={props.onUpdateGroupStats}
         />
       </div>

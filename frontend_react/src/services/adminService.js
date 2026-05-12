@@ -44,11 +44,19 @@ const resetPin = (userId) => {
     return axios.post("/api/admin/reset-pin", { userId });
 };
 
+/**
+ * Lấy danh sách nhật ký hệ thống (Admin)
+ */
+const fetchSystemLogs = () => {
+    return axios.get("/api/admin/system-logs");
+};
+
 export {
     fetchAllUsers,
     updateUserBalance,
     updateUserStatus,
     updateUser,
     resetPassword,
-    resetPin
+    resetPin,
+    fetchSystemLogs
 };

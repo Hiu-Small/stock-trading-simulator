@@ -43,14 +43,9 @@ const MainLayout = ({ children }) => {
         return () => clearInterval(interval);
     }, []);
 
-    const handleSearch = (term) => {
-        console.log("Searching for:", term);
-        // Implement search logic here or pass it down
-    };
-
     return (
         <div className="main-layout">
-            <Nav marketStatus={marketStatus} onSearch={handleSearch} />
+            <Nav marketStatus={marketStatus} />
             <main className="content-area">
                 {children}
             </main>

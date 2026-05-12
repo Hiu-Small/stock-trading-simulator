@@ -17,6 +17,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    level: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'INFO'
+    },
     target_id: DataTypes.STRING,
     details: DataTypes.TEXT,
     ip_address: DataTypes.STRING

@@ -149,8 +149,10 @@ const updateUserBalance = async (data) => {
         await db.AdminLog.create({
             admin_id: adminId,
             action: `ADJUST_BALANCE_${type}`,
+            level: 'INFO',
             target_id: userId,
-            details: `Adjusted balance for user ${userId} by ${amount}. Reason: ${reason}`
+            details: `Adjusted balance for user ${userId} by ${amount}. Reason: ${reason}`,
+            ip_address: data.ipAddress
         });
 
         return {
@@ -195,8 +197,10 @@ const updateUserStatus = async (data) => {
         await db.AdminLog.create({
             admin_id: adminId,
             action: `UPDATE_USER_STATUS_${status.toUpperCase()}`,
+            level: 'INFO',
             target_id: userId,
-            details: `Updated status for user ${userId} to ${status}`
+            details: `Updated status for user ${userId} to ${status}`,
+            ip_address: data.ipAddress
         });
 
         return {
@@ -217,9 +221,12 @@ const updateUserStatus = async (data) => {
 const updateUserInfo = async (data) => {
     const t = await db.sequelize.transaction();
     try {
-        const { userId, ...updateData } = data;
+        const { userId, adminId, ipAddress, ...updateData } = data;
         const user = await db.UserAccount.findByPk(userId);
         if (!user) return { EM: 'Người dùng không tồn tại', EC: 1, DT: '' };
+
+        // Helper to handle empty dates
+        const cleanDate = (val) => (val === "" || val === undefined) ? null : val;
 
         // Cập nhật thông tin UserAccount (email, phone, role)
         await user.update({
@@ -233,26 +240,44 @@ const updateUserInfo = async (data) => {
         if (profile) {
             await profile.update({
                 full_name: updateData.full_name,
-                dob: updateData.dob,
+                dob: cleanDate(updateData.dob),
                 gender: updateData.gender,
                 id_card_number: updateData.id_card_number,
-                id_card_issue_date: updateData.id_card_issue_date,
+                id_card_issue_date: cleanDate(updateData.id_card_issue_date),
                 id_card_issue_place: updateData.id_card_issue_place,
-                id_card_expiry_date: updateData.id_card_expiry_date,
+                id_card_expiry_date: cleanDate(updateData.id_card_expiry_date),
                 address: updateData.address
             }, { transaction: t });
         }
+
+        // Ghi log admin
+        await db.AdminLog.create({
+            admin_id: adminId,
+            action: 'UPDATE_USER_INFO',
+            level: 'INFO',
+            target_id: userId,
+            details: `Updated info for user ${userId} (${user.email})`,
+            ip_address: ipAddress
+        }, { transaction: t });
 
         await t.commit();
         return { EM: 'Cập nhật thông tin người dùng thành công', EC: 0, DT: '' };
     } catch (e) {
         await t.rollback();
         console.log(e);
+        if (e.name === 'SequelizeUniqueConstraintError') {
+            const field = e.errors[0].path;
+            let message = 'Thông tin đã tồn tại trong hệ thống';
+            if (field === 'email') message = 'Email này đã được sử dụng bởi người dùng khác';
+            if (field === 'phone') message = 'Số điện thoại này đã được sử dụng bởi người dùng khác';
+            if (field === 'id_card_number') message = 'Số CMND/CCCD này đã tồn tại';
+            return { EM: message, EC: 1, DT: field };
+        }
         return { EM: 'Lỗi hệ thống khi cập nhật thông tin', EC: -1, DT: '' };
     }
 };
 
-const resetPassword = async (userId, adminId) => {
+const resetPassword = async (userId, adminId, ipAddress) => {
     try {
         const user = await db.UserAccount.findByPk(userId);
         if (!user) return { EM: 'Người dùng không tồn tại', EC: 1, DT: '' };
@@ -264,8 +289,10 @@ const resetPassword = async (userId, adminId) => {
         await db.AdminLog.create({
             admin_id: adminId || 1, 
             action: 'RESET_PASSWORD',
+            level: 'WARN',
             target_id: userId,
-            details: `Admin reset password for user ${user.username} to default 12345678`
+            details: `Admin reset password for user ${user.username} to default 12345678`,
+            ip_address: ipAddress
         });
 
         return { EM: 'Đã đặt lại mật khẩu về mặc định (12345678)', EC: 0, DT: '' };
@@ -275,7 +302,7 @@ const resetPassword = async (userId, adminId) => {
     }
 };
 
-const resetPin = async (userId, adminId) => {
+const resetPin = async (userId, adminId, ipAddress) => {
     try {
         const user = await db.UserAccount.findByPk(userId);
         if (!user) return { EM: 'Người dùng không tồn tại', EC: 1, DT: '' };
@@ -286,8 +313,10 @@ const resetPin = async (userId, adminId) => {
         await db.AdminLog.create({
             admin_id: adminId || 1,
             action: 'RESET_PIN',
+            level: 'WARN',
             target_id: userId,
-            details: `Admin reset PIN for user ${user.username} to default 123456`
+            details: `Admin reset PIN for user ${user.username} to default 123456`,
+            ip_address: ipAddress
         });
 
         return { EM: 'Đã đặt lại mã PIN về mặc định (123456)', EC: 0, DT: '' };
@@ -297,11 +326,77 @@ const resetPin = async (userId, adminId) => {
     }
 };
 
+const getSystemLogs = async () => {
+    try {
+        // Lấy logs từ Admin
+        const adminLogsPromise = db.AdminLog.findAll({
+            include: [{ model: db.UserAccount, as: 'admin', attributes: ['email'] }],
+            order: [['createdAt', 'DESC']],
+            limit: 50
+        });
+
+        // Lấy logs từ User (History)
+        const userHistoriesPromise = db.UserHistory.findAll({
+            include: [{ model: db.UserAccount, as: 'user', attributes: ['email'] }],
+            order: [['createdAt', 'DESC']],
+            limit: 50
+        });
+
+        const [adminLogs, userHistories] = await Promise.all([adminLogsPromise, userHistoriesPromise]);
+
+        // Định dạng Admin Logs
+        const formattedAdminLogs = adminLogs.map(log => ({
+            timestamp: log.createdAt,
+            level: log.level || 'INFO',
+            actor: log.admin ? log.admin.email : 'System',
+            action: log.action,
+            details: log.details,
+            type: 'ADMIN'
+        }));
+
+        // Định dạng User Histories
+        const formattedUserLogs = userHistories.map(log => {
+            let actionText = `User action: ${log.change_type}`;
+            if (log.change_type === 'PROFILE_UPDATE') actionText = `User updated profile: ${log.field_name}`;
+            if (log.change_type === 'PASSWORD_CHANGE') actionText = `User changed password`;
+            if (log.change_type === 'PIN_CHANGE') actionText = `User changed PIN`;
+
+            return {
+                timestamp: log.createdAt,
+                level: (log.change_type === 'PASSWORD_CHANGE' || log.change_type === 'PIN_CHANGE') ? 'WARN' : 'INFO',
+                actor: log.user ? log.user.email : 'Unknown User',
+                action: actionText,
+                details: `Field "${log.field_name}" changed from "${log.old_value || 'N/A'}" to "${log.new_value || 'N/A'}"`,
+                type: 'USER'
+            };
+        });
+
+        // Gộp và sắp xếp theo thời gian
+        const allLogs = [...formattedAdminLogs, ...formattedUserLogs].sort((a, b) => 
+            new Date(b.timestamp) - new Date(a.timestamp)
+        );
+
+        return {
+            EM: 'Lấy danh sách logs thành công',
+            EC: 0,
+            DT: allLogs.slice(0, 100)
+        };
+    } catch (e) {
+        console.log(e);
+        return {
+            EM: 'Lỗi hệ thống khi lấy logs',
+            EC: -1,
+            DT: []
+        };
+    }
+};
+
 module.exports = {
     getAllUsers,
     updateUserBalance,
     updateUserStatus,
     updateUserInfo,
     resetPassword,
-    resetPin
+    resetPin,
+    getSystemLogs
 };

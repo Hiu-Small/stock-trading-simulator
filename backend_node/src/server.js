@@ -9,6 +9,7 @@ import initAuthRoutes from "./routes/authRoutes";
 import initAdminRoutes from "./routes/adminRoutes";
 
 const app = express();
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 8080;
 
 //config cors
