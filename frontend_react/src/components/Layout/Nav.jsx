@@ -21,22 +21,45 @@ const Nav = (props) => {
     navigate("/");
   };
 
-  // Kiểm tra trạng thái Onboarding
+  // Kiểm tra trạng thái Onboarding & Trạng thái Khóa
   React.useEffect(() => {
-    if (user?.isAuthenticated && user?.account?.status !== 'ACTIVE' && user?.account?.role !== 'ADMIN') {
+    if (user?.isAuthenticated && user?.account?.role !== 'ADMIN') {
+      const status = user?.account?.status?.toUpperCase();
       const currentPath = window.location.pathname;
-      if (currentPath !== '/onboarding' && currentPath !== '/register' && currentPath !== '/profile' && currentPath !== '/account') {
-        toast.info("Vui lòng hoàn thiện hồ sơ để bắt đầu giao dịch", {
-          toastId: 'onboarding-notice'
+
+      // 1. Nếu tài khoản bị khóa
+      if (status === 'LOCKED') {
+        toast.error("Tài khoản của bạn đã bị khóa. Bạn sẽ bị đăng xuất ngay lập tức.", {
+          toastId: 'locked-notice'
         });
-        // Tự động chuyển hướng sau một khoảng thời gian ngắn
         const timer = setTimeout(() => {
-          navigate('/onboarding');
+          handleLogout();
         }, 3000);
         return () => clearTimeout(timer);
       }
+
+      // 2. Nếu chưa hoàn tất định danh (Onboarding)
+      if (status === 'UNVERIFIED' || status === 'KYC_COMPLETED') {
+        if (currentPath !== '/onboarding' && currentPath !== '/register' && currentPath !== '/profile' && currentPath !== '/account') {
+          toast.info("Vui lòng hoàn thiện hồ sơ để bắt đầu giao dịch", {
+            toastId: 'onboarding-notice'
+          });
+          const timer = setTimeout(() => {
+            navigate('/onboarding');
+          }, 3000);
+          return () => clearTimeout(timer);
+        }
+      }
     }
   }, [user, navigate]);
+
+  const handleUnderDevelopment = (e) => {
+    e.preventDefault();
+    toast.info("Tính năng đang được phát triển", {
+      position: "top-center",
+      autoClose: 3000,
+    });
+  };
 
   return (
     <div className="nav-container">
@@ -57,13 +80,13 @@ const Nav = (props) => {
           <NavLink to="/market" className="child-nav-link">
             Thị trường
           </NavLink>
-          <NavLink to="/analysis" className="child-nav-link">
+          <NavLink to="/analysis" className="child-nav-link" onClick={handleUnderDevelopment}>
             Phân tích
           </NavLink>
-          <NavLink to="/asset" className="child-nav-link">
+          <NavLink to="/asset" className="child-nav-link" onClick={handleUnderDevelopment}>
             Quản lý tài sản
           </NavLink>
-          <NavLink to="/news" className="child-nav-link">
+          <NavLink to="/news" className="child-nav-link" onClick={handleUnderDevelopment}>
             Tin tức
           </NavLink>
         </div>

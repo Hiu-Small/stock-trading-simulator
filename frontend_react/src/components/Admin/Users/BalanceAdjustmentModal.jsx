@@ -1,17 +1,53 @@
 import React, { useState } from "react";
 import "./BalanceAdjustmentModal.scss";
+import { updateUserBalance } from "../../../services/adminService";
+import { toast } from "react-toastify";
 
-const BalanceAdjustmentModal = ({ show, handleClose, user }) => {
+const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
   const [operation, setOperation] = useState("add"); // "add" or "deduct"
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
 
   if (!show || !user) return null;
 
-  const handleSubmit = (e) => {
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Adjusting balance for:", user.name, { operation, amount, note });
-    handleClose();
+    if (!amount || parseFloat(amount) <= 0) {
+        toast.warning("Vui lòng nhập số tiền hợp lệ");
+        return;
+    }
+
+    setLoading(true);
+    try {
+        const response = await updateUserBalance({
+            userId: user.id,
+            amount: amount,
+            type: operation === "add" ? "ADD" : "DEDUCT",
+            reason: note || `Manual adjustment by admin: ${operation}`
+        });
+
+        if (response && response.EC === 0) {
+            toast.success(response.EM || "Cập nhật số dư thành công");
+            setAmount("");
+            setNote("");
+            if (onSuccess) onSuccess();
+            handleClose();
+        } else {
+            toast.error(response.EM || "Lỗi khi cập nhật số dư");
+        }
+    } catch (error) {
+        console.error("Update balance error:", error);
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -20,9 +56,9 @@ const BalanceAdjustmentModal = ({ show, handleClose, user }) => {
         <div className="modal-header">
           <div className="header-info">
             <h2 className="title">Manual Balance Adjustment</h2>
-            <p className="subtitle">Adjust virtual balance for <span>{user.name}</span></p>
+            <p className="subtitle">Adjust virtual balance for <span>{user.full_name}</span></p>
           </div>
-          <button className="btn-close" onClick={handleClose}>
+          <button className="btn-close" onClick={handleClose} disabled={loading}>
             <i className="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -30,7 +66,7 @@ const BalanceAdjustmentModal = ({ show, handleClose, user }) => {
         <form onSubmit={handleSubmit} className="modal-body">
           <div className="current-balance-box">
             <span className="label">Current Virtual Balance</span>
-            <div className="value">{user.balance}</div>
+            <div className="value">{formatCurrency(user.virtual_balance)}</div>
           </div>
 
           <div className="form-group">
@@ -40,6 +76,7 @@ const BalanceAdjustmentModal = ({ show, handleClose, user }) => {
                 type="button"
                 className={`btn-op ${operation === "add" ? "active add" : ""}`}
                 onClick={() => setOperation("add")}
+                disabled={loading}
               >
                 Add Funds
               </button>
@@ -47,6 +84,7 @@ const BalanceAdjustmentModal = ({ show, handleClose, user }) => {
                 type="button"
                 className={`btn-op ${operation === "deduct" ? "active deduct" : ""}`}
                 onClick={() => setOperation("deduct")}
+                disabled={loading}
               >
                 Deduct Funds
               </button>
@@ -63,6 +101,7 @@ const BalanceAdjustmentModal = ({ show, handleClose, user }) => {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
           </div>
@@ -74,15 +113,20 @@ const BalanceAdjustmentModal = ({ show, handleClose, user }) => {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows="4"
+              disabled={loading}
             ></textarea>
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn-cancel" onClick={handleClose}>
+            <button type="button" className="btn-cancel" onClick={handleClose} disabled={loading}>
               Cancel
             </button>
-            <button type="submit" className={`btn-confirm ${operation === "add" ? "add" : "deduct"}`}>
-              Confirm {operation === "add" ? "Addition" : "Deduction"}
+            <button 
+              type="submit" 
+              className={`btn-confirm ${operation === "add" ? "add" : "deduct"} ${loading ? "loading" : ""}`}
+              disabled={loading}
+            >
+              {loading ? "Processing..." : `Confirm ${operation === "add" ? "Addition" : "Deduction"}`}
             </button>
           </div>
         </form>

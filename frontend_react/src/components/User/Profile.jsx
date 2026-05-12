@@ -172,6 +172,12 @@ const Profile = () => {
             const response = await axios.post('/api/update-profile', profileData);
             if (response && +response.EC === 0) {
                 toast.success("Cập nhật hồ sơ thành công!");
+                
+                // Nếu backend có trả về status mới (tự động nâng cấp KYC)
+                if (response.DT && response.DT.status) {
+                    updateUserStatus(response.DT.status);
+                }
+
                 setEditingSection(null);
                 fetchProfile();
             } else {

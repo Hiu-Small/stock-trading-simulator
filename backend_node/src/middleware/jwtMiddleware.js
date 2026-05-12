@@ -64,9 +64,22 @@ const checkUserPermission = (req, res, next) => {
     }
 };
 
+const checkAdminRole = (req, res, next) => {
+    if (req.user && req.user.role === 'ADMIN') {
+        return next();
+    } else {
+        return res.status(403).json({
+            EC: -1,
+            DT: '',
+            EM: 'Bạn không có quyền truy cập tính năng quản trị'
+        });
+    }
+};
+
 export {
     createToken,
     verifyToken,
     checkUserJWT,
-    checkUserPermission
+    checkUserPermission,
+    checkAdminRole
 };

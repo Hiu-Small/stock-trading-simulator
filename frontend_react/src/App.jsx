@@ -1,5 +1,5 @@
 import "./App.scss";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import HomePage from "./components/HomePage/HomePage";
@@ -20,7 +20,7 @@ function App() {
         <Route path="/admin/*" element={<AdminLayout />} />
 
         {/* Route cho người dùng (Customer) */}
-        <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
+        <Route path="/" element={<Navigate to="/market" replace />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/onboarding" element={<OnboardingProcess />} />
         <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />

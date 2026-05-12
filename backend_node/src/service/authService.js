@@ -190,6 +190,11 @@ const loginUser = async (rawData) => {
             return { EM: 'Tên đăng nhập hoặc mật khẩu không đúng', EC: 1, DT: '' };
         }
 
+        // Kiểm tra trạng thái tài khoản
+        if (user.status === 'LOCKED') {
+            return { EM: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên để được hỗ trợ.', EC: 1, DT: '' };
+        }
+
         // Generate JWT
         const payload = {
             id: user.id,
@@ -372,8 +377,10 @@ const getProfile = async (userId) => {
 const updateProfile = async (userId, data) => {
     const t = await db.sequelize.transaction();
     try {
+        const user = await db.UserAccount.findByPk(userId);
         const profile = await db.UserProfile.findOne({ where: { user_id: userId } });
-        if (!profile) return { EM: 'Hồ sơ không tồn tại', EC: 1, DT: '' };
+        
+        if (!user || !profile) return { EM: 'Người dùng hoặc hồ sơ không tồn tại', EC: 1, DT: '' };
 
         await profile.update({
             full_name: data.full_name,
@@ -383,11 +390,26 @@ const updateProfile = async (userId, data) => {
             id_card_issue_date: data.id_card_issue_date,
             id_card_issue_place: data.id_card_issue_place,
             id_card_expiry_date: data.id_card_expiry_date,
-            address: data.address
+            address: data.address,
+            nationality: data.nationality || profile.nationality
         }, { transaction: t });
 
+        // Tự động cập nhật trạng thái nếu đã điền đủ thông tin KYC
+        let newStatus = user.status;
+        if (user.status === 'UNVERIFIED') {
+            const isKycComplete = data.full_name && data.dob && data.id_card_number && 
+                                data.id_card_issue_date && data.id_card_issue_place && 
+                                data.id_card_expiry_date && data.address;
+            
+            if (isKycComplete) {
+                user.status = 'KYC_COMPLETED';
+                await user.save({ transaction: t });
+                newStatus = 'KYC_COMPLETED';
+            }
+        }
+
         await t.commit();
-        return { EM: 'Cập nhật thông tin thành công', EC: 0, DT: '' };
+        return { EM: 'Cập nhật thông tin thành công', EC: 0, DT: { status: newStatus } };
     } catch (e) {
         await t.rollback();
         console.log(e);

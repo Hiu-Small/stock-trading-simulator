@@ -27,3 +27,8 @@ html, body, #root {
   display: flex;
   flex-direction: column;
 }
+
+// Ensure toast is above modals
+.Toastify__toast-container {
+  z-index: 99999 !important;
+}
