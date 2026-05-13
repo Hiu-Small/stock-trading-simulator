@@ -4,6 +4,7 @@ import TradingViewChart from "./TradingViewChart";
 import OrderBookTable from "./OrderBookTable";
 import MarketDepthChart from "./MarketDepthChart";
 import MatchHistoryLog from "./MatchHistoryLog";
+import OrderEntry from "./OrderEntry";
 
 const TabContentGiaoDich = (props) => {
   return (
@@ -25,7 +26,11 @@ const TabContentGiaoDich = (props) => {
         </div>
 
         <div className="right-panel-column history-column">
-          <MatchHistoryLog symbol={props.symbol} data={props.data} />
+          {props.isOrderActive ? (
+            <OrderEntry symbol={props.symbol} data={props.data} />
+          ) : (
+            <MatchHistoryLog symbol={props.symbol} data={props.data} />
+          )}
         </div>
       </div>
     </div>

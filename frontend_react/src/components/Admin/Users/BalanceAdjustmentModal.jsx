@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Modal } from "react-bootstrap";
 import "./BalanceAdjustmentModal.scss";
 import { updateUserBalance } from "../../../services/adminService";
 import { toast } from "react-toastify";
@@ -9,7 +10,7 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (!show || !user) return null;
+  if (!user) return null;
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -51,26 +52,31 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
   };
 
   return (
-    <div className="balance-modal-overlay" onClick={handleClose}>
-      <div className="balance-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div className="header-info">
-            <h2 className="title">Manual Balance Adjustment</h2>
-            <p className="subtitle">Adjust virtual balance for <span>{user.full_name}</span></p>
-          </div>
-          <button className="btn-close" onClick={handleClose} disabled={loading}>
-            <i className="fa-solid fa-xmark"></i>
-          </button>
+    <Modal 
+      show={show} 
+      onHide={handleClose} 
+      centered 
+      className="balance-modal-custom"
+    >
+      <Modal.Header>
+        <div className="header-info">
+          <Modal.Title className="title">Điều chỉnh số dư thủ công</Modal.Title>
+          <p className="subtitle">Điều chỉnh số dư cho: <span>{user.profile?.full_name || user.email}</span></p>
         </div>
+        <button className="btn-close-custom" onClick={handleClose} disabled={loading}>
+          <i className="fa-solid fa-xmark"></i>
+        </button>
+      </Modal.Header>
 
-        <form onSubmit={handleSubmit} className="modal-body">
+      <form onSubmit={handleSubmit}>
+        <Modal.Body>
           <div className="current-balance-box">
-            <span className="label">Current Virtual Balance</span>
+            <span className="label">Số dư hiện tại</span>
             <div className="value">{formatCurrency(user.virtual_balance)}</div>
           </div>
 
-          <div className="form-group">
-            <label>Operation Type</label>
+          <div className="form-group-custom">
+            <label>Loại giao dịch</label>
             <div className="operation-buttons">
               <button
                 type="button"
@@ -78,7 +84,7 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
                 onClick={() => setOperation("add")}
                 disabled={loading}
               >
-                Add Funds
+                Cộng tiền
               </button>
               <button
                 type="button"
@@ -86,13 +92,13 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
                 onClick={() => setOperation("deduct")}
                 disabled={loading}
               >
-                Deduct Funds
+                Trừ tiền
               </button>
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Amount ($)</label>
+          <div className="form-group-custom">
+            <label>Số tiền ($)</label>
             <div className="input-wrapper">
               <span className="currency">$</span>
               <input
@@ -106,32 +112,32 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Reason / Note</label>
+          <div className="form-group-custom">
+            <label>Lý do / Ghi chú</label>
             <textarea
-              placeholder="Enter reason for adjustment..."
+              placeholder="Nhập lý do điều chỉnh..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows="4"
               disabled={loading}
             ></textarea>
           </div>
+        </Modal.Body>
 
-          <div className="modal-footer">
-            <button type="button" className="btn-cancel" onClick={handleClose} disabled={loading}>
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              className={`btn-confirm ${operation === "add" ? "add" : "deduct"} ${loading ? "loading" : ""}`}
-              disabled={loading}
-            >
-              {loading ? "Processing..." : `Confirm ${operation === "add" ? "Addition" : "Deduction"}`}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <Modal.Footer>
+          <button type="button" className="btn-cancel" onClick={handleClose} disabled={loading}>
+            Hủy
+          </button>
+          <button 
+            type="submit" 
+            className={`btn-confirm ${operation === "add" ? "add" : "deduct"} ${loading ? "loading" : ""}`}
+            disabled={loading}
+          >
+            {loading ? "Đang xử lý..." : `Xác nhận ${operation === "add" ? "Cộng tiền" : "Trừ tiền"}`}
+          </button>
+        </Modal.Footer>
+      </form>
+    </Modal>
   );
 };
 

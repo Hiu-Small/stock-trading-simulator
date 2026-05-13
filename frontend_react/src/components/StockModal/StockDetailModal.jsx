@@ -12,6 +12,7 @@ const StockDetailModal = (props) => {
   const [activeTab, setActiveTab] = useState("Giao dịch");
   const [stockData, setStockData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isOrderActive, setIsOrderActive] = useState(false);
 
   // Cơ chế Real-time: Tự động cập nhật dữ liệu mã này mỗi 10 giây
   useEffect(() => {
@@ -76,13 +77,23 @@ const StockDetailModal = (props) => {
           </div>
         ) : (
           <>
-            <ModalHeader symbol={props.symbol} data={stockData} onClose={props.onClose} />
+            <ModalHeader 
+              symbol={props.symbol} 
+              data={stockData} 
+              onClose={props.onClose} 
+              isOrderActive={isOrderActive}
+              setIsOrderActive={setIsOrderActive}
+            />
             
             <ModalTabs activeTab={activeTab} onChangeTab={setActiveTab} />
             
             <div className="stock-modal-body">
               {activeTab === "Giao dịch" && stockData && (
-                <TabContentGiaoDich symbol={props.symbol} data={stockData} />
+                <TabContentGiaoDich 
+                  symbol={props.symbol} 
+                  data={stockData} 
+                  isOrderActive={isOrderActive} 
+                />
               )}
               {activeTab === "Hồ sơ" && (
                 <TabHoSoContent symbol={props.symbol} data={stockData} />

@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 const getAllUsers = async () => {
     try {
         const users = await db.UserAccount.findAll({
-            attributes: ['id', 'email', 'phone', 'status', 'role', 'account_number'],
+            attributes: { exclude: ['password'] },
             include: [
                 { 
                     model: db.UserProfile, 
@@ -97,6 +97,7 @@ const getAllUsers = async () => {
                 portfolio_value: portfolioValue,
                 status: user.status,
                 account_number: user.account_number,
+                createdAt: user.createdAt,
                 holdings: updatedHoldings
             };
         });
@@ -119,7 +120,10 @@ const getAllUsers = async () => {
 const updateUserBalance = async (data) => {
     const { userId, amount, type, reason, adminId } = data;
     try {
-        const wallet = await db.Wallet.findOne({ where: { user_id: userId } });
+        const wallet = await db.Wallet.findOne({ 
+            where: { user_id: userId },
+            include: [{ model: db.UserAccount, as: 'user', attributes: ['email', 'account_number'] }]
+        });
         if (!wallet) {
             return {
                 EM: 'Không tìm thấy ví của người dùng',
@@ -151,7 +155,7 @@ const updateUserBalance = async (data) => {
             action: `ADJUST_BALANCE_${type}`,
             level: 'INFO',
             target_id: userId,
-            details: `Adjusted balance for user ${userId} by ${amount}. Reason: ${reason}`,
+            details: `Adjusted balance for user ${userId} (${wallet.user?.account_number || wallet.user?.email}) by ${amount}. Reason: ${reason}`,
             ip_address: data.ipAddress
         });
 
@@ -199,7 +203,7 @@ const updateUserStatus = async (data) => {
             action: `UPDATE_USER_STATUS_${status.toUpperCase()}`,
             level: 'INFO',
             target_id: userId,
-            details: `Updated status for user ${userId} to ${status}`,
+            details: `Updated status for user ${userId} (${user.account_number || user.email}) to ${status}`,
             ip_address: data.ipAddress
         });
 
@@ -256,7 +260,7 @@ const updateUserInfo = async (data) => {
             action: 'UPDATE_USER_INFO',
             level: 'INFO',
             target_id: userId,
-            details: `Updated info for user ${userId} (${user.email})`,
+            details: `Updated info for user ${userId} (${user.account_number || user.email})`,
             ip_address: ipAddress
         }, { transaction: t });
 

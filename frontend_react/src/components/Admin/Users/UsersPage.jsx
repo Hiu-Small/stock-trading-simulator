@@ -99,7 +99,64 @@ const UsersPage = () => {
   };
 
   const handleExportCSV = () => {
-    console.log("Exporting CSV...");
+    if (filteredUsers.length === 0) {
+      toast.warning("Không có dữ liệu để xuất");
+      return;
+    }
+
+    // Định nghĩa tiêu đề cột
+    const headers = [
+      "   ID   ",
+      "      Số tài khoản      ",
+      "            Họ tên            ",
+      "               Email               ",
+      "     Số điện thoại     ",
+      "     Số dư ví ($)     ",
+      "    Giá trị danh mục ($)    ",
+      "      Tổng tài sản ($)      ",
+      "   Trạng thái   ",
+      "   Quyền hạn   ",
+      "      Ngày tham gia      "
+    ];
+
+    // Chuyển đổi dữ liệu người dùng sang định dạng dòng CSV
+    const csvRows = filteredUsers.map(user => {
+      const balance = parseFloat(user.virtual_balance || 0);
+      const portfolio = parseFloat(user.portfolio_value || 0);
+      const totalAssets = balance + portfolio;
+      
+      const dateValue = user.createdAt || user.created_at || user.createAt;
+      const joinedDate = dateValue ? new Date(dateValue).toLocaleDateString("vi-VN") : "N/A";
+
+      return [
+        user.id,
+        user.account_number || "N/A",
+        `"${user.profile?.full_name || "N/A"}"`, 
+        user.email,
+        `="${user.phone || "N/A"}"`, 
+        `="${balance.toFixed(2)}"`, 
+        `="${portfolio.toFixed(2)}"`,
+        `="${totalAssets.toFixed(2)}"`,
+        user.status,
+        user.role,
+        `="${joinedDate}"` // Dùng định dạng này để Excel không hiện ######## khi cột hẹp
+      ].join(",");
+    });
+
+    // Kết hợp tiêu đề và nội dung (thêm BOM để hiển thị đúng tiếng Việt trong Excel)
+    const csvString = "\uFEFF" + [headers.join(","), ...csvRows].join("\n");
+    
+    // Tạo Blob và URL để tải xuống
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `User_Export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Đã xuất file thành công");
   };
 
   const formatCurrency = (amount) => {
@@ -109,18 +166,30 @@ const UsersPage = () => {
     }).format(amount);
   };
 
+  // Helper to remove Vietnamese tone marks
+  const normalizeText = (text) => {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/Đ/g, "D");
+  };
+
   // Logic lọc người dùng dựa trên search và status
   const filteredUsers = users.filter((user) => {
-    const fullName = user.full_name || "";
+    const fullName = user.profile?.full_name || "";
     const email = user.email || "";
     const id = String(user.id || "");
     const accNum = user.account_number || "";
 
+    const search = normalizeText(searchTerm);
+
     const matchesSearch =
-      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      id.includes(searchTerm) ||
-      accNum.toLowerCase().includes(searchTerm.toLowerCase());
+      normalizeText(fullName).includes(search) ||
+      normalizeText(email).includes(search) ||
+      normalizeText(id).includes(search) ||
+      normalizeText(accNum).includes(search);
 
     const matchesStatus = statusFilter === "all" || user.status.toLowerCase() === statusFilter.toLowerCase();
 

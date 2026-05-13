@@ -5,13 +5,42 @@
     background-color: #1a1d24;
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: 4px;
   }
 
   .modal-header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    .modal-title { font-size: 18px; font-weight: 700; }
-    .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+    justify-content: center;
+    position: relative;
+    padding: 20px;
+    
+    .modal-title { 
+      font-size: 20px; 
+      font-weight: 700; 
+      width: 100%;
+      text-align: center;
+    }
+    
+    .btn-close { 
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+
+      &:hover {
+        transform: rotate(90deg);
+        color: #fff;
+      }
+    }
   }
 
   .edit-modal-scrollable {
@@ -53,7 +82,47 @@
       outline: none;
       transition: all 0.2s;
       &:focus { border-color: $accent-green; background-color: rgba(255, 255, 255, 0.05); }
+
+      &.readonly-input {
+        background-color: rgba(255, 255, 255, 0.01);
+        color: rgba(255, 255, 255, 0.5);
+        cursor: not-allowed;
+        border-style: dashed;
+      }
     }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+      padding-right: 40px;
+      cursor: pointer;
+
+      &:focus {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300ff88' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      }
+
+      option {
+        background-color: #1a1d24;
+        color: #fff;
+        padding: 10px;
+      }
+    }
+
+    input[type="date"] {
+      &::-webkit-calendar-picker-indicator {
+        filter: invert(1) brightness(0.8);
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+        &:hover { opacity: 1; }
+      }
+    }
+
     textarea { resize: vertical; min-height: 80px; }
   }
 

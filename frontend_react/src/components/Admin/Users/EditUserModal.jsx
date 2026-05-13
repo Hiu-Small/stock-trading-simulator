@@ -7,6 +7,7 @@ import './EditUserModal.scss';
 const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
     const [formData, setFormData] = useState({
         userId: '',
+        account_number: '',
         full_name: '',
         email: '',
         phone: '',
@@ -20,45 +21,37 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
         address: ''
     });
 
-    // Helper to format date string to DD/MM/YYYY for text input
-    const formatDateForDisplay = (dateStr) => {
+    // Helper to format date string to YYYY-MM-DD for date input
+    const formatDateForInput = (dateStr) => {
         if (!dateStr) return '';
         try {
             const date = new Date(dateStr);
-            if (isNaN(date.getTime())) return dateStr;
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
+            if (isNaN(date.getTime())) return '';
+            // Get local date components to avoid timezone shifts
             const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         } catch (e) {
-            return dateStr;
+            return '';
         }
-    };
-
-    // Helper to convert DD/MM/YYYY back to YYYY-MM-DD for backend
-    const formatDateForBackend = (displayDate) => {
-        if (!displayDate || !displayDate.includes('/')) return displayDate;
-        const parts = displayDate.split('/');
-        if (parts.length === 3) {
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-        return displayDate;
     };
 
     useEffect(() => {
         if (userData) {
             setFormData({
                 userId: userData.id || '',
+                account_number: userData.account_number || '',
                 full_name: userData.profile?.full_name || '',
                 email: userData.email || '',
                 phone: userData.phone || '',
                 role: userData.role || 'USER',
                 id_card_number: userData.profile?.id_card_number || '',
-                dob: formatDateForDisplay(userData.profile?.dob),
+                dob: formatDateForInput(userData.profile?.dob),
                 gender: userData.profile?.gender || 'Nam',
-                id_card_issue_date: formatDateForDisplay(userData.profile?.id_card_issue_date),
+                id_card_issue_date: formatDateForInput(userData.profile?.id_card_issue_date),
                 id_card_issue_place: userData.profile?.id_card_issue_place || '',
-                id_card_expiry_date: formatDateForDisplay(userData.profile?.id_card_expiry_date),
+                id_card_expiry_date: formatDateForInput(userData.profile?.id_card_expiry_date),
                 address: userData.profile?.address || ''
             });
         }
@@ -66,16 +59,25 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        
+        if (name === 'phone') {
+            // Only allow numbers and limit to 10 digits
+            const numericValue = value.replace(/\D/g, '').slice(0, 10);
+            setFormData(prev => ({ ...prev, [name]: numericValue }));
+            return;
+        }
+        
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async () => {
+        if (formData.phone && formData.phone.length !== 10) {
+            toast.error("Số điện thoại phải có đúng 10 chữ số!");
+            return;
+        }
         try {
             const dataToSend = {
-                ...formData,
-                dob: formatDateForBackend(formData.dob),
-                id_card_issue_date: formatDateForBackend(formData.id_card_issue_date),
-                id_card_expiry_date: formatDateForBackend(formData.id_card_expiry_date)
+                ...formData
             };
             const res = await updateUser(dataToSend);
             if (res && +res.EC === 0) {
@@ -142,13 +144,22 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
 
     return (
         <Modal show={show} onHide={handleClose} centered size="lg" className="edit-user-modal">
-            <Modal.Header closeButton>
+            <Modal.Header>
                 <Modal.Title>Chỉnh sửa thông tin người dùng</Modal.Title>
+                <button className="btn-close" onClick={handleClose}>
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
             </Modal.Header>
             <Modal.Body className="edit-modal-scrollable">
                 <div className="edit-section-header">Thông tin tài khoản</div>
                 <div className="row">
-                    <div className="col-md-6">
+                    <div className="col-md-4">
+                        <div className="form-group">
+                            <label>Số tài khoản</label>
+                            <input type="text" value={formData.account_number} readOnly className="readonly-input" />
+                        </div>
+                    </div>
+                    <div className="col-md-8">
                         <div className="form-group">
                             <label>Email</label>
                             <input type="email" name="email" value={formData.email} onChange={handleInputChange} />
@@ -157,7 +168,14 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
                     <div className="col-md-6">
                         <div className="form-group">
                             <label>Số điện thoại</label>
-                            <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} />
+                            <input 
+                                type="text" 
+                                name="phone" 
+                                value={formData.phone} 
+                                onChange={handleInputChange} 
+                                maxLength="10"
+                                placeholder="VD: 0912345678"
+                            />
                         </div>
                     </div>
                     <div className="col-md-6">
@@ -181,8 +199,8 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
                 <div className="row">
                     <div className="col-md-6">
                         <div className="form-group">
-                            <label>Ngày sinh (dd/mm/yyyy)</label>
-                            <input type="text" name="dob" value={formData.dob} onChange={handleInputChange} placeholder="dd/mm/yyyy" />
+                            <label>Ngày sinh</label>
+                            <input type="date" name="dob" value={formData.dob} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="col-md-6">
@@ -203,14 +221,14 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
                 <div className="row">
                     <div className="col-md-6">
                         <div className="form-group">
-                            <label>Ngày cấp (dd/mm/yyyy)</label>
-                            <input type="text" name="id_card_issue_date" value={formData.id_card_issue_date} onChange={handleInputChange} placeholder="dd/mm/yyyy" />
+                            <label>Ngày cấp</label>
+                            <input type="date" name="id_card_issue_date" value={formData.id_card_issue_date} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="col-md-6">
                         <div className="form-group">
-                            <label>Ngày hết hạn (dd/mm/yyyy)</label>
-                            <input type="text" name="id_card_expiry_date" value={formData.id_card_expiry_date} onChange={handleInputChange} placeholder="dd/mm/yyyy" />
+                            <label>Ngày hết hạn</label>
+                            <input type="date" name="id_card_expiry_date" value={formData.id_card_expiry_date} onChange={handleInputChange} />
                         </div>
                     </div>
                 </div>

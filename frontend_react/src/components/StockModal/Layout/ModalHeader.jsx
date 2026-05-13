@@ -58,7 +58,12 @@ const ModalHeader = (props) => {
         </div>
         <div className="header-actions">
           <button className="btn-analysis">Phân tích cơ bản</button>
-          <button className="btn-order">Đặt lệnh</button>
+          <button 
+            className={`btn-order ${props.isOrderActive ? "active" : ""}`}
+            onClick={() => props.setIsOrderActive(!props.isOrderActive)}
+          >
+            {props.isOrderActive ? "Dữ liệu khớp lệnh" : "Đặt lệnh"}
+          </button>
           <button className="btn-close" onClick={props.onClose}>
             <i className="fa-solid fa-xmark"></i>
           </button>
