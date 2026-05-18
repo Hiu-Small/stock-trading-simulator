@@ -18,6 +18,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 100000000.00
     },
+    frozen_balance: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: false,
+      defaultValue: 0.00
+    },
     total_invested: {
       type: DataTypes.DECIMAL(20, 2),
       allowNull: false,

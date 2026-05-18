@@ -95,6 +95,7 @@ const LoginModal = (props) => {
                   placeholder="Nhập STK hoặc SĐT"
                   value={formData.username}
                   onChange={handleInputChange}
+                  autoComplete="username"
                   required
                 />
               </div>
@@ -108,6 +109,7 @@ const LoginModal = (props) => {
                     placeholder="Nhập mật khẩu"
                     value={formData.password}
                     onChange={handleInputChange}
+                    autoComplete="current-password"
                     required
                   />
                   <span

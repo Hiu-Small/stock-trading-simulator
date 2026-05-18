@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
+    symbol: {
+      type: DataTypes.STRING(10),
+      allowNull: true
+    },
     side: {
       type: DataTypes.ENUM('BUY', 'SELL'),
       allowNull: false

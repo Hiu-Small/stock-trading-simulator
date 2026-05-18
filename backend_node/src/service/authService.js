@@ -56,10 +56,16 @@ const registerNewUser = async (userData) => {
             full_name: userData.full_name || ''
         }, { transaction: t });
 
+        // Lấy số dư ảo ban đầu từ cấu hình hệ thống (Settings)
+        const initialBalanceSetting = await db.Setting.findOne({
+            where: { key: 'initial_balance' }
+        }, { transaction: t });
+        const startBalance = initialBalanceSetting ? parseFloat(initialBalanceSetting.value) : 100000000;
+
         // Create wallet
         await db.Wallet.create({
             user_id: newUser.id,
-            balance: 0
+            balance: startBalance
         }, { transaction: t });
 
         await t.commit();
@@ -362,7 +368,13 @@ const getProfile = async (userId) => {
         const user = await db.UserAccount.findByPk(userId, {
             include: [
                 { model: db.UserProfile, as: 'profile' },
-                { model: db.Wallet, as: 'wallet' }
+                { model: db.Wallet, as: 'wallet' },
+                {
+                    model: db.UserHistory,
+                    as: 'histories',
+                    order: [['createdAt', 'DESC']],
+                    limit: 30
+                }
             ],
             attributes: { exclude: ['password', 'pin_code'] }
         });
@@ -417,6 +429,26 @@ const updateProfile = async (userId, data) => {
     }
 };
 
+const verifyPIN = async (userId, pin) => {
+    try {
+        const user = await db.UserAccount.findByPk(userId);
+        if (!user) return { EM: 'Người dùng không tồn tại', EC: 1, DT: false };
+
+        if (!user.pin_code) {
+            return { EM: 'Bạn chưa thiết lập mã PIN giao dịch. Vui lòng thiết lập trong Cài đặt tài khoản.', EC: 2, DT: false };
+        }
+
+        if (user.pin_code !== pin) {
+            return { EM: 'Mã PIN giao dịch không chính xác!', EC: 3, DT: false };
+        }
+
+        return { EM: 'Xác thực mã PIN thành công', EC: 0, DT: true };
+    } catch (e) {
+        console.log(e);
+        return { EM: 'Lỗi hệ thống khi xác thực PIN', EC: -1, DT: false };
+    }
+};
+
 export default {
     registerNewUser,
     loginUser,
@@ -427,5 +459,7 @@ export default {
     completeKYC,
     setupPIN,
     getProfile,
-    updateProfile
+    updateProfile,
+    verifyPIN
 };
+

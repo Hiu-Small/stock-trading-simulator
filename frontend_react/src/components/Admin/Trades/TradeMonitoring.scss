@@ -57,45 +57,117 @@
     }
   }
 
-  .filter-tabs {
+  .ob-filters {
     display: flex;
-    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
     margin-bottom: 24px;
+    flex-wrap: wrap;
 
-    .tab-item {
+    .filter-tabs {
+      display: flex;
+      gap: 12px;
+
+      .tab-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        background-color: oklch(24% 0.03 260);
+        border: 2px solid rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        color: $text-muted;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        .count {
+          padding: 2px 8px;
+          background-color: rgba(255, 255, 255, 0.05);
+          border-radius: 6px;
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        &:hover { border-color: rgba(255, 255, 255, 0.1); }
+
+        &.active {
+          background-color: rgba($accent-green, 0.1);
+          border-color: $accent-green;
+          color: $accent-green;
+          .count { background-color: rgba($accent-green, 0.2); color: $accent-green; }
+
+          &.danger {
+            background-color: rgba($accent-red, 0.1);
+            border-color: $accent-red;
+            color: $accent-red;
+            .count { background-color: rgba($accent-red, 0.2); color: $accent-red; }
+          }
+        }
+      }
+    }
+
+    .date-filters {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 20px;
-      background-color: oklch(24% 0.03 260);
-      border: 2px solid rgba(255, 255, 255, 0.05);
+      gap: 12px;
+      background: oklch(24% 0.03 260);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 8px;
-      color: $text-muted;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
+      padding: 6px 16px;
 
-      .count {
-        padding: 2px 8px;
-        background-color: rgba(255, 255, 255, 0.05);
-        border-radius: 6px;
-        font-size: 11px;
+      .date-input-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
         color: rgba(255, 255, 255, 0.4);
+
+        span {
+          font-weight: 500;
+        }
+
+        input[type="date"] {
+          background: transparent;
+          border: none;
+          color: #fff;
+          font-size: 13px;
+          outline: none;
+          font-family: inherit;
+          cursor: pointer;
+
+          &::-webkit-calendar-picker-indicator {
+            filter: invert(1) brightness(0.8);
+            opacity: 0.6;
+          }
+        }
       }
 
-      &:hover { border-color: rgba(255, 255, 255, 0.1); }
+      .date-sep {
+        color: rgba(255, 255, 255, 0.1);
+        font-size: 13px;
+      }
 
-      &.active {
-        background-color: rgba($accent-green, 0.1);
-        border-color: $accent-green;
-        color: $accent-green;
-        .count { background-color: rgba($accent-green, 0.2); color: $accent-green; }
+      .btn-clear-date {
+        background: transparent;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition: all 0.2s;
 
-        &.danger {
-          background-color: rgba($accent-red, 0.1);
-          border-color: $accent-red;
-          color: $accent-red;
-          .count { background-color: rgba($accent-red, 0.2); color: $accent-red; }
+        &:hover {
+          color: #fff;
+          background: rgba(255, 77, 79, 0.15);
+          border-color: rgba(255, 77, 79, 0.3);
         }
       }
     }

@@ -7,6 +7,9 @@ import initMarketRoutes from "./routes/marketRoutes";
 import initCompanyRoutes from "./routes/companyRoutes";
 import initAuthRoutes from "./routes/authRoutes";
 import initAdminRoutes from "./routes/adminRoutes";
+import initOrderRoutes from "./routes/orderRoutes";
+import startMatchingEngine from "./service/matchingEngine.js";
+import db from "./models";
 
 const app = express();
 app.set('trust proxy', true);
@@ -38,7 +41,36 @@ initMarketRoutes(app);
 initCompanyRoutes(app);
 initAuthRoutes(app);
 initAdminRoutes(app);
+initOrderRoutes(app);
+
+const syncTotalInvested = async () => {
+  try {
+    console.log("[System] 🔄 Khởi tạo đồng bộ total_invested cho ví...");
+    const wallets = await db.Wallet.findAll();
+    for (const wallet of wallets) {
+      const holdings = await db.Holding.findAll({
+        where: { user_id: wallet.user_id }
+      });
+      const total = holdings.reduce((sum, h) => {
+        return sum + (parseFloat(h.quantity) * parseFloat(h.average_price));
+      }, 0);
+      
+      // Chỉ cập nhật nếu giá trị lưu trong DB khác với thực tế tính được
+      if (parseFloat(wallet.total_invested || 0) !== total) {
+        await wallet.update({ total_invested: total });
+        console.log(`[System] 🔧 Đã sửa total_invested cho user #${wallet.user_id} thành ${total.toLocaleString('vi-VN')} ₫`);
+      }
+    }
+    console.log("[System] ✅ Đồng bộ total_invested hoàn tất!");
+  } catch (err) {
+    console.error("[System] ❌ Lỗi đồng bộ total_invested:", err);
+  }
+};
 
 app.listen(PORT, () => {
   console.log("backend_node is running on the port = ", PORT);
+  // Khởi động Matching Engine sau khi server đã sẵn sàng
+  startMatchingEngine();
+  // Khởi chạy đồng bộ hóa vốn đầu tư hiện tại cho ví
+  syncTotalInvested();
 });

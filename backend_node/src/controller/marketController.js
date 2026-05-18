@@ -4,6 +4,7 @@
  */
 
 import marketService from "../service/marketService.js";
+import db from "../models";
 
 /**
  * GET /api/market/indices
@@ -105,25 +106,33 @@ const getIndexHistory = async (req, res) => {
 const getBoardByGroup = async (req, res) => {
   try {
     const { group } = req.params;
-    if (!group) {
-      return res.status(400).json({
-        success: false,
-        message: "Thiếu tham số group (VN30, HNX30, VN100, VNALL)",
-      });
-    }
-
     const data = await marketService.getBoardByGroup(group.toUpperCase());
-    if (data && data.success === false) {
-      return res.status(404).json(data);
+    
+    if (data && data.success) {
+      // Lấy trạng thái từ DB
+      const dbStocks = await db.Stock.findAll({ attributes: ['symbol', 'is_active'] });
+      const statusMap = {};
+      dbStocks.forEach(s => statusMap[s.symbol] = s.is_active);
+
+      // Lấy trạng thái tổng
+      const globalSetting = await db.Setting.findOne({ where: { key: 'market_status' } });
+      const globalStatus = globalSetting ? globalSetting.value : 'OPEN';
+
+      const mergedData = data.data.map(s => ({
+        ...s,
+        is_active: statusMap[s.symbol] !== undefined ? statusMap[s.symbol] : true
+      }));
+
+      return res.status(200).json({
+        ...data,
+        data: mergedData,
+        globalStatus: globalStatus
+      });
     }
     return res.status(200).json(data);
   } catch (err) {
     console.error("[marketController] getBoardByGroup lỗi:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi server khi lấy bảng giá",
-      error: err.message,
-    });
+    return res.status(500).json({ success: false, message: "Lỗi server" });
   }
 };
 
@@ -154,25 +163,22 @@ const checkHealth = async (req, res) => {
 const getStockDetail = async (req, res) => {
   try {
     const { symbol } = req.params;
-    if (!symbol) {
-      return res.status(400).json({
-        success: false,
-        message: "Thiếu tham số symbol",
-      });
-    }
-
     const data = await marketService.getStockDetail(symbol.toUpperCase());
-    if (data && data.success === false) {
-      return res.status(404).json(data);
+    
+    if (data && data.success) {
+      const stock = await db.Stock.findOne({ where: { symbol: symbol.toUpperCase() } });
+      const globalSetting = await db.Setting.findOne({ where: { key: 'market_status' } });
+      
+      return res.status(200).json({
+        ...data,
+        is_active: stock ? stock.is_active : true,
+        globalStatus: globalSetting ? globalSetting.value : 'OPEN'
+      });
     }
     return res.status(200).json(data);
   } catch (err) {
     console.error("[marketController] getStockDetail lỗi:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi server khi lấy chi tiết cổ phiếu",
-      error: err.message,
-    });
+    return res.status(500).json({ success: false, message: "Lỗi server" });
   }
 };
 

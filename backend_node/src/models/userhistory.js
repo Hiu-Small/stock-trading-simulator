@@ -22,6 +22,10 @@ module.exports = (sequelize, DataTypes) => {
     change_type: {
       type: DataTypes.STRING,
       defaultValue: 'PROFILE_UPDATE'
+    },
+    is_read: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   }, {
     sequelize,

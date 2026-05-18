@@ -1,4 +1,5 @@
 import authService from '../service/authService';
+import db from "../models";
 
 const handleRegister = async (req, res) => {
     try {
@@ -160,6 +161,61 @@ const handleUpdateProfile = async (req, res) => {
     }
 };
 
+const handleVerifyPin = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { pin } = req.body;
+        if (!pin || pin.length !== 6) {
+            return res.status(200).json({ EM: 'Mã PIN phải gồm 6 chữ số', EC: 1, DT: false });
+        }
+        const data = await authService.verifyPIN(userId, pin);
+        return res.status(200).json(data);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi hệ thống khi xác thực PIN', EC: -1, DT: false });
+    }
+};
+
+const handleMarkAllNotificationsRead = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        await db.UserHistory.update({ is_read: true }, {
+            where: { user_id: userId, is_read: false }
+        });
+        return res.status(200).json({ EM: 'Đánh dấu đọc tất cả thành công', EC: 0, DT: '' });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+};
+
+const handleMarkNotificationRead = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        
+        const notif = await db.UserHistory.findOne({
+            where: { id: id, user_id: userId }
+        });
+        
+        if (!notif) {
+            return res.status(200).json({ EM: 'Không tìm thấy thông báo', EC: 1, DT: '' });
+        }
+        
+        const nextReadState = !notif.is_read;
+        await notif.update({ is_read: nextReadState });
+        
+        return res.status(200).json({ 
+            EM: `Đã đánh dấu là ${nextReadState ? 'đã đọc' : 'chưa đọc'}`, 
+            EC: 0, 
+            DT: { is_read: nextReadState } 
+        });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+};
+
 export default {
     handleRegister,
     handleLogin,
@@ -170,5 +226,9 @@ export default {
     handleCompleteKYC,
     handleSetupPIN,
     handleGetProfile,
-    handleUpdateProfile
+    handleUpdateProfile,
+    handleVerifyPin,
+    handleMarkAllNotificationsRead,
+    handleMarkNotificationRead
 };
+

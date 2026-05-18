@@ -160,10 +160,7 @@ const UsersPage = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+    return Number(amount || 0).toLocaleString('vi-VN') + ' ₫';
   };
 
   // Helper to remove Vietnamese tone marks
@@ -317,11 +314,14 @@ const UsersPage = () => {
                                   <th>Giá hiện tại</th>
                                   <th>Tổng giá trị</th>
                                   <th>Lãi/Lỗ</th>
+                                  <th>% Lãi/Lỗ</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {user.holdings.map((h, hIndex) => {
-                                  const profit = h.totalValue - (h.quantity * h.average_price);
+                                  const costValue = h.quantity * h.average_price;
+                                  const profit = h.totalValue - costValue;
+                                  const profitPercent = costValue > 0 ? (profit / costValue) * 100 : 0;
                                   const isProfit = profit >= 0;
                                   return (
                                     <tr key={hIndex}>
@@ -332,6 +332,9 @@ const UsersPage = () => {
                                       <td>{formatCurrency(h.totalValue)}</td>
                                       <td className={isProfit ? 'text-profit' : 'text-loss'}>
                                         {isProfit ? '+' : ''}{formatCurrency(profit)}
+                                      </td>
+                                      <td className={isProfit ? 'text-profit' : 'text-loss'}>
+                                        {isProfit ? '+' : ''}{profitPercent.toFixed(2)}%
                                       </td>
                                     </tr>
                                   );

@@ -3,8 +3,120 @@
 .admin-market-page {
   .page-header {
     margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
     h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
     p { color: $text-muted; font-size: 14px; }
+
+    .header-right {
+      display: flex;
+      gap: 12px;
+
+      .sync-btn {
+        background-color: rgba($accent-green, 0.1);
+        border: 1px solid rgba($accent-green, 0.2);
+        color: $accent-green;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+
+        &:hover:not(:disabled) {
+          background-color: rgba($accent-green, 0.2);
+          border-color: rgba($accent-green, 0.4);
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .fa-bounce {
+          animation: bounce 1s infinite;
+        }
+      }
+
+      .refresh-btn {
+        background-color: rgba($accent-blue, 0.1);
+        border: 1px solid rgba($accent-blue, 0.2);
+        color: $accent-blue;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+
+        &:hover {
+          background-color: rgba($accent-blue, 0.2);
+          border-color: rgba($accent-blue, 0.4);
+        }
+
+        i.fa-spin {
+          animation: fa-spin 1s linear infinite;
+        }
+      }
+    }
+  }
+
+  .market-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 1px;
+
+    .tab-item {
+      background: transparent;
+      border: none;
+      color: $text-muted;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: $accent-blue;
+        transform: scaleX(0);
+        transition: transform 0.2s;
+      }
+
+      &:hover {
+        color: $text-main;
+      }
+
+      &.active {
+        color: $accent-blue;
+        &::after {
+          transform: scaleX(1);
+        }
+      }
+    }
+  }
+
+  .table-loading {
+    padding: 60px;
+    text-align: center;
+    color: $text-muted;
+    font-size: 15px;
   }
 
   .market-summary-grid {

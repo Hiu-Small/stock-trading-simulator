@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import axios from '../../setup/axios';
+import { getUserProfile } from '../../services/userService';
 import { toast } from 'react-toastify';
 import { UserContext } from '../../context/UserContext';
 import './Profile.scss';
@@ -40,7 +40,7 @@ const Profile = () => {
 
     const fetchProfile = async () => {
         try {
-            const response = await axios.get('/api/profile');
+            const response = await getUserProfile();
             if (response && +response.EC === 0) {
                 const data = response.DT;
                 const formattedData = {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, createContext } from 'react';
+import { getUserProfile, markAllNotificationsRead, markNotificationRead } from '../services/userService';
 
 const UserContext = createContext({ name: '', auth: false });
 
@@ -12,6 +13,9 @@ const UserProvider = ({ children }) => {
     };
 
     const [user, setUser] = useState(defaultUser);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [balance, setBalance] = useState(0);
+    const [notifications, setNotifications] = useState([]);
 
     // Login updates the state and session storage
     const loginContext = (userData) => {
@@ -29,6 +33,8 @@ const UserProvider = ({ children }) => {
             account: {},
             isLoading: false
         });
+        setBalance(0);
+        setNotifications([]);
     };
 
     const updateUserStatus = (newStatus) => {
@@ -48,6 +54,56 @@ const UserProvider = ({ children }) => {
             sessionStorage.setItem("account", JSON.stringify(data));
         }
     };
+
+    const refreshBalance = async () => {
+        if (sessionStorage.getItem("account") || user.isAuthenticated) {
+            try {
+                const res = await getUserProfile();
+                if (res && res.EC === 0 && res.DT) {
+                    if (res.DT.wallet) {
+                        const totalBalance = parseFloat(res.DT.wallet.balance || 0);
+                        const frozenBalance = parseFloat(res.DT.wallet.frozen_balance || 0);
+                        setBalance(totalBalance - frozenBalance);
+                    }
+                    if (res.DT.histories) {
+                        setNotifications(res.DT.histories);
+                    }
+                }
+            } catch (error) {
+                console.error("Error refreshing balance:", error);
+            }
+        }
+    };
+
+    const markAllAsRead = async () => {
+        try {
+            const res = await markAllNotificationsRead();
+            if (res && res.EC === 0) {
+                setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+            }
+        } catch (error) {
+            console.error("Error marking all as read:", error);
+        }
+    };
+
+    const toggleReadStatus = async (id) => {
+        try {
+            const res = await markNotificationRead(id);
+            if (res && res.EC === 0 && res.DT) {
+                const isReadNew = res.DT.is_read;
+                setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: isReadNew } : n));
+            }
+        } catch (error) {
+            console.error("Error toggling notification read status:", error);
+        }
+    };
+
+    // Tự động tải số dư khi đăng nhập thành công
+    useEffect(() => {
+        if (user.isAuthenticated) {
+            refreshBalance();
+        }
+    }, [user.isAuthenticated]);
 
     // Recover state from sessionStorage on mount
     useEffect(() => {
@@ -86,7 +142,20 @@ const UserProvider = ({ children }) => {
     }, []);
 
     return (
-        <UserContext.Provider value={{ user, loginContext, logoutContext, updateUserStatus }}>
+        <UserContext.Provider value={{ 
+            user, 
+            loginContext, 
+            logoutContext, 
+            updateUserStatus, 
+            showLoginModal, 
+            setShowLoginModal,
+            balance,
+            refreshBalance,
+            notifications,
+            setNotifications,
+            markAllAsRead,
+            toggleReadStatus
+        }}>
             {children}
         </UserContext.Provider>
     );

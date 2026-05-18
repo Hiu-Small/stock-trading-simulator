@@ -18,6 +18,59 @@ const handleGetAllUsers = async (req, res) => {
     }
 };
 
+const handleGetAllOrders = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        const data = await adminService.getAllOrders({ startDate, endDate });
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            EM: 'Lỗi server',
+            EC: -1,
+            DT: ''
+        });
+    }
+};
+
+const handleForceCancelOrder = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const adminId = req.user.id;
+        const ipAddress = getRealIp(req);
+        const data = await adminService.forceCancelOrder(orderId, adminId, ipAddress);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+};
+
+const handleForceMatchOrder = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const adminId = req.user.id;
+        const ipAddress = getRealIp(req);
+        const data = await adminService.forceMatchOrder(orderId, adminId, ipAddress);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+};
+
 // Helper function to get real IP address
 const getRealIp = (req) => {
     const forwarded = req.headers['x-forwarded-for'];
@@ -123,7 +176,121 @@ const handleResetPin = async (req, res) => {
 
 const handleGetSystemLogs = async (req, res) => {
     try {
-        const data = await adminService.getSystemLogs();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const data = await adminService.getSystemLogs(page, limit);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+}
+
+const handleGetMarketData = async (req, res) => {
+    try {
+        const group = req.query.group || "HOSE";
+        const data = await adminService.getMarketData(group);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+}
+
+const handleUpdateStockStatus = async (req, res) => {
+    try {
+        const data = await adminService.updateStockStatus({
+            ...req.body,
+            adminId: req.user.id,
+            ipAddress: getRealIp(req)
+        });
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+}
+
+const handleSyncStocks = async (req, res) => {
+    try {
+        const data = await adminService.syncStocks();
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+}
+
+const handleGetMarketStatus = async (req, res) => {
+    try {
+        const data = await adminService.getMarketStatus();
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+}
+
+const handleUpdateMarketStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        const data = await adminService.updateMarketStatus(
+            status,
+            req.user.id,
+            getRealIp(req)
+        );
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+}
+
+const handleGetSettings = async (req, res) => {
+    try {
+        const data = await adminService.getSettings();
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+}
+
+const handleUpdateSettings = async (req, res) => {
+    try {
+        const data = await adminService.updateSettings(
+            req.body,
+            req.user.id,
+            getRealIp(req)
+        );
         return res.status(200).json({
             EM: data.EM,
             EC: data.EC,
@@ -137,10 +304,20 @@ const handleGetSystemLogs = async (req, res) => {
 
 export default {
     handleGetAllUsers,
+    handleGetAllOrders,
+    handleForceCancelOrder,
+    handleForceMatchOrder,
     handleUpdateBalance,
     handleUpdateStatus,
     handleUpdateUser,
     handleResetPassword,
     handleResetPin,
-    handleGetSystemLogs
+    handleGetSystemLogs,
+    handleGetMarketData,
+    handleUpdateStockStatus,
+    handleSyncStocks,
+    handleGetMarketStatus,
+    handleUpdateMarketStatus,
+    handleGetSettings,
+    handleUpdateSettings
 };

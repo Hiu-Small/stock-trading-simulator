@@ -42,7 +42,7 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
             setFormData({
                 userId: userData.id || '',
                 account_number: userData.account_number || '',
-                full_name: userData.profile?.full_name || '',
+                full_name: (userData.profile?.full_name || '').toUpperCase(),
                 email: userData.email || '',
                 phone: userData.phone || '',
                 role: userData.role || 'USER',
@@ -64,6 +64,11 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
             // Only allow numbers and limit to 10 digits
             const numericValue = value.replace(/\D/g, '').slice(0, 10);
             setFormData(prev => ({ ...prev, [name]: numericValue }));
+            return;
+        }
+
+        if (name === 'full_name') {
+            setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
             return;
         }
         
@@ -194,7 +199,7 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
                 <div className="edit-section-header">Thông tin cá nhân & Định danh</div>
                 <div className="form-group">
                     <label>Họ và tên</label>
-                    <input type="text" name="full_name" value={formData.full_name} onChange={handleInputChange} />
+                    <input type="text" name="full_name" value={formData.full_name} onChange={handleInputChange} style={{ textTransform: 'uppercase' }} />
                 </div>
                 <div className="row">
                     <div className="col-md-6">

@@ -12,15 +12,31 @@ html, body, #root {
   font-family: "Inter", "Roboto", sans-serif;
   font-size: 14px;
   overflow: auto;
-  
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  &::-webkit-scrollbar {
-    display: none;
-  }
+}
 
-  /* Hide scrollbar for IE, Edge and Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+/* Custom sleek dark scrollbar globally to replace browser defaults */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Make scrollbar track transparent to blend with any background */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) #0f0f23;
 }
 
 #root {

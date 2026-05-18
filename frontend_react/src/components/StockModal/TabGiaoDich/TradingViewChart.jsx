@@ -341,16 +341,24 @@ const TradingViewChartInner = (props) => {
     )
       return;
 
-    // 0. Kiểm tra giờ giao dịch: Chỉ cập nhật nến mới sau khi vào phiên sáng (9:00 AM VN)
-    // Tránh việc hiện nến mới khi chưa có giao dịch thực tế
-    const vnNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+    // 0. Lấy thời gian Việt Nam (UTC+7) chuẩn xác không phụ thuộc parse chuỗi locale dễ lỗi
+    const getVietnamTime = () => {
+      const d = new Date();
+      const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+      return new Date(utc + 3600000 * 7);
+    };
+
+    const vnNow = getVietnamTime();
     const currentMins = vnNow.getHours() * 60 + vnNow.getMinutes();
     const isWeekend = vnNow.getDay() === 0 || vnNow.getDay() === 6;
     if (isWeekend || currentMins < 540) return;
 
-    // 1. Xác định timestamp ngày hôm nay (00:00:00 theo ngày VN)
-    const vnDateStr = vnNow.toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }); // Định dạng YYYY-MM-DD
-    const today = Math.floor(new Date(vnDateStr).getTime() / 1000);
+    // Định dạng ngày hôm nay YYYY-MM-DD
+    const yyyy = vnNow.getFullYear();
+    const mm = String(vnNow.getMonth() + 1).padStart(2, "0");
+    const dd = String(vnNow.getDate()).padStart(2, "0");
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+    const today = Math.floor(new Date(`${todayStr}T00:00:00Z`).getTime() / 1000);
 
     const scalePrice = (p) => {
       if (!p || isNaN(Number(p))) return null;
@@ -367,28 +375,71 @@ const TradingViewChartInner = (props) => {
 
     if (!currentPrice) return;
 
-    // 3. Kiểm tra để tránh lỗi "Cannot update oldest data"
+    // 3. So sánh ngày để cập nhật chính xác nến cuối cùng hoặc thêm nến mới
     const currentData = candleSeriesRef.current.data();
     if (currentData.length > 0) {
-      const lastTime = currentData[currentData.length - 1].time;
-      if (today < lastTime) return; // Không cập nhật nếu today nhỏ hơn nến cuối cùng
+      const lastCandle = currentData[currentData.length - 1];
+
+      // Hàm định dạng timestamp (giây) sang YYYY-MM-DD theo múi giờ VN (UTC+7)
+      const getCandleDateStr = (timestampInSeconds) => {
+        const date = new Date(timestampInSeconds * 1000);
+        const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+        const vnDate = new Date(utc + 3600000 * 7);
+        const y = vnDate.getFullYear();
+        const m = String(vnDate.getMonth() + 1).padStart(2, "0");
+        const d = String(vnDate.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      };
+
+      const lastCandleDateStr = getCandleDateStr(lastCandle.time);
+
+      if (lastCandleDateStr === todayStr) {
+        // Cập nhật nến cuối cùng (hôm nay)
+        candleSeriesRef.current.update({
+          time: lastCandle.time,
+          open: lastCandle.open,
+          high: Math.max(lastCandle.high, currentPrice),
+          low: Math.min(lastCandle.low, currentPrice),
+          close: currentPrice,
+        });
+
+        volumeSeriesRef.current.update({
+          time: lastCandle.time,
+          value: totalVol,
+          color: currentPrice >= lastCandle.open ? "#1b625c" : "#873642",
+        });
+      } else {
+        // Nếu là ngày mới chưa có trong chart, thêm nến mới
+        candleSeriesRef.current.update({
+          time: today,
+          open: openPrice,
+          high: highPrice,
+          low: lowPrice,
+          close: currentPrice,
+        });
+
+        volumeSeriesRef.current.update({
+          time: today,
+          value: totalVol,
+          color: currentPrice >= openPrice ? "#1b625c" : "#873642",
+        });
+      }
+    } else {
+      // Chưa có dữ liệu nến nào
+      candleSeriesRef.current.update({
+        time: today,
+        open: openPrice,
+        high: highPrice,
+        low: lowPrice,
+        close: currentPrice,
+      });
+
+      volumeSeriesRef.current.update({
+        time: today,
+        value: totalVol,
+        color: currentPrice >= openPrice ? "#1b625c" : "#873642",
+      });
     }
-
-    // 4. Cập nhật nến hiện tại
-    candleSeriesRef.current.update({
-      time: today,
-      open: openPrice,
-      high: highPrice,
-      low: lowPrice,
-      close: currentPrice,
-    });
-
-    // 5. Cập nhật cột khối lượng
-    volumeSeriesRef.current.update({
-      time: today,
-      value: totalVol,
-      color: currentPrice >= openPrice ? "#1b625c" : "#873642",
-    });
 
     // 6. Cập nhật Legend nếu không đang hover
     if (!isHoveringRef.current && chartRef.current?.updateLegend) {

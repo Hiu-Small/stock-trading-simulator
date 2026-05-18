@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import "./ModalHeader.scss";
 import "../../../assets/styles/global.scss";
+import { UserContext } from "../../../context/UserContext";
 
 const ModalHeader = (props) => {
+  const { user, setShowLoginModal } = useContext(UserContext);
+
   if (!props.data)
     return <div className="modal-header">Đang tải dữ liệu...</div>;
 
@@ -60,7 +63,13 @@ const ModalHeader = (props) => {
           <button className="btn-analysis">Phân tích cơ bản</button>
           <button 
             className={`btn-order ${props.isOrderActive ? "active" : ""}`}
-            onClick={() => props.setIsOrderActive(!props.isOrderActive)}
+            onClick={() => {
+              if (user && user.isAuthenticated) {
+                props.setIsOrderActive(!props.isOrderActive);
+              } else {
+                setShowLoginModal(true);
+              }
+            }}
           >
             {props.isOrderActive ? "Dữ liệu khớp lệnh" : "Đặt lệnh"}
           </button>
