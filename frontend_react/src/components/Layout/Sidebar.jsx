@@ -1,40 +1,59 @@
 import React from "react";
 import "./Sidebar.scss";
 
+// Ánh xạ group ID → label ngắn gọn hiển thị trên badge
+const GROUP_LABELS = {
+  VN30: "VN30",
+  HNX30: "HNX30",
+  HOSE: "HOSE",
+  HNX: "HNX",
+  UPCOM: "UPCOM",
+  VN100: "VN100",
+  SEARCH: "SEARCH",
+};
+
 /**
  * Sidebar - Cột bên trái: Watchlist, Danh mục, Công cụ
+ * Props:
+ *   selectedGroup   - Nhóm đang được chọn trên bảng board (VN30, HOSE, ...)
+ *   onAllStocksClick - Callback khi click "All Stocks" để clear search và về board chính
  */
-const Sidebar = () => {
+const Sidebar = (props) => {
+  const currentGroupLabel = props.isSearchMode
+    ? "SEARCH"
+    : props.isPortfolioMode
+      ? "PORT"
+      : GROUP_LABELS[props.selectedGroup] || props.selectedGroup || "VN30";
+
   return (
     <aside className="sidebar">
-      {/* ===================== MARKET OVERVIEW ===================== */}
-      <div className="sidebar__section sidebar__market-overview">
-        <div className="sidebar__section-title">
-          <i className="fa-solid fa-chart-bar"></i>
-          <span>MARKET OVERVIEW</span>
-        </div>
-        <div className="sidebar__overview-grid">
-          <div className="overview-item overview-item--up">
-            <span className="overview-item__label">HOSE</span>
-            <span className="overview-item__value">+1.2%</span>
-          </div>
-          <div className="overview-item overview-item--down">
-            <span className="overview-item__label">HNX</span>
-            <span className="overview-item__value">-1.1%</span>
-          </div>
-          <div className="overview-item overview-item--up">
-            <span className="overview-item__label">VN30</span>
-            <span className="overview-item__value">+1.4%</span>
-          </div>
-        </div>
+      {/* ===================== ĐẶT LỆNH NHANH ===================== */}
+      <div className="sidebar__section sidebar__place-order">
+        <button
+          className="sidebar__place-order-btn"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-order-modal", { detail: { symbol: "ACB" } }))}
+        >
+          <i className="fa-solid fa-file-invoice-dollar"></i>
+          <span>Đặt lệnh</span>
+        </button>
       </div>
 
       {/* ===================== BỘ LỌC CỔ PHIẾU ===================== */}
       <div className="sidebar__section sidebar__filter">
-        <div className="sidebar__filter-item sidebar__filter-item--active">
+        <div
+          className="sidebar__filter-item sidebar__filter-item--active"
+          onClick={props.onAllStocksClick}
+          title={
+            props.isSearchMode || props.isPortfolioMode
+              ? `Quay về bảng ${GROUP_LABELS[props.selectedGroup] || props.selectedGroup}`
+              : `Đang xem nhóm ${currentGroupLabel}`
+          }
+        >
           <i className="fa-solid fa-list"></i>
           <span>All Stocks</span>
-          <span className="badge">VN30</span>
+          <span className={`badge ${props.isSearchMode ? "badge--search" :
+              props.isPortfolioMode ? "badge--portfolio" : ""
+            }`}>{currentGroupLabel}</span>
         </div>
         <div className="sidebar__filter-item">
           <i className="fa-solid fa-star"></i>
@@ -51,13 +70,24 @@ const Sidebar = () => {
           </button>
         </div>
 
-        {/* Watchlist hiện tại đang được chọn */}
-        <div className="sidebar__watchlist-item sidebar__watchlist-item--active">
+        {/* My Portfolio - kết nối với danh mục thực tế */}
+        <div
+          className={`sidebar__watchlist-item ${props.isPortfolioMode ? "sidebar__watchlist-item--active" : ""}`}
+          onClick={props.onPortfolioClick}
+          title="Danh mục cổ phiếu của bạn"
+          style={{ cursor: "pointer" }}
+        >
           <div className="watchlist-item__info">
-            <i className="fa-solid fa-bookmark"></i>
+            {props.portfolioLoading ? (
+              <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: '10px', color: '#26a69a' }}></i>
+            ) : (
+              <i className="fa-solid fa-briefcase"></i>
+            )}
             <span className="watchlist-item__name">My Portfolio</span>
           </div>
-          <span className="watchlist-item__count">13</span>
+          {props.isPortfolioMode && (
+            <span className="watchlist-item__count" style={{ color: '#64dd17', background: 'rgba(100,221,23,0.12)', border: '1px solid rgba(100,221,23,0.3)' }}>✓</span>
+          )}
         </div>
 
         {/* Danh sách các nhóm */}
@@ -114,3 +144,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+

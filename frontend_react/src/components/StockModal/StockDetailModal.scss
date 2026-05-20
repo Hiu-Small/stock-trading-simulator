@@ -23,6 +23,14 @@
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--only-order {
+    width: 90vw;
+    max-width: 820px;
+    height: 85vh;
+    max-height: 720px;
+  }
 
   // Màn hình loading khi chờ API
   .modal-loading {
@@ -49,6 +57,44 @@
     flex: 1;
     overflow: hidden;
     position: relative;
+    transition: all 0.3s ease;
+
+    .body-loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(26, 27, 36, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 100;
+      color: #26a69a;
+      font-weight: 500;
+      animation: overlayFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+      .spinner {
+        width: 42px;
+        height: 42px;
+        border: 3.5px solid rgba(38, 166, 154, 0.15);
+        border-top-color: #26a69a;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        box-shadow: 0 0 15px rgba(38, 166, 154, 0.2);
+      }
+
+      p {
+        margin: 0;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.85);
+        letter-spacing: 0.5px;
+      }
+    }
 
     .empty-tab {
       display: flex;
@@ -58,9 +104,31 @@
       color: #8888aa;
       font-size: 16px;
     }
+
+    &__only-order {
+      height: 100%;
+      overflow-y: auto;
+      background-color: #1a1b24;
+      padding: 0 24px;
+
+      .order-entry-panel {
+        width: 100%;
+        max-width: none;
+        background-color: transparent;
+      }
+    }
   }
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

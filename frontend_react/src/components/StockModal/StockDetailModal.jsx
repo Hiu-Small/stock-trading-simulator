@@ -6,18 +6,31 @@ import TabContentGiaoDich from "./TabGiaoDich/TabContent";
 import TabHoSoContent from "./TabHoSo/TabHoSoContent";
 import TabCoDongContent from "./TabCoDong/TabCoDongContent";
 import TabLichSuKienContent from "./TabLichSuKien/TabLichSuKienContent";
+import OrderEntry from "./TabGiaoDich/OrderEntry";
 import { fetchStockDetail, fetchMatchingDetail } from "../../services/marketApi";
 
 const StockDetailModal = (props) => {
   const [activeTab, setActiveTab] = useState("Giao dịch");
   const [stockData, setStockData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isOrderActive, setIsOrderActive] = useState(false);
+  const [isChangingSymbol, setIsChangingSymbol] = useState(false);
+  const [isOrderActive, setIsOrderActive] = useState(props.onlyOrder || false);
+
+  // Đồng bộ trạng thái đặt lệnh khi nhận prop onlyOrder
+  useEffect(() => {
+    if (props.onlyOrder) {
+      setIsOrderActive(true);
+      setActiveTab("Giao dịch");
+    }
+  }, [props.onlyOrder]);
 
   // Cơ chế Real-time: Tự động cập nhật dữ liệu mã này mỗi 10 giây
   useEffect(() => {
     const refreshData = async (isInitial = false) => {
-      if (isInitial) setLoading(true);
+      if (isInitial) {
+        setLoading(true);
+        setIsChangingSymbol(true);
+      }
       try {
         // Gọi song song cả Detail (snapshot) và Intraday (lịch sử khớp lệnh)
         const [detailRes, matchingRes] = await Promise.all([
@@ -51,7 +64,10 @@ const StockDetailModal = (props) => {
           err,
         );
       } finally {
-        if (isInitial) setLoading(false);
+        if (isInitial) {
+          setLoading(false);
+          setIsChangingSymbol(false);
+        }
       }
     };
 
@@ -67,7 +83,7 @@ const StockDetailModal = (props) => {
   return (
     <div className="stock-modal-overlay" onClick={props.onClose}>
       <div 
-        className="stock-modal-content" 
+        className={`stock-modal-content ${props.onlyOrder ? "stock-modal-content--only-order" : ""}`}
         onClick={(e) => e.stopPropagation()} 
       >
         {loading && !stockData ? (
@@ -83,29 +99,46 @@ const StockDetailModal = (props) => {
               onClose={props.onClose} 
               isOrderActive={isOrderActive}
               setIsOrderActive={setIsOrderActive}
+              onlyOrder={props.onlyOrder}
+              onChangeSymbol={props.onChangeSymbol}
+              isLoading={isChangingSymbol}
             />
             
-            <ModalTabs activeTab={activeTab} onChangeTab={setActiveTab} />
+            {!props.onlyOrder && <ModalTabs activeTab={activeTab} onChangeTab={setActiveTab} />}
             
-            <div className="stock-modal-body">
-              {activeTab === "Giao dịch" && stockData && (
-                <TabContentGiaoDich 
-                  symbol={props.symbol} 
-                  data={stockData} 
-                  isOrderActive={isOrderActive} 
-                />
+            <div className={`stock-modal-body ${isChangingSymbol ? "stock-modal-body--loading" : ""}`}>
+              {isChangingSymbol && (
+                <div className="body-loading-overlay">
+                  <div className="spinner"></div>
+                  <p>Đang tải dữ liệu {props.symbol}...</p>
+                </div>
               )}
-              {activeTab === "Hồ sơ" && (
-                <TabHoSoContent symbol={props.symbol} data={stockData} />
-              )}
-              {activeTab === "Cổ đông" && (
-                <TabCoDongContent symbol={props.symbol} />
-              )}
-              {activeTab === "Lịch sự kiện" && (
-                <TabLichSuKienContent symbol={props.symbol} />
-              )}
-              {activeTab !== "Giao dịch" && activeTab !== "Hồ sơ" && activeTab !== "Cổ đông" && activeTab !== "Lịch sự kiện" && (
-                <div className="empty-tab">Tính năng đang được phát triển...</div>
+              {props.onlyOrder ? (
+                <div className="stock-modal-body__only-order">
+                  <OrderEntry symbol={props.symbol} data={stockData} />
+                </div>
+              ) : (
+                <>
+                  {activeTab === "Giao dịch" && stockData && (
+                    <TabContentGiaoDich 
+                      symbol={props.symbol} 
+                      data={stockData} 
+                      isOrderActive={isOrderActive} 
+                    />
+                  )}
+                  {activeTab === "Hồ sơ" && (
+                    <TabHoSoContent symbol={props.symbol} data={stockData} />
+                  )}
+                  {activeTab === "Cổ đông" && (
+                    <TabCoDongContent symbol={props.symbol} />
+                  )}
+                  {activeTab === "Lịch sự kiện" && (
+                    <TabLichSuKienContent symbol={props.symbol} />
+                  )}
+                  {activeTab !== "Giao dịch" && activeTab !== "Hồ sơ" && activeTab !== "Cổ đông" && activeTab !== "Lịch sự kiện" && (
+                    <div className="empty-tab">Tính năng đang được phát triển...</div>
+                  )}
+                </>
               )}
             </div>
 

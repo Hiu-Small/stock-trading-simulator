@@ -8,7 +8,8 @@ const SettingsPage = () => {
     baseFee: "0.15",
     incomeTax: "0.10",
     initialBalance: "100000000",
-    enableT0Trading: true
+    enableT0Trading: true,
+    cashAdvanceRate: "0.038"
   };
 
   const [settings, setSettings] = useState(defaultSettings);
@@ -66,6 +67,10 @@ const SettingsPage = () => {
     }
     if (isNaN(settings.initialBalance) || parseFloat(settings.initialBalance) < 0) {
       toast.error("Số dư ảo ban đầu phải là số dương hợp lệ");
+      return;
+    }
+    if (isNaN(settings.cashAdvanceRate) || parseFloat(settings.cashAdvanceRate) < 0) {
+      toast.error("Lãi suất ứng trước phải là số dương hợp lệ");
       return;
     }
 
@@ -140,6 +145,19 @@ const SettingsPage = () => {
                 />
               </div>
               <span className="helper-text">Tax applied on the value of sell transactions (e.g., 0.10%)</span>
+            </div>
+
+            <div className="form-group">
+              <label>Cash Advance Daily Interest Rate (%)</label>
+              <div className="input-wrapper">
+                <span className="prefix">%</span>
+                <input 
+                  type="text" 
+                  value={settings.cashAdvanceRate} 
+                  onChange={(e) => handleChange("cashAdvanceRate", e.target.value)}
+                />
+              </div>
+              <span className="helper-text">Daily interest rate applied on cash advance amounts (e.g., 0.038%)</span>
             </div>
           </section>
 

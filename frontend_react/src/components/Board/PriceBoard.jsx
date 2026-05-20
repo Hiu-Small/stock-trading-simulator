@@ -10,14 +10,24 @@ import { SearchContext } from "../../context/SearchContext";
 /**
  * PriceBoard - Bảng giá trung tâm
  * Kết hợp BoardHeader + StockTable + StockDetailPanel
+ * 
+ * Props:
+ *   selectedGroup     - Nhóm đang chọn (được quản lý bởi MainContent)
+ *   onGroupChange     - Callback khi đổi nhóm
+ *   searchResults     - Kết quả tìm kiếm (được quản lý bởi MainContent)
+ *   onSearchResults   - Callback để set kết quả tìm kiếm
+ *   onUpdateGroupStats - Callback cập nhật stats lên HomePage
  */
 const PriceBoard = (props) => {
   const { searchTicker, clearSearch } = useContext(SearchContext);
   // State: mã cổ phiếu đang được click để hiển thị chi tiết
   const [selectedTicker, setSelectedTicker] = useState(null);
-  const [selectedGroup, setSelectedGroup] = useState("VN30"); // Nhóm đang chọn: VN30, HNX30, HOSE...
   const [showActiveOnly, setShowActiveOnly] = useState(false);
-  const [searchResults, setSearchResults] = useState(null);
+  const [isOnlyOrder, setIsOnlyOrder] = useState(false);
+
+  // Lấy selectedGroup và searchResults từ props (được quản lý ở MainContent)
+  const selectedGroup = props.selectedGroup || "VN30";
+  const searchResults = props.searchResults || null;
 
   // Xử lý khi có yêu cầu tìm kiếm từ Nav (thông qua SearchContext)
   useEffect(() => {
@@ -26,18 +36,28 @@ const PriceBoard = (props) => {
         const result = await fetchStockDetail(searchTicker);
         if (result && result.success && result.data && result.data.symbol && result.data.refPrice > 0) {
           // Bọc kết quả vào array để StockTable hiển thị
-          setSearchResults([result.data]);
-          setSelectedGroup("SEARCH"); // Đánh dấu đang ở chế độ tìm kiếm
+          if (props.onSearchResults) props.onSearchResults([result.data]);
+          // Không thay đổi selectedGroup - giữ lại nhóm hiện tại để khi clear về lại đúng nhóm
           toast.success(`Đã tìm thấy mã ${searchTicker}`);
         } else {
           toast.error(`Không tìm thấy mã cổ phiếu: ${searchTicker}`);
-          // Xóa kết quả cũ để tránh hiện row trống như trong ảnh
-          setSearchResults(null);
+          if (props.onSearchResults) props.onSearchResults(null);
         }
       };
       performSearch();
     }
   }, [searchTicker]);
+
+  // Lắng nghe sự kiện mở modal chỉ đặt lệnh từ Sidebar
+  useEffect(() => {
+    const handleOpenOrderModal = (e) => {
+      const symbol = e.detail?.symbol || "ACB";
+      setIsOnlyOrder(true);
+      setSelectedTicker(symbol);
+    };
+    window.addEventListener("open-order-modal", handleOpenOrderModal);
+    return () => window.removeEventListener("open-order-modal", handleOpenOrderModal);
+  }, []);
 
   const [stateStock, setStateStock] = useState({
     increase: 0,
@@ -59,6 +79,7 @@ const PriceBoard = (props) => {
 
   const handleCloseDetail = () => {
     setSelectedTicker(null);
+    setIsOnlyOrder(false);
   };
 
   const handleUpdateStats = (newStats) => {
@@ -77,8 +98,8 @@ const PriceBoard = (props) => {
           stateStock={stateStock}
           selectedGroup={selectedGroup}
           onGroupChange={(group) => {
-            setSelectedGroup(group);
-            setSearchResults(null); // Khi chuyển nhóm thì xóa kết quả tìm kiếm
+            if (props.onGroupChange) props.onGroupChange(group);
+            if (props.onSearchResults) props.onSearchResults(null); // Khi chuyển nhóm thì xóa kết quả tìm kiếm
             clearSearch(); // Xóa mã tìm kiếm trong context
           }}
           showActiveOnly={showActiveOnly}
@@ -106,7 +127,9 @@ const PriceBoard = (props) => {
       {selectedTicker && (
         <StockDetailModal 
           symbol={selectedTicker} 
+          onlyOrder={isOnlyOrder}
           onClose={handleCloseDetail} 
+          onChangeSymbol={(newSymbol) => setSelectedTicker(newSymbol)}
         />
       )}
     </div>

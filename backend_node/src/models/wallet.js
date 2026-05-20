@@ -27,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(20, 2),
       allowNull: false,
       defaultValue: 0.00
+    },
+    pending_cash: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: false,
+      defaultValue: 0.00
     }
   }, {
     sequelize,

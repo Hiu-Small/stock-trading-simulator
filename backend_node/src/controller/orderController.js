@@ -50,4 +50,18 @@ const handleGetMyHoldings = async (req, res) => {
     }
 };
 
-export default { handlePlaceOrder, handleGetMyOrders, handleCancelOrder, handleGetMyHoldings };
+const handleModifyOrder = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const orderId = req.params.id;
+        const { newPrice, newQuantity } = req.body;
+        
+        const data = await orderService.modifyOrder(orderId, userId, { newPrice, newQuantity });
+        return res.status(200).json({ EM: data.EM, EC: data.EC, DT: data.DT });
+    } catch (e) {
+        console.error('[handleModifyOrder]', e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+};
+
+export default { handlePlaceOrder, handleGetMyOrders, handleCancelOrder, handleGetMyHoldings, handleModifyOrder };

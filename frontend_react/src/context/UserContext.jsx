@@ -98,10 +98,16 @@ const UserProvider = ({ children }) => {
         }
     };
 
-    // Tự động tải số dư khi đăng nhập thành công
+    // Tự động tải và đồng bộ định kỳ (mỗi 5 giây) số dư & thông báo khi đăng nhập thành công
     useEffect(() => {
         if (user.isAuthenticated) {
             refreshBalance();
+
+            const interval = setInterval(() => {
+                refreshBalance();
+            }, 5000);
+
+            return () => clearInterval(interval);
         }
     }, [user.isAuthenticated]);
 

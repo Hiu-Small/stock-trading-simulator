@@ -3,6 +3,132 @@ import axios from "axios";
 import PYTHON_API from "../config/pythonApi.js";
 
 /**
+ * Chuyển Date sang chuỗi YYYY-MM-DD chuẩn múi giờ Việt Nam (Asia/Ho_Chi_Minh)
+ */
+const getVietnamDateString = (date) => {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+    const [{ value: month },,{ value: day },,{ value: year }] = formatter.formatToParts(date);
+    return `${year}-${month}-${day}`;
+};
+
+/**
+ * Đếm số ngày giao dịch (loại trừ thứ 7, Chủ Nhật) giữa 2 mốc thời gian
+ */
+const getTradingDaysElapsed = (startDate, endDate) => {
+    const startStr = getVietnamDateString(startDate);
+    const endStr = getVietnamDateString(endDate);
+    
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    
+    let count = 0;
+    const cur = new Date(start);
+    while (cur < end) {
+        cur.setDate(cur.getDate() + 1);
+        const day = cur.getDay();
+        if (day !== 0 && day !== 6) {
+            count++;
+        }
+    }
+    return count;
+};
+
+/**
+ * Kiểm tra một giao dịch mua đã hoàn tất thanh toán theo quy tắc T+2.5 chưa
+ */
+const isTradeCleared = (matchedAt, now = new Date()) => {
+    const elapsed = getTradingDaysElapsed(matchedAt, now);
+    if (elapsed >= 3) return true;
+    if (elapsed === 2) {
+        // Cần sau 13:00 (1:00 chiều) giờ Việt Nam
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Ho_Chi_Minh',
+            hour12: false,
+            hour: '2-digit'
+        });
+        const hour = parseInt(formatter.format(now));
+        return hour >= 13;
+    }
+    return false;
+};
+
+/**
+ * Tính số lượng cổ phiếu khả dụng để bán của người dùng
+ */
+const getSellableQtyHelper = async (userId, symbol, holdingQty, transaction = null) => {
+    try {
+        const t0Setting = await db.Setting.findOne({ 
+            where: { key: 'enable_t0_trading' }, 
+            transaction 
+        });
+        const enableT0 = t0Setting ? t0Setting.value === 'true' : true;
+        if (enableT0) {
+            return holdingQty;
+        }
+
+        // Tối ưu hóa: Chỉ lấy các giao dịch khớp mua trong vòng 7 ngày qua (đủ bao quát T+2.5 cả cuối tuần)
+        const cutoffForFetch = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const buyTrades = await db.Trade.findAll({
+            include: [{
+                model: db.Order,
+                as: 'order',
+                where: {
+                    user_id: userId,
+                    symbol: symbol.toUpperCase(),
+                    side: 'BUY'
+                }
+            }],
+            where: {
+                matched_at: {
+                    [db.Sequelize.Op.gt]: cutoffForFetch
+                }
+            },
+            transaction
+        });
+
+        let unclearedQty = 0;
+        const now = new Date();
+        for (const trade of buyTrades) {
+            if (!isTradeCleared(trade.matched_at, now)) {
+                unclearedQty += parseInt(trade.quantity);
+            }
+        }
+
+        return Math.max(0, holdingQty - unclearedQty);
+    } catch (err) {
+        console.error('[getSellableQtyHelper] Error:', err);
+        return holdingQty;
+    }
+};
+
+/**
+ * Cập nhật tổng vốn đầu tư (total_invested) trong ví của người dùng
+ */
+const updateWalletTotalInvested = async (userId, transaction = null) => {
+    try {
+        const holdings = await db.Holding.findAll({
+            where: { user_id: userId },
+            transaction
+        });
+        const total = holdings.reduce((sum, h) => {
+            return sum + (parseFloat(h.quantity) * parseFloat(h.average_price));
+        }, 0);
+
+        await db.Wallet.update(
+            { total_invested: total },
+            { where: { user_id: userId }, transaction }
+        );
+    } catch (err) {
+        console.error('[updateWalletTotalInvested] Error:', err);
+    }
+};
+
+/**
  * Đặt lệnh mới — tạo trạng thái PENDING, đóng băng tiền/cổ phiếu
  */
 const placeOrder = async (orderData) => {
@@ -31,6 +157,34 @@ const placeOrder = async (orderData) => {
             return { EM: `Mã cổ phiếu ${symbol} đang bị tạm dừng giao dịch bởi Admin.`, EC: -1, DT: '' };
         }
 
+        // Kiểm tra bước giá (Tick Size) đối với lệnh LO
+        if (type === 'LO') {
+            const currentExchange = (stock.exchange || 'HOSE').toUpperCase();
+            let tickSize = 100; // Mặc định cho HNX / UPCOM là 100 ₫
+            
+            if (currentExchange === 'HOSE') {
+                if (tradePrice < 10000) {
+                    tickSize = 10;
+                } else if (tradePrice < 50000) {
+                    tickSize = 50;
+                } else {
+                    tickSize = 100;
+                }
+            }
+            
+            const priceInt = Math.round(tradePrice);
+            const tickInt = Math.round(tickSize);
+            
+            if (priceInt % tickInt !== 0) {
+                await t.rollback();
+                return { 
+                    EM: `Giá đặt ${tradePrice.toLocaleString('vi-VN')} ₫ không hợp lệ. Với sàn ${currentExchange} ở mức giá này, bước giá phải là bội số của ${tickSize} ₫.`, 
+                    EC: -1, 
+                    DT: '' 
+                };
+            }
+        }
+
         // 3. Lấy phí & thuế từ Settings
         const feeSetting = await db.Setting.findOne({ where: { key: 'base_fee' }, transaction: t });
         const baseFeePct = feeSetting ? parseFloat(feeSetting.value) : 0.15;
@@ -46,18 +200,41 @@ const placeOrder = async (orderData) => {
             return { EM: 'Tài khoản ví không tồn tại. Vui lòng liên hệ Admin.', EC: -1, DT: '' };
         }
 
+        let calculatedAdvanceFee = 0;
         if (side === 'BUY') {
-            // Kiểm tra số dư khả dụng (balance - frozen_balance)
-            const availableBalance = parseFloat(wallet.balance) - parseFloat(wallet.frozen_balance);
-            if (availableBalance < totalRequired) {
+            // Sức mua khả dụng bao gồm Tiền mặt khả dụng + Tiền bán chờ về
+            const availableCash = parseFloat(wallet.balance) - parseFloat(wallet.frozen_balance);
+            const pendingCash = parseFloat(wallet.pending_cash || 0);
+            const buyingPower = availableCash + pendingCash;
+
+            if (buyingPower < totalRequired) {
                 await t.rollback();
                 return {
-                    EM: `Số dư khả dụng không đủ. Cần: ${totalRequired.toLocaleString('vi-VN')} ₫ (gồm phí ước tính), Khả dụng: ${availableBalance.toLocaleString('vi-VN')} ₫.`,
+                    EM: `Sức mua không đủ. Cần: ${totalRequired.toLocaleString('vi-VN')} ₫ (gồm phí), Sức mua khả dụng (gồm tiền chờ về): ${buyingPower.toLocaleString('vi-VN')} ₫.`,
                     EC: -1, DT: ''
                 };
             }
-            // Đóng băng tiền
-            await wallet.update({ frozen_balance: parseFloat(wallet.frozen_balance) + totalRequired }, { transaction: t });
+
+            // Nếu tiền mặt khả dụng không đủ, thực hiện ứng trước tiền bán
+            if (availableCash < totalRequired) {
+                const advanceAmount = totalRequired - availableCash;
+                const rateSetting = await db.Setting.findOne({ where: { key: 'cash_advance_rate' }, transaction: t });
+                const advanceRatePct = rateSetting ? parseFloat(rateSetting.value) : 0.038;
+                calculatedAdvanceFee = advanceAmount * (advanceRatePct / 100) * 2;
+            }
+
+            const finalRequired = totalRequired + calculatedAdvanceFee;
+
+            if (buyingPower < finalRequired) {
+                await t.rollback();
+                return {
+                    EM: `Sức mua không đủ sau khi tính phí ứng trước. Cần ứng: ${(totalRequired - availableCash).toLocaleString('vi-VN')} ₫, Phí ứng trước (2 ngày): ${calculatedAdvanceFee.toLocaleString('vi-VN')} ₫. Tổng sức mua cần: ${finalRequired.toLocaleString('vi-VN')} ₫, Có: ${buyingPower.toLocaleString('vi-VN')} ₫.`,
+                    EC: -1, DT: ''
+                };
+            }
+
+            // Đóng băng số tiền (gồm phí ứng trước nếu có)
+            await wallet.update({ frozen_balance: parseFloat(wallet.frozen_balance) + finalRequired }, { transaction: t });
 
         } else if (side === 'SELL') {
             // Kiểm tra sở hữu cổ phiếu
@@ -70,31 +247,19 @@ const placeOrder = async (orderData) => {
                 };
             }
 
-            // Kiểm tra quy tắc T+0
-            const t0Setting = await db.Setting.findOne({ where: { key: 'enable_t0_trading' }, transaction: t });
-            const enableT0 = t0Setting ? t0Setting.value === 'true' : true;
-            if (!enableT0) {
-                const today = new Date(); today.setHours(0, 0, 0, 0);
-                const todayBuys = await db.Order.findAll({
-                    where: {
-                        user_id: userId, symbol: symbol.toUpperCase(),
-                        side: 'BUY', status: 'MATCHED',
-                        createdAt: { [db.Sequelize.Op.gte]: today }
-                    }, transaction: t
-                });
-                const qtyBoughtToday = todayBuys.reduce((sum, o) => sum + (o.quantity - o.remaining_quantity), 0);
-                const sellable = holding.quantity - qtyBoughtToday;
-                if (qtyToTrade > sellable) {
-                    await t.rollback();
-                    return {
-                        EM: `Quy tắc T+2 đang bật. Không thể bán CP mua hôm nay. Có thể bán tối đa: ${Math.max(0, sellable)} CP.`,
-                        EC: -1, DT: ''
-                    };
-                }
+            // Kiểm tra quy tắc T+0 / T+2.5
+            const sellable = await getSellableQtyHelper(userId, symbol, holding.quantity, t);
+            if (qtyToTrade > sellable) {
+                await t.rollback();
+                return {
+                    EM: `Quy tắc T+2.5 đang bật. Không thể bán cổ phiếu chưa đủ thời gian thanh toán. Số lượng có thể bán tối đa: ${sellable} CP.`,
+                    EC: -1, DT: ''
+                };
             }
 
             // Đóng băng cổ phiếu (giảm holding.quantity khả dụng = tạo holding "chờ bán")
             await holding.update({ quantity: holding.quantity - qtyToTrade }, { transaction: t });
+            await updateWalletTotalInvested(userId, t);
         }
 
         // 5. Tạo lệnh ở trạng thái PENDING
@@ -107,7 +272,8 @@ const placeOrder = async (orderData) => {
             price: tradePrice,
             quantity: qtyToTrade,
             remaining_quantity: qtyToTrade,
-            status: 'PENDING'
+            status: 'PENDING',
+            advance_fee: calculatedAdvanceFee
         }, { transaction: t });
 
         // Tạo lịch sử đặt lệnh
@@ -215,10 +381,12 @@ const cancelOrder = async (orderId, userId) => {
         const baseFeePct = feeSetting ? parseFloat(feeSetting.value) : 0.15;
 
         if (order.side === 'BUY') {
-            // Hoàn tiền đóng băng tương ứng phần còn lại chưa khớp
+            // Hoàn tiền đóng băng tương ứng phần còn lại chưa khớp (gồm cả phí ứng trước tỷ lệ nếu có)
             const remainingAmount = parseFloat(order.price) * order.remaining_quantity;
             const remainingFee = remainingAmount * (baseFeePct / 100);
-            const refundAmount = remainingAmount + remainingFee;
+            const remainingAdvanceFee = order.advance_fee ? (order.remaining_quantity / order.quantity) * parseFloat(order.advance_fee) : 0;
+            const refundAmount = remainingAmount + remainingFee + remainingAdvanceFee;
+            
             const newFrozen = Math.max(0, parseFloat(wallet.frozen_balance) - refundAmount);
             await wallet.update({ frozen_balance: newFrozen }, { transaction: t });
 
@@ -238,6 +406,7 @@ const cancelOrder = async (orderId, userId) => {
                         totalValue: order.remaining_quantity * parseFloat(order.price)
                     }, { transaction: t });
                 }
+                await updateWalletTotalInvested(userId, t);
             }
         }
 
@@ -269,7 +438,10 @@ const cancelOrder = async (orderId, userId) => {
 const getUserHoldings = async (userId) => {
     try {
         const holdings = await db.Holding.findAll({
-            where: { user_id: userId },
+            where: { 
+                user_id: userId,
+                quantity: { [db.Sequelize.Op.gt]: 0 }
+            },
             include: [
                 {
                     model: db.Stock,
@@ -298,12 +470,17 @@ const getUserHoldings = async (userId) => {
                 } catch (err) {
                     console.warn(`[getUserHoldings] Không lấy được giá trực tiếp cho ${h.stock.symbol}:`, err.message);
                 }
+
+                // Tính toán số lượng cổ phiếu khả dụng để bán
+                h.sellableQuantity = await getSellableQtyHelper(userId, h.stock.symbol, h.quantity);
+            } else {
+                h.sellableQuantity = h.quantity;
             }
             return h;
         }));
 
-        // Sắp xếp theo totalValue giảm dần sau khi đã cập nhật giá mới nhất
-        enrichedHoldings.sort((a, b) => parseFloat(b.totalValue || 0) - parseFloat(a.totalValue || 0));
+        // Sắp xếp theo thời gian giao dịch/cập nhật mới nhất (updatedAt) giảm dần
+        enrichedHoldings.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
         return { EM: 'Lấy danh mục thành công', EC: 0, DT: enrichedHoldings };
     } catch (e) {
@@ -312,4 +489,225 @@ const getUserHoldings = async (userId) => {
     }
 };
 
-export default { placeOrder, getUserOrders, cancelOrder, getUserHoldings };
+/**
+ * Sửa lệnh đang chờ (Giá hoặc Khối lượng - không được cả hai cùng lúc)
+ */
+const modifyOrder = async (orderId, userId, { newPrice, newQuantity }) => {
+    // 1. Kiểm tra không được sửa đồng thời cả 2
+    if (newPrice !== undefined && newQuantity !== undefined) {
+        return { EM: 'Không được phép sửa đồng thời cả Giá và Khối lượng cùng lúc.', EC: -1, DT: '' };
+    }
+    if (newPrice === undefined && newQuantity === undefined) {
+        return { EM: 'Vui lòng cung cấp Giá mới hoặc Khối lượng mới để sửa.', EC: -1, DT: '' };
+    }
+
+    const t = await db.sequelize.transaction();
+    try {
+        // 2. Lấy lệnh cần sửa
+        const order = await db.Order.findOne({
+            where: { id: orderId, user_id: userId },
+            include: [{ model: db.Stock, as: 'stock' }],
+            transaction: t
+        });
+
+        if (!order) {
+            await t.rollback();
+            return { EM: 'Lệnh không tồn tại hoặc không thuộc về bạn.', EC: -1, DT: '' };
+        }
+
+        if (order.status !== 'PENDING' && order.status !== 'PARTIAL_MATCHED') {
+            await t.rollback();
+            return { EM: `Không thể sửa lệnh ở trạng thái ${order.status}.`, EC: -1, DT: '' };
+        }
+
+        const stock = order.stock;
+        if (!stock || !stock.is_active) {
+            await t.rollback();
+            return { EM: 'Cổ phiếu này hiện đang tạm dừng hoặc không hoạt động.', EC: -1, DT: '' };
+        }
+
+        const oldPrice = parseFloat(order.price);
+        const oldQuantity = parseInt(order.quantity);
+        const matchedQuantity = oldQuantity - parseInt(order.remaining_quantity);
+
+        let finalPrice = oldPrice;
+        let finalQuantity = oldQuantity;
+
+        if (newPrice !== undefined) {
+            finalPrice = parseFloat(newPrice);
+            if (isNaN(finalPrice) || finalPrice <= 0) {
+                await t.rollback();
+                return { EM: 'Giá mới phải là số dương hợp lệ.', EC: -1, DT: '' };
+            }
+
+            // Kiểm tra Tick Size đối với LO
+            if (order.order_type === 'LO') {
+                const currentExchange = (stock.exchange || 'HOSE').toUpperCase();
+                let tickSize = 100;
+                if (currentExchange === 'HOSE') {
+                    if (finalPrice < 10000) {
+                        tickSize = 10;
+                    } else if (finalPrice < 50000) {
+                        tickSize = 50;
+                    } else {
+                        tickSize = 100;
+                    }
+                }
+                const priceInt = Math.round(finalPrice);
+                const tickInt = Math.round(tickSize);
+                if (priceInt % tickInt !== 0) {
+                    await t.rollback();
+                    return {
+                        EM: `Giá đặt ${finalPrice.toLocaleString('vi-VN')} ₫ không hợp lệ. Với sàn ${currentExchange} ở mức giá này, bước giá phải là bội số của ${tickSize} ₫.`,
+                        EC: -1,
+                        DT: ''
+                    };
+                }
+            }
+        }
+
+        if (newQuantity !== undefined) {
+            finalQuantity = parseInt(newQuantity);
+            if (isNaN(finalQuantity) || finalQuantity <= 0) {
+                await t.rollback();
+                return { EM: 'Khối lượng mới phải là số nguyên dương hợp lệ.', EC: -1, DT: '' };
+            }
+
+            // Số lượng mới phải lớn hơn số đã khớp
+            if (finalQuantity <= matchedQuantity) {
+                await t.rollback();
+                return { EM: `Khối lượng mới (${finalQuantity}) phải lớn hơn khối lượng đã khớp (${matchedQuantity} CP).`, EC: -1, DT: '' };
+            }
+
+            // Kiểm tra lô chẵn / lẻ
+            if (finalQuantity >= 100 && finalQuantity % 100 !== 0) {
+                await t.rollback();
+                return { EM: 'Khối lượng chẵn (từ 100 CP trở lên) phải là bội số của 100.', EC: -1, DT: '' };
+            }
+        }
+
+        const newRemainingQuantity = finalQuantity - matchedQuantity;
+
+        // 3. Tính toán lại phong tỏa (Wallet / Holding adjustments)
+        const wallet = await db.Wallet.findOne({ where: { user_id: userId }, transaction: t });
+        const feeSetting = await db.Setting.findOne({ where: { key: 'base_fee' }, transaction: t });
+        const baseFeePct = feeSetting ? parseFloat(feeSetting.value) : 0.15;
+
+        if (order.side === 'BUY') {
+            // Tính số tiền cần đóng băng trước đó
+            const oldTotalRequired = oldQuantity * oldPrice * (1 + baseFeePct / 100) + parseFloat(order.advance_fee || 0);
+
+            // Tính số tiền mới cần đóng băng cho cả lệnh
+            const newTradeAmount = finalQuantity * finalPrice;
+            const newEstimatedFee = newTradeAmount * (baseFeePct / 100);
+            const newTotalRequired = newTradeAmount + newEstimatedFee;
+
+            // Tính toán lại Phí ứng trước (nếu cần)
+            const availableCash = parseFloat(wallet.balance) - parseFloat(wallet.frozen_balance) + oldTotalRequired; // Hoàn lại tạm thời tiền đóng băng cũ để tính sức mua
+            const pendingCash = parseFloat(wallet.pending_cash || 0);
+            const buyingPower = availableCash + pendingCash;
+
+            if (buyingPower < newTotalRequired) {
+                await t.rollback();
+                return {
+                    EM: `Sức mua không đủ để sửa lệnh. Cần: ${newTotalRequired.toLocaleString('vi-VN')} ₫, Sức mua khả dụng: ${buyingPower.toLocaleString('vi-VN')} ₫.`,
+                    EC: -1, DT: ''
+                };
+            }
+
+            let newAdvanceFee = 0;
+            if (availableCash < newTotalRequired) {
+                const advanceAmount = newTotalRequired - availableCash;
+                const rateSetting = await db.Setting.findOne({ where: { key: 'cash_advance_rate' }, transaction: t });
+                const advanceRatePct = rateSetting ? parseFloat(rateSetting.value) : 0.038;
+                newAdvanceFee = advanceAmount * (advanceRatePct / 100) * 2;
+            }
+
+            const finalNewRequired = newTotalRequired + newAdvanceFee;
+
+            if (buyingPower < finalNewRequired) {
+                await t.rollback();
+                return {
+                    EM: `Sức mua không đủ sau khi tính phí ứng trước mới. Tổng cần: ${finalNewRequired.toLocaleString('vi-VN')} ₫.`,
+                    EC: -1, DT: ''
+                };
+            }
+
+            // Cập nhật lại frozen_balance trong Wallet
+            const diff = finalNewRequired - oldTotalRequired;
+            await wallet.update({
+                frozen_balance: parseFloat(wallet.frozen_balance) + diff
+            }, { transaction: t });
+
+            // Cập nhật lệnh
+            await order.update({
+                price: finalPrice,
+                quantity: finalQuantity,
+                remaining_quantity: newRemainingQuantity,
+                advance_fee: newAdvanceFee
+            }, { transaction: t });
+
+        } else if (order.side === 'SELL') {
+            // Đối với lệnh bán
+            const holding = await db.Holding.findOne({ where: { user_id: userId, stock_id: stock.id }, transaction: t });
+            const diffQty = newRemainingQuantity - parseInt(order.remaining_quantity);
+
+            if (diffQty > 0) {
+                // Kiểm tra quy tắc T+2.5 đối với phần tăng thêm
+                const sellable = await getSellableQtyHelper(userId, stock.symbol, holding.quantity, t);
+                if (diffQty > sellable) {
+                    await t.rollback();
+                    return {
+                        EM: `Quy tắc T+2.5 đang bật. Không thể bán cổ phiếu chưa đủ thời gian thanh toán. Số lượng tăng thêm có thể bán tối đa: ${sellable} CP.`,
+                        EC: -1, DT: ''
+                    };
+                }
+
+                if (holding.quantity < diffQty) {
+                    await t.rollback();
+                    return {
+                        EM: `Số lượng cổ phiếu ${stock.symbol} trong danh mục khả dụng không đủ để tăng lệnh bán.`,
+                        EC: -1, DT: ''
+                    };
+                }
+                await holding.update({ quantity: holding.quantity - diffQty }, { transaction: t });
+            } else if (diffQty < 0) {
+                // Giảm khối lượng bán ➔ Hoàn lại cổ phiếu vào Holding khả dụng
+                await holding.update({ quantity: holding.quantity + Math.abs(diffQty) }, { transaction: t });
+            }
+
+            // Cập nhật lệnh
+            await order.update({
+                price: finalPrice,
+                quantity: finalQuantity,
+                remaining_quantity: newRemainingQuantity
+            }, { transaction: t });
+
+            await updateWalletTotalInvested(userId, t);
+        }
+
+        // 4. Tạo lịch sử sửa lệnh
+        const sideText = order.side === 'BUY' ? 'MUA' : 'BÁN';
+        const changeDesc = newPrice !== undefined
+            ? `Thay đổi Giá từ ${oldPrice.toLocaleString('vi-VN')} ₫ sang ${finalPrice.toLocaleString('vi-VN')} ₫`
+            : `Thay đổi Khối lượng từ ${oldQuantity} CP sang ${finalQuantity} CP (Còn lại ${newRemainingQuantity} CP)`;
+
+        await db.UserHistory.create({
+            user_id: userId,
+            field_name: stock.symbol,
+            old_value: '',
+            new_value: `Đã sửa lệnh ${sideText} ${stock.symbol}: ${changeDesc}`,
+            change_type: 'ORDER_MODIFY'
+        }, { transaction: t });
+
+        await t.commit();
+        return { EM: 'Sửa lệnh thành công!', EC: 0, DT: order };
+
+    } catch (e) {
+        await t.rollback();
+        console.error('[modifyOrder] Error:', e);
+        return { EM: 'Lỗi hệ thống khi sửa lệnh', EC: -1, DT: '' };
+    }
+};
+
+export default { placeOrder, getUserOrders, cancelOrder, getUserHoldings, modifyOrder };

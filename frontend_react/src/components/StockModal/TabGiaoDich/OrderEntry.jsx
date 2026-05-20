@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import "./OrderEntry.scss";
 import { getUserProfile, verifyPin } from "../../../services/userService";
-import { placeOrder } from "../../../services/orderService";
+import { placeOrder, getMyHoldings } from "../../../services/orderService";
 import { toast } from "react-toastify";
 import { UserContext } from "../../../context/UserContext";
 
@@ -19,8 +19,28 @@ const OrderEntry = ({ symbol, data }) => {
   const [side, setSide] = useState("BUY"); // Mặc định là BUY
   const [showTooltip, setShowTooltip] = useState(false);
 
+  const [sellableQty, setSellableQty] = useState(0);
+
   // Trạng thái các mốc thời gian trong phiên giao dịch
   const [session, setSession] = useState({ ato: false, mtl: false, atc: false });
+
+  const fetchSellableQuantity = async () => {
+    try {
+      const response = await getMyHoldings();
+      if (response && response.EC === 0) {
+        const holdings = response.DT || [];
+        const currentHolding = holdings.find(
+          (h) => h.stock?.symbol?.toUpperCase() === symbol?.toUpperCase()
+        );
+        setSellableQty(currentHolding ? (currentHolding.sellableQuantity ?? currentHolding.quantity) : 0);
+      } else {
+        setSellableQty(0);
+      }
+    } catch (error) {
+      console.error("Error fetching sellable quantity:", error);
+      setSellableQty(0);
+    }
+  };
 
   // Lấy thời gian Việt Nam (UTC+7) chuẩn xác không phụ thuộc giờ hệ thống địa phương của Client
   const getVietnamTime = () => {
@@ -66,6 +86,10 @@ const OrderEntry = ({ symbol, data }) => {
   }, []);
 
   useEffect(() => {
+    fetchSellableQuantity();
+  }, [symbol, userData]);
+
+  useEffect(() => {
     // Nếu chế độ giá tự động đang BẬT
     if (isAutoPrice && data) {
       if (side === "BUY" && data.ask1Price) {
@@ -78,12 +102,17 @@ const OrderEntry = ({ symbol, data }) => {
 
   useEffect(() => {
     // Nếu đổi mã chứng khoán hoặc giá hiện tại đang bằng 0, cập nhật giá theo thị trường
-    // (Chỉ chạy khi KHÔNG bật giá tự động, vì giá tự động đã có useEffect riêng ở trên)
-    if (!isAutoPrice && data?.matchPrice && (symbol !== prevSymbol || price === 0)) {
-      setPrice(data.matchPrice / 1000);
-      setPrevSymbol(symbol);
+    // (Chỉ chạy khi KHÔNG bật giá tự động, và đợi đến khi dữ liệu mới của mã này được tải về khớp với symbol)
+    if (!isAutoPrice && data && data.symbol && data.symbol.toUpperCase() === symbol.toUpperCase()) {
+      if (symbol !== prevSymbol || price === 0) {
+        const targetPrice = data.matchPrice ? data.matchPrice : data.refPrice;
+        if (targetPrice > 0) {
+          setPrice(targetPrice / 1000);
+          setPrevSymbol(symbol);
+        }
+      }
     }
-  }, [data, symbol, isAutoPrice]);
+  }, [data, symbol, isAutoPrice, prevSymbol, price]);
 
   const fetchUserData = async () => {
     try {
@@ -97,17 +126,52 @@ const OrderEntry = ({ symbol, data }) => {
     }
   };
 
+  const getTickSize = (priceVal, exchange = 'HOSE') => {
+    const currentExchange = (exchange || 'HOSE').toUpperCase();
+    const p = Number(priceVal || 0);
+    
+    if (currentExchange === 'HNX' || currentExchange === 'UPCOM') {
+      return 0.10;
+    }
+    
+    // Sàn HOSE
+    if (p < 10.00) {
+      return 0.01;
+    } else if (p < 50.00) {
+      return 0.05;
+    } else {
+      return 0.10;
+    }
+  };
+
+  const handlePriceBlur = () => {
+    if (isAutoPrice || typeof price === "string" || !price) return;
+    const currentExchange = data?.exchange || 'HOSE';
+    const numPrice = Number(price);
+    const tick = getTickSize(numPrice, currentExchange);
+    const rounded = Math.round(numPrice / tick) * tick;
+    setPrice(parseFloat(rounded.toFixed(2)));
+  };
+
   const formatNumber = (num) => {
     return Math.floor(Number(num || 0)).toLocaleString('vi-VN');
   };
 
   // Tính toán sức mua và giá trị (Hỗ trợ cả trường hợp chọn ATO/ATC/MTL dạng chữ bằng cách dùng matchPrice hiện tại làm ước lượng)
-  const balance = Number(userData?.wallet?.balance || 0) - Number(userData?.wallet?.frozen_balance || 0);
+  const availableCash = Number(userData?.wallet?.balance || 0) - Number(userData?.wallet?.frozen_balance || 0);
+  const pendingCash = Number(userData?.wallet?.pending_cash || 0);
+  const buyingPower = availableCash + pendingCash;
+
   const currentPrice = typeof price === "string" 
     ? (data?.matchPrice || 0) 
     : (Number(price || 0) > 0 ? Number(price) * 1000 : 0);
-  const maxBuyQty = currentPrice > 0 ? Math.floor(balance / currentPrice) : 0;
+  const maxBuyQty = currentPrice > 0 ? Math.floor(buyingPower / currentPrice) : 0;
   const totalValue = Number(quantity || 0) * currentPrice;
+
+  // Ước tính phí ứng trước nếu mua vượt quá tiền mặt hiện có
+  const needAdvance = side === "BUY" && totalValue > availableCash && totalValue <= buyingPower;
+  const estimatedAdvanceAmount = needAdvance ? totalValue - availableCash : 0;
+  const estimatedAdvanceFee = needAdvance ? estimatedAdvanceAmount * (0.038 / 100) * 2 : 0;
 
   // Xử lý khi bấm nút Trừ (-)
   const handleDecreaseQty = () => {
@@ -225,6 +289,7 @@ const OrderEntry = ({ symbol, data }) => {
         // Làm mới thông tin ví, số dư ở cả ô OrderEntry và Header (Vốn ảo)
         fetchUserData();
         refreshBalance();
+        fetchSellableQuantity();
         // Đóng modal
         setShowPinConfirm(false);
         setPendingOrder(null);
@@ -248,6 +313,14 @@ const OrderEntry = ({ symbol, data }) => {
     if (isNaN(qty) || qty <= 0) {
       toast.error("Vui lòng nhập khối lượng hợp lệ!");
       return;
+    }
+
+    // Kiểm tra số lượng cổ phiếu khả dụng để bán
+    if (orderSide === "SELL") {
+      if (qty > sellableQty) {
+        toast.error(`Số lượng cổ phiếu khả dụng để bán không đủ! Khả dụng: ${sellableQty} CP.`);
+        return;
+      }
     }
 
     // 2. Xác định kiểu lệnh (type) và giá số thực (numericPrice)
@@ -277,6 +350,32 @@ const OrderEntry = ({ symbol, data }) => {
       return;
     }
 
+    // Kiểm tra bước giá (Tick Size) đối với lệnh LO
+    if (orderType === "LO") {
+      const currentExchange = (data?.exchange || 'HOSE').toUpperCase();
+      const tick = getTickSize(price, currentExchange);
+      const priceInVnd = numericPrice;
+      const tickInVnd = tick * 1000;
+      
+      const priceInt = Math.round(priceInVnd);
+      const tickInt = Math.round(tickInVnd);
+      
+      if (priceInt % tickInt !== 0) {
+        toast.error(`Giá đặt không hợp lệ! Với sàn ${currentExchange} ở mức giá này, bước giá phải là bội số của ${tickInt} VNĐ.`);
+        return;
+      }
+    }
+
+    // Kiểm tra sức mua đối với lệnh mua
+    if (orderSide === "BUY") {
+      const baseFeePct = 0.15; // Phí giao dịch tạm tính
+      const totalRequired = qty * numericPrice * (1 + baseFeePct / 100);
+      if (totalRequired > buyingPower) {
+        toast.error(`Sức mua không đủ để đặt lệnh! Cần khoảng ${formatNumber(totalRequired)} VNĐ (gồm phí), Sức mua tối đa: ${formatNumber(buyingPower)} VNĐ.`);
+        return;
+      }
+    }
+
     // Thay vì gửi lệnh trực tiếp, chúng ta lưu thông tin và yêu cầu nhập mã PIN
     setPendingOrder({
       symbol,
@@ -304,13 +403,6 @@ const OrderEntry = ({ symbol, data }) => {
       </div>
 
       <div className="order-entry-body">
-        {/* Symbol Info */}
-        <div className="symbol-info">
-          <i className="fa-solid fa-magnifying-glass search-icon"></i>
-          <span className="symbol-name">{symbol}</span>
-          <span className="exchange-name">(HOSE)</span>
-        </div>
-
         {/* Account Selection */}
         <div className="form-row">
           <label>Tài khoản đặt lệnh</label>
@@ -326,14 +418,19 @@ const OrderEntry = ({ symbol, data }) => {
         <div className="form-row buying-power">
           <label>Sức mua <i className="fa-regular fa-circle-question"></i></label>
           <div className="value-group">
-            <span className="balance">{formatNumber(balance)} VNĐ</span>
+            <span className="balance">{formatNumber(buyingPower)} VNĐ</span>
             <span className="limits-wrapper">
               (<span className="buy-limit">{formatNumber(maxBuyQty)}</span>
               <span className="divider"> / </span>
-              <span className="sell-limit">0</span>)
+              <span className="sell-limit">{formatNumber(sellableQty)}</span>)
             </span>
           </div>
         </div>
+        {pendingCash > 0 && (
+          <div className="form-row pending-cash-info" style={{ fontSize: '11px', color: '#aaa', marginTop: '-10px', display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+            <span>(Gồm {formatNumber(availableCash)} tiền mặt + {formatNumber(pendingCash)} tiền bán chờ về)</span>
+          </div>
+        )}
 
         {/* Auto Price */}
         <div className="form-row auto-price">
@@ -378,7 +475,13 @@ const OrderEntry = ({ symbol, data }) => {
           <label>Giá (x1000 VNĐ)</label>
           <div className={`number-input ${isAutoPrice || typeof price === "string" ? 'disabled' : ''}`}>
             <button 
-              onClick={() => !isAutoPrice && typeof price !== "string" && setPrice(Math.max(0, (Number(price) - 0.05).toFixed(2)))}
+              onClick={() => {
+                if (isAutoPrice || typeof price === "string") return;
+                const currentExchange = data?.exchange || 'HOSE';
+                const tick = getTickSize(price, currentExchange);
+                const nextVal = Math.max(0, Number(price) - tick);
+                setPrice(parseFloat(nextVal.toFixed(2)));
+              }}
               disabled={isAutoPrice || typeof price === "string"}
             >
               -
@@ -397,10 +500,17 @@ const OrderEntry = ({ symbol, data }) => {
                   setPrice(isNaN(num) ? "" : num);
                 }
               }} 
+              onBlur={handlePriceBlur}
               disabled={isAutoPrice}
             />
             <button 
-              onClick={() => !isAutoPrice && typeof price !== "string" && setPrice(parseFloat((Number(price) + 0.05).toFixed(2)))}
+              onClick={() => {
+                if (isAutoPrice || typeof price === "string") return;
+                const currentExchange = data?.exchange || 'HOSE';
+                const tick = getTickSize(price, currentExchange);
+                const nextVal = Number(price) + tick;
+                setPrice(parseFloat(nextVal.toFixed(2)));
+              }}
               disabled={isAutoPrice || typeof price === "string"}
             >
               +
@@ -451,6 +561,12 @@ const OrderEntry = ({ symbol, data }) => {
           <label>Giá trị</label>
           <span className="value">{formatNumber(totalValue)} VNĐ</span>
         </div>
+        {needAdvance && (
+          <div className="form-row advance-warning" style={{ fontSize: '12px', color: '#ffc107', marginTop: '-10px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', width: '100%' }}>
+            <span>⚠️ Tự động ứng trước: {formatNumber(estimatedAdvanceAmount)} ₫ từ tiền chờ về</span>
+            <span>Phí ứng trước tạm tính (2 ngày): {formatNumber(estimatedAdvanceFee)} ₫</span>
+          </div>
+        )}
 
 
 
@@ -511,6 +627,14 @@ const OrderEntry = ({ symbol, data }) => {
                     : `${(pendingOrder?.numericPrice / 1000).toFixed(2)} (${formatNumber(pendingOrder?.numericPrice)} ₫)`}
                 </span>
               </div>
+              {pendingOrder?.orderSide === "BUY" && (pendingOrder?.qty * pendingOrder?.numericPrice) > availableCash && (
+                <div className="summary-row" style={{ color: '#ffc107', fontSize: '12px' }}>
+                  <span className="lbl">Phí ứng trước (tạm tính):</span>
+                  <span className="val">
+                    {formatNumber(((pendingOrder?.qty * pendingOrder?.numericPrice) - availableCash) * (0.038 / 100) * 2)} ₫
+                  </span>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleConfirmPinAndPlaceOrder}>

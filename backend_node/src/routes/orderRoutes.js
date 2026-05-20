@@ -14,6 +14,9 @@ const initOrderRoutes = (app) => {
     // DELETE /api/order/:id/cancel — Hủy lệnh
     router.delete("/:id/cancel", checkUserJWT, orderController.handleCancelOrder);
 
+    // PUT /api/order/:id/modify — Sửa lệnh
+    router.put("/:id/modify", checkUserJWT, orderController.handleModifyOrder);
+
     // GET /api/order/my-holdings — Xem danh mục cổ phiếu
     router.get("/my-holdings", checkUserJWT, orderController.handleGetMyHoldings);
 

@@ -29,4 +29,11 @@ const getMyHoldings = () => {
     return axios.get('/api/order/my-holdings');
 };
 
-export { placeOrder, getMyOrders, cancelOrder, getMyHoldings };
+/**
+ * Sửa lệnh
+ */
+const modifyOrderAPI = (orderId, newPrice, newQuantity) => {
+    return axios.put(`/api/order/${orderId}/modify`, { newPrice, newQuantity });
+};
+
+export { placeOrder, getMyOrders, cancelOrder, getMyHoldings, modifyOrderAPI };

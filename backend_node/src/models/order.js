@@ -47,6 +47,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('PENDING', 'MATCHED', 'PARTIAL_MATCHED', 'CANCELLED', 'FAILED_STUCK'),
       allowNull: false,
       defaultValue: 'PENDING'
+    },
+    advance_fee: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: false,
+      defaultValue: 0.00
     }
   }, {
     sequelize,

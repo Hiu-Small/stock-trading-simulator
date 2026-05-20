@@ -24,6 +24,10 @@ const getAllUsers = async () => {
                 {
                     model: db.Holding,
                     as: 'holdings',
+                    where: {
+                        quantity: { [db.Sequelize.Op.gt]: 0 }
+                    },
+                    required: false,
                     include: [
                         {
                             model: db.Stock,
@@ -81,6 +85,8 @@ const getAllUsers = async () => {
                         totalValue: holdingsValue
                     });
                 });
+                // Sắp xếp theo updatedAt giảm dần (mới nhất lên đầu)
+                updatedHoldings.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
             }
 
             const virtualBalance = user.wallet ? parseFloat(user.wallet.balance) : 0;
@@ -609,7 +615,7 @@ const getSystemLogs = async (page = 1, limit = 20) => {
         });
 
         const userHistoriesPromise = db.UserHistory.findAll({
-            include: [{ model: db.UserAccount, as: 'user', attributes: ['email'] }],
+            include: [{ model: db.UserAccount, as: 'user', attributes: ['email', 'account_number'] }],
             order: [['createdAt', 'DESC']],
             limit: page * limit
         });
@@ -629,16 +635,65 @@ const getSystemLogs = async (page = 1, limit = 20) => {
         // 4. Định dạng User Histories
         const formattedUserLogs = userHistories.map(log => {
             let actionText = `User action: ${log.change_type}`;
-            if (log.change_type === 'PROFILE_UPDATE') actionText = `User updated profile: ${log.field_name}`;
-            if (log.change_type === 'PASSWORD_CHANGE') actionText = `User changed password`;
-            if (log.change_type === 'PIN_CHANGE') actionText = `User changed PIN`;
+            let detailsText = "";
+
+            const userEmail = log.user ? log.user.email : 'Unknown User';
+            const userAcc = log.user ? log.user.account_number : 'N/A';
+            const userDesc = `${userEmail} (${userAcc})`;
+
+            if (log.change_type === 'PROFILE_UPDATE') {
+                actionText = `User updated profile: ${log.field_name}`;
+                detailsText = `Field "${log.field_name}" changed from "${log.old_value || 'N/A'}" to "${log.new_value || 'N/A'}" for user ${userDesc}`;
+            } else if (log.change_type === 'PASSWORD_CHANGE') {
+                actionText = `User changed password`;
+                detailsText = `User changed account password successfully for user ${userDesc}`;
+            } else if (log.change_type === 'PIN_CHANGE') {
+                actionText = `User changed PIN`;
+                detailsText = `User changed transaction PIN successfully for user ${userDesc}`;
+            } else if (log.change_type === 'ORDER_PLACE') {
+                actionText = `User placed order`;
+                detailsText = (log.new_value || 'N/A').replace("Đặt thành công lệnh", `Tài khoản ${userDesc} đặt thành công lệnh`);
+            } else if (log.change_type === 'ORDER_CANCEL') {
+                actionText = `User cancelled order`;
+                detailsText = (log.new_value || 'N/A')
+                    .replace("Đã hủy thành công lệnh", `Tài khoản ${userDesc} đã hủy thành công lệnh`)
+                    .replace("Admin đã can thiệp hủy lệnh", `Admin đã can thiệp hủy lệnh của tài khoản ${userDesc}`);
+            } else if (log.change_type === 'ORDER_MATCH') {
+                actionText = `Order matched`;
+                detailsText = (log.new_value || 'N/A')
+                    .replace("Khớp hoàn toàn lệnh", `Khớp hoàn toàn lệnh của tài khoản ${userDesc}`)
+                    .replace("Admin can thiệp khớp cưỡng bức lệnh", `Admin can thiệp khớp cưỡng bức lệnh của tài khoản ${userDesc}`);
+            } else if (log.change_type === 'ORDER_PARTIAL_MATCH') {
+                actionText = `Order partially matched`;
+                detailsText = (log.new_value || 'N/A').replace("Khớp một phần lệnh", `Khớp một phần lệnh của tài khoản ${userDesc}`);
+            } else if (log.change_type === 'ORDER_EXPIRED_CANCEL') {
+                actionText = `Order expired and cancelled`;
+                detailsText = (log.new_value || 'N/A').replace("Lệnh hết hạn cuối ngày: Đã tự động hủy lệnh", `Lệnh hết hạn cuối ngày: Đã tự động hủy lệnh của tài khoản ${userDesc}`);
+            } else if (log.change_type === 'ORDER_MODIFY') {
+                actionText = `User modified order`;
+                detailsText = (log.new_value || 'N/A').replace("Đã sửa lệnh", `Tài khoản ${userDesc} đã sửa lệnh`);
+            } else if (log.change_type === 'SYSTEM_ADJUST_BALANCE') {
+                actionText = `System adjusted wallet balance`;
+                detailsText = (log.new_value || 'N/A').replace("Tài khoản của bạn", `Tài khoản của ${userDesc}`);
+            } else if (log.change_type === 'SYSTEM_UPDATE_STATUS') {
+                actionText = `System updated account status`;
+                detailsText = (log.new_value || 'N/A').replace("Trạng thái tài khoản của bạn", `Trạng thái tài khoản của ${userDesc}`);
+            } else if (log.change_type === 'SYSTEM_RESET_PASSWORD') {
+                actionText = `System reset account password`;
+                detailsText = (log.new_value || 'N/A').replace("Mật khẩu đăng nhập tài khoản của bạn", `Mật khẩu đăng nhập tài khoản của ${userDesc}`);
+            } else if (log.change_type === 'SYSTEM_RESET_PIN') {
+                actionText = `System reset account PIN`;
+                detailsText = (log.new_value || 'N/A').replace("Mã PIN giao dịch của bạn", `Mã PIN giao dịch của ${userDesc}`);
+            } else {
+                detailsText = `Field "${log.field_name}" changed from "${log.old_value || 'N/A'}" to "${log.new_value || 'N/A'}" for user ${userDesc}`;
+            }
 
             return {
                 timestamp: log.createdAt,
-                level: (log.change_type === 'PASSWORD_CHANGE' || log.change_type === 'PIN_CHANGE') ? 'WARN' : 'INFO',
+                level: (log.change_type === 'PASSWORD_CHANGE' || log.change_type === 'PIN_CHANGE' || log.change_type === 'SYSTEM_RESET_PASSWORD' || log.change_type === 'SYSTEM_RESET_PIN') ? 'WARN' : 'INFO',
                 actor: log.user ? log.user.email : 'Unknown User',
                 action: actionText,
-                details: `Field "${log.field_name}" changed from "${log.old_value || 'N/A'}" to "${log.new_value || 'N/A'}"`,
+                details: detailsText,
                 type: 'USER'
             };
         });
@@ -869,7 +924,8 @@ const getSettings = async () => {
                 baseFee: settingsMap['base_fee'] || '0.15',
                 incomeTax: settingsMap['income_tax'] || '0.10',
                 initialBalance: settingsMap['initial_balance'] || '100000000',
-                enableT0Trading: settingsMap['enable_t0_trading'] === 'true' || settingsMap['enable_t0_trading'] === undefined
+                enableT0Trading: settingsMap['enable_t0_trading'] === 'true' || settingsMap['enable_t0_trading'] === undefined,
+                cashAdvanceRate: settingsMap['cash_advance_rate'] || '0.038'
             }
         };
     } catch (e) {
@@ -881,13 +937,14 @@ const getSettings = async () => {
 const updateSettings = async (settingsData, adminId, ipAddress) => {
     const t = await db.sequelize.transaction();
     try {
-        const { baseFee, incomeTax, initialBalance, enableT0Trading } = settingsData;
+        const { baseFee, incomeTax, initialBalance, enableT0Trading, cashAdvanceRate } = settingsData;
         
         const settingsToUpdate = [
             { key: 'base_fee', value: String(baseFee), description: 'Phí giao dịch cơ sở (%)' },
             { key: 'income_tax', value: String(incomeTax), description: 'Thuế thu nhập khi bán (%)' },
             { key: 'initial_balance', value: String(initialBalance), description: 'Số dư ảo ban đầu cho tài khoản mới (VND)' },
-            { key: 'enable_t0_trading', value: String(enableT0Trading), description: 'Cho phép giao dịch trong ngày T+0 (true/false)' }
+            { key: 'enable_t0_trading', value: String(enableT0Trading), description: 'Cho phép giao dịch trong ngày T+0 (true/false)' },
+            { key: 'cash_advance_rate', value: String(cashAdvanceRate || '0.038'), description: 'Lãi suất ứng trước tiền bán theo ngày (%)' }
         ];
 
         const logDetails = [];

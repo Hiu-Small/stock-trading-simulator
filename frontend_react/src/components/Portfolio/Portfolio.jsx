@@ -11,8 +11,8 @@ const Portfolio = () => {
     const [wallet, setWallet] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const fetchData = async () => {
-        setLoading(true);
+    const fetchData = async (showLoading = false) => {
+        if (showLoading) setLoading(true);
         try {
             const [holdingsRes, profileRes] = await Promise.all([
                 getMyHoldings(),
@@ -21,28 +21,34 @@ const Portfolio = () => {
             if (holdingsRes && holdingsRes.EC === 0) setHoldings(holdingsRes.DT);
             if (profileRes && profileRes.EC === 0) setWallet(profileRes.DT?.wallet);
         } catch (e) {
-            toast.error('Không tải được danh mục');
+            console.error('Không tải được danh mục:', e);
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchData();
+        // Tải lần đầu hiển thị màn hình chờ
+        fetchData(true);
+
+        // Tự động tải lại ngầm mỗi 5 giây
+        const interval = setInterval(() => {
+            fetchData(false);
+        }, 5000);
+
+        return () => clearInterval(interval);
     }, []);
 
     const fmt = (n) => Number(n || 0).toLocaleString('vi-VN');
     const fmtPct = (n) => (n >= 0 ? '+' : '') + Number(n || 0).toFixed(2) + '%';
 
     const totalHoldingValue = holdings.reduce((sum, h) => sum + parseFloat(h.totalValue || 0), 0);
-    const totalInvested = wallet && wallet.total_invested !== undefined && wallet.total_invested !== null
-        ? parseFloat(wallet.total_invested)
-        : holdings.reduce((sum, h) => sum + parseFloat(h.average_price || 0) * h.quantity, 0);
+    const totalInvested = holdings.reduce((sum, h) => sum + parseFloat(h.average_price || 0) * h.quantity, 0);
     const totalPnL = totalHoldingValue - totalInvested;
     const totalPnLPct = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
 
     const availableBalance = wallet ? parseFloat(wallet.balance) - parseFloat(wallet.frozen_balance || 0) : 0;
-    const totalAssets = (wallet ? parseFloat(wallet.balance) : 0) + totalHoldingValue;
+    const totalAssets = (wallet ? parseFloat(wallet.balance) : 0) + parseFloat(wallet?.pending_cash || 0) + totalHoldingValue;
 
     return (
         <div className="portfolio-page">
@@ -55,7 +61,7 @@ const Portfolio = () => {
                         <p>Tổng quan tài sản và hiệu suất đầu tư</p>
                     </div>
                 </div>
-                <button className="btn-refresh" onClick={() => { fetchData(); refreshBalance(); }}>
+                <button className="btn-refresh" onClick={() => { fetchData(true); refreshBalance(); }}>
                     <i className="fa-solid fa-rotate"></i> Làm mới
                 </button>
             </div>
@@ -68,7 +74,12 @@ const Portfolio = () => {
                 <div className="summary-card cash">
                     <div className="card-label">Tiền mặt khả dụng</div>
                     <div className="card-value green">{fmt(availableBalance)} <span className="unit">₫</span></div>
-                    {wallet?.frozen_balance > 0 && (
+                    {parseFloat(wallet?.pending_cash || 0) > 0 && (
+                        <div className="card-sub pending" style={{ color: '#ffc107', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                            <i className="fa-regular fa-clock"></i> Chờ về T+2.5: {fmt(wallet.pending_cash)} ₫
+                        </div>
+                    )}
+                    {parseFloat(wallet?.frozen_balance || 0) > 0 && (
                         <div className="card-sub">Đang đóng băng: {fmt(wallet.frozen_balance)} ₫</div>
                     )}
                 </div>

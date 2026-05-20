@@ -172,7 +172,8 @@ const getStockDetail = async (req, res) => {
       return res.status(200).json({
         ...data,
         is_active: stock ? stock.is_active : true,
-        globalStatus: globalSetting ? globalSetting.value : 'OPEN'
+        globalStatus: globalSetting ? globalSetting.value : 'OPEN',
+        exchange: stock ? stock.exchange : 'HOSE'
       });
     }
     return res.status(200).json(data);

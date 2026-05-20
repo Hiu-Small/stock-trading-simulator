@@ -4,12 +4,44 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { UserContext } from "../../context/UserContext";
 import { SearchContext } from "../../context/SearchContext";
+import useAllStocks from "../../hooks/useAllStocks";
 
 const Nav = (props) => {
   const { user, logoutContext, setShowLoginModal, balance, refreshBalance, notifications, markAllAsRead, toggleReadStatus } = useContext(UserContext);
   const { handleSearch, clearSearch } = useContext(SearchContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const { allStocks, loading: stocksLoading } = useAllStocks();
+  const [suggestions, setSuggestions] = useState([]);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const handleInputChange = (val) => {
+    const cleanVal = val.toUpperCase();
+    setSearchTerm(cleanVal);
+
+    if (!cleanVal) {
+      setSuggestions([]);
+      setActiveIndex(-1);
+      return;
+    }
+
+    const filtered = allStocks.filter(stock => 
+      stock.symbol.toUpperCase().includes(cleanVal) || 
+      (stock.companyName && stock.companyName.toUpperCase().includes(cleanVal))
+    ).slice(0, 7);
+
+    setSuggestions(filtered);
+    setActiveIndex(-1);
+  };
+
+  const handleSelectStock = (symbol) => {
+    handleSearch(symbol.toUpperCase());
+    setSearchTerm("");
+    setSuggestions([]);
+    setActiveIndex(-1);
+    if (location.pathname !== "/market") {
+      navigate("/market");
+    }
+  };
   const navigate = useNavigate();
   const location = useLocation();
   const unreadCount = notifications ? notifications.filter(n => !n.is_read).length : 0;
@@ -162,18 +194,56 @@ const Nav = (props) => {
               <input 
                 placeholder="Search Ticker..." 
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onBlur={() => {
+                  setTimeout(() => {
+                    setSuggestions([]);
+                    setActiveIndex(-1);
+                  }, 200);
+                }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSearch(searchTerm);
-                    setSearchTerm("");
-                    // Đảm bảo chuyển về trang market nếu đang ở trang khác
-                    if (location.pathname !== "/market") {
-                      navigate("/market");
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setActiveIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : 0));
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setActiveIndex(prev => (prev > 0 ? prev - 1 : suggestions.length - 1));
+                  } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (activeIndex >= 0 && activeIndex < suggestions.length) {
+                      handleSelectStock(suggestions[activeIndex].symbol);
+                    } else if (searchTerm.trim()) {
+                      handleSelectStock(searchTerm.trim());
                     }
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    setSearchTerm("");
+                    setSuggestions([]);
+                    setActiveIndex(-1);
                   }
                 }}
               />
+
+              {/* Thả xuống gợi ý tìm kiếm cổ phiếu */}
+              {suggestions.length > 0 && (
+                <div className="nav-suggestions-dropdown">
+                  {suggestions.map((stock, index) => (
+                    <div
+                      key={stock.symbol || index}
+                      className={`suggestion-item ${index === activeIndex ? "suggestion-item--active" : ""}`}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelectStock(stock.symbol);
+                      }}
+                      onMouseEnter={() => setActiveIndex(index)}
+                    >
+                      <span className="symbol-badge">{stock.symbol}</span>
+                      <span className="company-name">{stock.companyName}</span>
+                      <span className="exchange-badge">({stock.exchange || "HOSE"})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
