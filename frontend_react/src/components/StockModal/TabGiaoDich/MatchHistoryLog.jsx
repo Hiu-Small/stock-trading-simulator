@@ -1,8 +1,10 @@
 import React from "react";
 import "./MatchHistoryLog.scss";
 import "../../../assets/styles/global.scss";
+import { useTranslation } from "../../../context/LanguageContext";
 
 const MatchHistoryLog = (props) => {
+  const { lang } = useTranslation();
   // Lấy dữ liệu từ props.data (do StockDetailModal đã gọi API và truyền xuống)
   const history = props.data?.matchHistory || [];
   const stats = props.data?.matchStats || {
@@ -38,18 +40,23 @@ const MatchHistoryLog = (props) => {
     return "price--ref";
   };
 
+  const getSideLabel = (side) => {
+    if (lang === "vi") return side;
+    return side === "M" ? "B" : "S";
+  };
+
   return (
     <div className="match-history-container">
       {/* HEADER THỐNG KÊ */}
       <div className="history-header">
-        <div className="title">Khớp lệnh</div>
+        <div className="title">{lang === "vi" ? "Khớp lệnh" : "Match History"}</div>
         <div className="summary">
           <span className="total">KL: {formatVolToK(stats.total)}</span>
           <span className="buy">
-            M: <span className="price--up">{formatVolToK(stats.totalBuy)}</span>
+            {lang === "vi" ? "M:" : "B:"} <span className="price--up">{formatVolToK(stats.totalBuy)}</span>
           </span>
           <span className="sell">
-            B:{" "}
+            {lang === "vi" ? "B:" : "S:"}{" "}
             <span className="price--down">{formatVolToK(stats.totalSell)}</span>
           </span>
         </div>
@@ -58,17 +65,19 @@ const MatchHistoryLog = (props) => {
       {/* BẢNG LỊCH SỬ KHỚP */}
       <div className="history-table">
         <div className="table-head">
-          <div className="col-time">Thời gian</div>
-          <div className="col-vol text-right">KL</div>
-          <div className="col-price text-right">Giá</div>
+          <div className="col-time">{lang === "vi" ? "Thời gian" : "Time"}</div>
+          <div className="col-vol text-right">{lang === "vi" ? "KL" : "Vol"}</div>
+          <div className="col-price text-right">{lang === "vi" ? "Giá" : "Price"}</div>
           <div className="col-change text-right">+/-</div>
           <div className="col-percent text-right">+/- (%)</div>
-          <div className="col-side text-center">M/B</div>
+          <div className="col-side text-right">{lang === "vi" ? "M/B" : "B/S"}</div>
         </div>
 
         <div className="table-body">
           {history.length === 0 ? (
-            <div className="loading-text">Chưa có dữ liệu khớp lệnh</div>
+            <div className="loading-text">
+              {lang === "vi" ? "Chưa có dữ liệu khớp lệnh" : "No match history data available"}
+            </div>
           ) : (
             history.map((row, index) => {
               const change = row.price - refPrice;
@@ -95,7 +104,7 @@ const MatchHistoryLog = (props) => {
                       row.side === "B" ? "price--down" : "price--up"
                     }`}
                   >
-                    {row.side}
+                    {getSideLabel(row.side)}
                   </div>
                 </div>
               );

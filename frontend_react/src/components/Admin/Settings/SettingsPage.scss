@@ -2,7 +2,7 @@
 
 .admin-settings-page {
   padding: 24px 24px 100px; // Extra bottom padding for the bar
-  color: #fff;
+  color: var(--text-primary);
   position: relative;
 
   .page-header {
@@ -70,8 +70,8 @@
       }
 
       .input-wrapper {
-        background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background-color: var(--bg-hover);
+        border: 1px solid var(--border-primary);
         border-radius: 8px;
         padding: 0 15px;
         display: flex;
@@ -80,22 +80,22 @@
         transition: all 0.2s;
 
         &:focus-within {
-          border-color: rgba($accent-blue, 0.5);
-          background-color: rgba(255, 255, 255, 0.08);
+          border-color: var(--accent-primary);
+          background-color: var(--bg-elevated);
         }
 
         .prefix { color: $text-muted; font-weight: 700; font-family: monospace; }
         input {
           background: transparent;
           border: none;
-          color: #fff;
+          color: var(--text-primary);
           padding: 14px 0;
           width: 100%;
           outline: none;
           font-size: 16px;
           font-weight: 700;
           font-family: monospace;
-          &::placeholder { color: rgba(255, 255, 255, 0.2); }
+          &::placeholder { color: var(--text-secondary); }
         }
       }
 
@@ -128,8 +128,8 @@
       justify-content: space-between;
       align-items: center;
       padding: 20px;
-      background-color: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      background-color: var(--bg-hover);
+      border: 1px solid var(--border-primary);
       border-radius: 12px;
       margin-bottom: 16px;
       &:last-child { margin-bottom: 0; }
@@ -154,7 +154,7 @@
       position: absolute;
       cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: var(--border-secondary);
       transition: .3s;
       border-radius: 34px;
 
@@ -191,8 +191,8 @@
     bottom: 30px;
     left: 280px; // Offset for sidebar
     right: 30px;
-    background-color: #111318;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-primary);
     border-radius: 16px;
     padding: 16px 30px;
     display: flex;
@@ -208,7 +208,7 @@
       gap: 12px;
       font-size: 14px;
       font-weight: 500;
-      color: #fff;
+      color: var(--text-primary);
 
       .unsaved-dot {
         width: 8px;
@@ -237,9 +237,9 @@
 
       .btn-discard {
         background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: $text-muted;
-        &:hover { background-color: rgba(255, 255, 255, 0.05); color: #fff; }
+        border: 1px solid var(--border-primary);
+        color: var(--text-secondary);
+        &:hover { background-color: var(--bg-hover); color: var(--text-primary); }
       }
 
       .btn-save {

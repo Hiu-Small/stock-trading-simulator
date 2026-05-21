@@ -1,8 +1,10 @@
 import React from "react";
 import "./OrderBookTable.scss";
+import { useTranslation } from "../../../context/LanguageContext";
 
 const OrderBookTable = (props) => {
-  if (!props.data) return <div className="order-book-container">Đang tải...</div>;
+  const { t, lang } = useTranslation();
+  if (!props.data) return <div className="order-book-container">{t("board.loading")}</div>;
 
   const getPriceColor = (price) => {
     if (!price || !props.data.refPrice) return "price--ref"; // Vàng
@@ -45,14 +47,14 @@ const OrderBookTable = (props) => {
 
   return (
     <div className="order-book-container">
-      <div className="section-title">Độ sâu thị trường</div>
+      <div className="section-title">{t("trading.orderBookTable.title")}</div>
       
       <div className="order-book-grid">
         <div className="grid-header">
-          <div className="col-vol text-left">KL</div>
-          <div className="col-price text-right">Giá mua</div>
-          <div className="col-price text-left spacer-left">Giá bán</div>
-          <div className="col-vol text-right">KL</div>
+          <div className="col-vol text-left">{t("trading.orderBookTable.vol")}</div>
+          <div className="col-price text-right">{t("trading.orderBookTable.bid")}</div>
+          <div className="col-price text-left spacer-left">{t("trading.orderBookTable.ask")}</div>
+          <div className="col-vol text-right">{t("trading.orderBookTable.vol")}</div>
         </div>
 
         {/* Hiển thị 3 mức giá tốt nhất: Mua 1-2-3 và Bán 1-2-3 */}
@@ -78,8 +80,8 @@ const OrderBookTable = (props) => {
 
       <div className="depth-summary">
         {/* IN RA TỔNG KHỐI LƯỢNG ĐÃ ĐƯỢC FORMAT */}
-        <div>Dư mua: <span className="value">{formatVol(totalBidVol) || "0"}</span></div>
-        <div>Dư bán: <span className="value">{formatVol(totalAskVol) || "0"}</span></div>
+        <div>{t("trading.orderBookTable.bidVol")} <span className="value">{formatVol(totalBidVol) || "0"}</span></div>
+        <div>{t("trading.orderBookTable.askVol")} <span className="value">{formatVol(totalAskVol) || "0"}</span></div>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { getMyHoldings } from "../../services/orderService";
 import { fetchStockDetail } from "../../services/marketApi";
 import { toast } from "react-toastify";
 import { UserContext } from "../../context/UserContext";
+import { useFavorites } from "../../context/FavoritesContext";
 
 /**
  * MainContent - Khu vực chính bên dưới thanh MarketSummary
@@ -16,21 +17,51 @@ import { UserContext } from "../../context/UserContext";
 const MainContent = (props) => {
   const { clearSearch } = useContext(SearchContext);
   const { user, setShowLoginModal } = useContext(UserContext);
+  const { favorites } = useFavorites();
   const [selectedGroup, setSelectedGroup] = useState("VN30");
   const [searchResults, setSearchResults] = useState(null);
   const [isPortfolioMode, setIsPortfolioMode] = useState(false);
+  const [isFavoritesMode, setIsFavoritesMode] = useState(false);
   const [portfolioLoading, setPortfolioLoading] = useState(false);
 
   const handleGroupChange = (group) => {
     setSelectedGroup(group);
     setSearchResults(null);
     setIsPortfolioMode(false);
+    setIsFavoritesMode(false);
     clearSearch();
+  };
+
+  const handleFavoritesClick = async () => {
+    if (favorites.length === 0) {
+      toast.info("Chưa có mã yêu thích nào. Hãy chuột phải vào một cổ phiếu để thêm!");
+      return;
+    }
+    const stockDataArr = await Promise.all(favorites.map(sym => fetchStockDetail(sym)));
+    const validStocks = stockDataArr.filter(r => r && r.success && r.data).map(r => r.data);
+    if (validStocks.length > 0) {
+      setSearchResults(validStocks);
+      setIsFavoritesMode(true);
+      setIsPortfolioMode(false);
+      clearSearch();
+      toast.success(`Danh sách yêu thích: ${validStocks.length} mã ⭐`);
+    }
+  };
+
+  const handleFavoriteTickerClick = async (symbol) => {
+    const result = await fetchStockDetail(symbol);
+    if (result && result.success && result.data) {
+      setSearchResults([result.data]);
+      setIsFavoritesMode(false);
+      setIsPortfolioMode(false);
+      clearSearch();
+    }
   };
 
   const handlePortfolioClick = async () => {
     if (!user?.isAuthenticated) {
       setShowLoginModal(true);
+      toast.warning("Vui lòng đăng nhập để xem danh mục!");
       return;
     }
     setPortfolioLoading(true);
@@ -71,15 +102,19 @@ const MainContent = (props) => {
       {/* ===== Sidebar bên trái ===== */}
       <Sidebar
         selectedGroup={selectedGroup}
-        isSearchMode={!!searchResults && !isPortfolioMode}
+        isSearchMode={!!searchResults && !isPortfolioMode && !isFavoritesMode}
         isPortfolioMode={isPortfolioMode}
+        isFavoritesMode={isFavoritesMode}
         portfolioLoading={portfolioLoading}
         onAllStocksClick={() => {
           setSearchResults(null);
           setIsPortfolioMode(false);
+          setIsFavoritesMode(false);
           clearSearch();
         }}
         onPortfolioClick={handlePortfolioClick}
+        onFavoritesClick={handleFavoritesClick}
+        onFavoriteTickerClick={handleFavoriteTickerClick}
       />
 
       {/* ===== Bảng giá trung tâm ===== */}

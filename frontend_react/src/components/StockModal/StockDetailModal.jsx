@@ -115,7 +115,7 @@ const StockDetailModal = (props) => {
               )}
               {props.onlyOrder ? (
                 <div className="stock-modal-body__only-order">
-                  <OrderEntry symbol={props.symbol} data={stockData} />
+                  <OrderEntry symbol={props.symbol} data={stockData} defaultSide={props.defaultSide} />
                 </div>
               ) : (
                 <>

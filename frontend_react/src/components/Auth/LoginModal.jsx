@@ -148,7 +148,16 @@ const LoginModal = (props) => {
             </div>
 
             <div className="open-account-link">
-              <a href="#open-account">Mở tài khoản giao dịch</a>
+              <a 
+                href="#open-account"
+                onClick={(e) => {
+                  e.preventDefault();
+                  props.handleClose();
+                  navigate("/register");
+                }}
+              >
+                Mở tài khoản giao dịch
+              </a>
             </div>
           </div>
         </div>

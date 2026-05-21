@@ -2,15 +2,23 @@ import React, { useState, useContext } from "react";
 import "./Nav.scss";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useSelector, useDispatch } from "react-redux";
+import { setTheme, selectTheme } from "../../store/themeSlice";
 import { UserContext } from "../../context/UserContext";
 import { SearchContext } from "../../context/SearchContext";
+import { useTranslation } from "../../context/LanguageContext";
 import useAllStocks from "../../hooks/useAllStocks";
 
 const Nav = (props) => {
   const { user, logoutContext, setShowLoginModal, balance, refreshBalance, notifications, markAllAsRead, toggleReadStatus } = useContext(UserContext);
   const { handleSearch, clearSearch } = useContext(SearchContext);
+  const { lang, setLang, t } = useTranslation();
+  const dispatch = useDispatch();
+  const currentTheme = useSelector(selectTheme);
   const [searchTerm, setSearchTerm] = useState("");
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [showThemeDropdown, setShowThemeDropdown] = useState(false);
+  const [showLangDropdown, setShowLangDropdown] = useState(false);
   const { allStocks, loading: stocksLoading } = useAllStocks();
   const [suggestions, setSuggestions] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -92,6 +100,8 @@ const Nav = (props) => {
   React.useEffect(() => {
     const handleOutsideClick = () => {
       setShowNotifDropdown(false);
+      setShowThemeDropdown(false);
+      setShowLangDropdown(false);
     };
     document.addEventListener("click", handleOutsideClick);
     return () => document.removeEventListener("click", handleOutsideClick);
@@ -137,7 +147,7 @@ const Nav = (props) => {
 
   const handleUnderDevelopment = (e) => {
     e.preventDefault();
-    toast.info("Tính năng đang được phát triển", {
+    toast.info(t("nav.devNotice"), {
       position: "top-center",
       autoClose: 3000,
     });
@@ -160,28 +170,28 @@ const Nav = (props) => {
 
         <div className="nav-link">
           <NavLink to="/market" className="child-nav-link">
-            Thị trường
+            {t("nav.market")}
           </NavLink>
           <NavLink to="/analysis" className="child-nav-link" onClick={handleUnderDevelopment}>
-            Phân tích
+            {t("nav.analysis")}
           </NavLink>
           <div className="asset-dropdown-wrapper">
             <div className="child-nav-link asset-nav-trigger">
-              Quản lý tài sản <i className="fa-solid fa-chevron-down asset-caret"></i>
+              {t("nav.assetManage")} <i className="fa-solid fa-chevron-down asset-caret"></i>
             </div>
             <div className="asset-dropdown-menu">
               <NavLink to="/orders" className="asset-dropdown-item">
                 <i className="fa-solid fa-list-check"></i>
-                <span>Sổ lệnh</span>
+                <span>{t("nav.orderBook")}</span>
               </NavLink>
               <NavLink to="/portfolio" className="asset-dropdown-item">
                 <i className="fa-solid fa-briefcase"></i>
-                <span>Danh mục</span>
+                <span>{t("nav.portfolio")}</span>
               </NavLink>
             </div>
           </div>
           <NavLink to="/news" className="child-nav-link" onClick={handleUnderDevelopment}>
-            Tin tức
+            {t("nav.news")}
           </NavLink>
         </div>
 
@@ -192,7 +202,7 @@ const Nav = (props) => {
             </div>
             <div className="input-search">
               <input 
-                placeholder="Search Ticker..." 
+                placeholder={t("nav.searchPlaceholder")} 
                 value={searchTerm}
                 onChange={(e) => handleInputChange(e.target.value)}
                 onBlur={() => {
@@ -251,9 +261,9 @@ const Nav = (props) => {
         <div className={`status-market status--${props.marketStatus?.toLowerCase()}`}>
           <span className="dot"></span> 
           <span className="text">
-            {props.marketStatus === "OPEN" && "MARKET OPEN"}
-            {props.marketStatus === "BREAK" && "LUNCH BREAK"}
-            {props.marketStatus === "CLOSED" && "MARKET CLOSED"}
+            {props.marketStatus === "OPEN" && t("nav.marketOpen")}
+            {props.marketStatus === "BREAK" && t("nav.marketBreak")}
+            {props.marketStatus === "CLOSED" && t("nav.marketClosed")}
           </span>
         </div>
       </div>
@@ -290,84 +300,184 @@ const Nav = (props) => {
               {showNotifDropdown && user?.isAuthenticated && (
                 <div className="notif-dropdown-menu" onClick={(e) => e.stopPropagation()}>
                   <div className="notif-dropdown-header">
-                    <h4>Thông báo ({unreadCount})</h4>
+                    <h4>{t("nav.notifications")} ({unreadCount})</h4>
                     <div className="header-actions">
                       {unreadCount > 0 && (
                         <span className="mark-all-read-btn" onClick={(e) => { e.stopPropagation(); markAllAsRead(); }}>
-                          <i className="fa-solid fa-check-double"></i> Đọc tất cả
+                          <i className="fa-solid fa-check-double"></i> {t("nav.markAllAsRead")}
                         </span>
                       )}
-                      <span className="clear-all-btn" onClick={() => setShowNotifDropdown(false)}>Đóng</span>
+                      <span className="clear-all-btn" onClick={() => setShowNotifDropdown(false)}>{t("nav.close")}</span>
                     </div>
                   </div>
                   <div className="notif-dropdown-body">
                     {!notifications || notifications.length === 0 ? (
                       <div className="notif-empty">
                         <i className="fa-regular fa-bell-slash"></i>
-                        <p>Không có thông báo mới nào</p>
+                        <p>{t("nav.emptyNotif")}</p>
                       </div>
                     ) : (
                       notifications.map((item, idx) => {
-                        const notifDetails = getNotifIcon(item.change_type);
-                        const isRead = !!item.is_read;
-                        return (
-                          <div key={`notif-${item.id || idx}`} className={`notif-item ${notifDetails.cls} ${isRead ? "read" : "unread"}`}>
-                            <div className="notif-item-icon">
-                              <i className={notifDetails.icon}></i>
-                            </div>
-                            <div className="notif-item-content">
-                              <div className="notif-item-text">{item.new_value}</div>
-                              <div className="notif-item-time-row">
-                                <span className="notif-item-time">{formatTimeAgo(item.createdAt)}</span>
-                                <span 
-                                  className="notif-mark-btn" 
-                                  onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    toggleReadStatus(item.id); 
-                                  }}
-                                  title={isRead ? "Đánh dấu chưa đọc" : "Đánh dấu đã đọc"}
-                                >
-                                  {isRead ? (
-                                    <i className="fa-regular fa-envelope"></i>
-                                  ) : (
-                                    <i className="fa-solid fa-envelope-open"></i>
-                                  )}
-                                  <span className="mark-btn-text">{isRead ? " Chưa đọc" : " Đã đọc"}</span>
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })
+                         const notifDetails = getNotifIcon(item.change_type);
+                         const isRead = !!item.is_read;
+                         return (
+                           <div key={`notif-${item.id || idx}`} className={`notif-item ${notifDetails.cls} ${isRead ? "read" : "unread"}`}>
+                             <div className="notif-item-icon">
+                               <i className={notifDetails.icon}></i>
+                             </div>
+                             <div className="notif-item-content">
+                               <div className="notif-item-text">{item.new_value}</div>
+                               <div className="notif-item-time-row">
+                                 <span className="notif-item-time">{formatTimeAgo(item.createdAt)}</span>
+                                 <span 
+                                   className="notif-mark-btn" 
+                                   onClick={(e) => { 
+                                     e.stopPropagation(); 
+                                     toggleReadStatus(item.id); 
+                                   }}
+                                   title={isRead ? (lang === "vi" ? "Đánh dấu chưa đọc" : "Mark as unread") : (lang === "vi" ? "Đánh dấu đã đọc" : "Mark as read")}
+                                 >
+                                   {isRead ? (
+                                     <i className="fa-regular fa-envelope"></i>
+                                   ) : (
+                                     <i className="fa-solid fa-envelope-open"></i>
+                                   )}
+                                   <span className="mark-btn-text">{isRead ? (lang === "vi" ? " Chưa đọc" : " Unread") : (lang === "vi" ? " Đã đọc" : " Read")}</span>
+                                 </span>
+                               </div>
+                             </div>
+                           </div>
+                         );
+                       })
                     )}
                   </div>
                   <div className="notif-dropdown-footer">
                     <NavLink to="/orders" onClick={() => setShowNotifDropdown(false)}>
-                      Xem tất cả trong Sổ lệnh <i className="fa-solid fa-arrow-right"></i>
+                      {t("nav.viewAllOrders")} <i className="fa-solid fa-arrow-right"></i>
                     </NavLink>
                   </div>
                 </div>
               )}
             </div>
-            <div className="theme-toggle">
-              <i className="fa-solid fa-moon"></i>
+            <div 
+              className={`theme-toggle-wrapper ${showThemeDropdown ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowThemeDropdown(!showThemeDropdown);
+              }}
+            >
+              <div className="theme-icon-btn">
+                <i className={`fa-solid ${currentTheme === "light" ? "fa-sun" : "fa-moon"}`}></i>
+              </div>
+
+              {showThemeDropdown && (
+                <div className="theme-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                  <div 
+                    className={`theme-dropdown-item ${currentTheme === "dark" ? "active" : ""}`}
+                    onClick={() => {
+                      dispatch(setTheme("dark"));
+                      setShowThemeDropdown(false);
+                    }}
+                  >
+                    <i className="fa-solid fa-moon"></i>
+                    <span>{t("nav.themeDark")}</span>
+                  </div>
+                  <div 
+                    className={`theme-dropdown-item ${currentTheme === "light" ? "active" : ""}`}
+                    onClick={() => {
+                      dispatch(setTheme("light"));
+                      setShowThemeDropdown(false);
+                    }}
+                  >
+                    <i className="fa-solid fa-sun"></i>
+                    <span>{t("nav.themeLight")}</span>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="language">
-              <svg width="20" height="20" viewBox="0 0 512 512" style={{borderRadius: '50%'}}>
-                <rect width="512" height="512" fill="#da251d"/>
-                <polygon 
-                  fill="#ff0" 
-                  points="256,92 298,223 436,223 325,303 367,435 256,355 145,435 187,303 76,223 214,223"
-                />
-              </svg>
+            <div 
+              className={`language-wrapper ${showLangDropdown ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLangDropdown(!showLangDropdown);
+              }}
+              style={{ cursor: "pointer", display: "flex", alignItems: "center", position: "relative" }}
+              data-tooltip={lang === "vi" ? "Ngôn ngữ" : "Language"}
+            >
+              <div className="language-icon-btn" style={{ display: 'flex', alignItems: 'center' }}>
+                {lang === "vi" ? (
+                  <svg width="24" height="16" viewBox="0 0 512 341" style={{ borderRadius: '2px', display: 'block' }}>
+                    <rect width="512" height="341" fill="#da251d"/>
+                    <g transform="translate(256, 170.5) scale(0.55) translate(-256, -256)">
+                      <polygon 
+                        fill="#ff0" 
+                        points="256,92 298,223 436,223 325,303 367,435 256,355 145,435 187,303 76,223 214,223"
+                      />
+                    </g>
+                  </svg>
+                ) : (
+                  <svg width="24" height="16" viewBox="0 0 60 30" style={{ borderRadius: '2px', display: 'block', objectFit: 'cover' }}>
+                    <rect width="60" height="30" fill="#012169"/>
+                    <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6"/>
+                    <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="4"/>
+                    <path d="M30,0 L30,30 M0,15 L60,15" stroke="#fff" strokeWidth="10"/>
+                    <path d="M30,0 L30,30 M0,15 L60,15" stroke="#C8102E" strokeWidth="6"/>
+                  </svg>
+                )}
+              </div>
+
+              {showLangDropdown && (
+                <div className="language-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                  <div 
+                    className={`language-dropdown-item ${lang === "vi" ? "active" : ""}`}
+                    onClick={() => {
+                      if (lang !== "vi") {
+                        setLang("vi");
+                        toast.info("Đã chuyển sang Tiếng Việt");
+                      }
+                      setShowLangDropdown(false);
+                    }}
+                  >
+                    <svg width="20" height="13" viewBox="0 0 512 341" style={{ borderRadius: '1.5px', display: 'block' }}>
+                      <rect width="512" height="341" fill="#da251d"/>
+                      <g transform="translate(256, 170.5) scale(0.55) translate(-256, -256)">
+                        <polygon 
+                          fill="#ff0" 
+                          points="256,92 298,223 436,223 325,303 367,435 256,355 145,435 187,303 76,223 214,223"
+                        />
+                      </g>
+                    </svg>
+                    <span>Tiếng Việt</span>
+                  </div>
+                  <div 
+                    className={`language-dropdown-item ${lang === "en" ? "active" : ""}`}
+                    onClick={() => {
+                      if (lang !== "en") {
+                        setLang("en");
+                        toast.info("Switched to English");
+                      }
+                      setShowLangDropdown(false);
+                    }}
+                  >
+                    <svg width="20" height="13" viewBox="0 0 60 30" style={{ borderRadius: '1.5px', display: 'block', objectFit: 'cover' }}>
+                      <rect width="60" height="30" fill="#012169"/>
+                      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6"/>
+                      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="4"/>
+                      <path d="M30,0 L30,30 M0,15 L60,15" stroke="#fff" strokeWidth="10"/>
+                      <path d="M30,0 L30,30 M0,15 L60,15" stroke="#C8102E" strokeWidth="6"/>
+                    </svg>
+                    <span>English</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
           {user?.isAuthenticated ? (
             <>
-              <div className="virtual-balance-chip" onClick={refreshBalance} title="Bấm để cập nhật số dư">
-                <span className="balance-label">VỐN ẢO</span>
-                <span className="balance-val">{balance.toLocaleString('vi-VN')} ₫</span>
+              <div className="virtual-balance-chip" onClick={refreshBalance} title={lang === "vi" ? "Bấm để cập nhật số dư" : "Click to refresh balance"}>
+                <span className="balance-label">{t("nav.virtualBalance")}</span>
+                <span className="balance-val">{balance.toLocaleString(lang === "vi" ? 'vi-VN' : 'en-US')} ₫</span>
                 <span className="balance-refresh"><i className="fa-solid fa-rotate"></i></span>
               </div>
               <div className="user-profile-dropdown">
@@ -381,31 +491,31 @@ const Nav = (props) => {
                 <div className="dropdown-menu-custom">
                   {user?.account?.role === 'ADMIN' && (
                     <NavLink to="/admin" className="dropdown-item">
-                      <i className="fa-solid fa-gauge"></i> Dashboard Admin
+                      <i className="fa-solid fa-gauge"></i> {t("nav.adminDashboard")}
                     </NavLink>
                   )}
                   <NavLink to="/profile" className="dropdown-item">
-                    <i className="fa-solid fa-id-card"></i> Thông tin cá nhân
+                    <i className="fa-solid fa-id-card"></i> {t("nav.personalProfile")}
                   </NavLink>
                   <NavLink 
                     to="/account" 
                     className="dropdown-item"
                     onClick={() => console.log("Navigating to Account Settings...")}
                   >
-                    <i className="fa-solid fa-user-gear"></i> Thông tin tài khoản
+                    <i className="fa-solid fa-user-gear"></i> {t("nav.accountSettings")}
                   </NavLink>
                   <div className="dropdown-divider"></div>
                   <div className="dropdown-item logout" onClick={handleLogout}>
-                    <i className="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    <i className="fa-solid fa-right-from-bracket"></i> {t("nav.logout")}
                   </div>
                 </div>
               </div>
             </>
           ) : (
             <div className="auth-buttons">
-              <NavLink to="/register" className="btn-open-account">Mở tài khoản</NavLink>
+              <NavLink to="/register" className="btn-open-account">{t("nav.openAccount")}</NavLink>
               <button className="btn-login" onClick={() => setShowLoginModal(true)}>
-                Đăng nhập
+                {t("nav.login")}
               </button>
             </div>
           )}

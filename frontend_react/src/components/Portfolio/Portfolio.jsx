@@ -3,13 +3,17 @@ import { toast } from 'react-toastify';
 import { getMyHoldings } from '../../services/orderService';
 import { getUserProfile } from '../../services/userService';
 import { UserContext } from '../../context/UserContext';
+import StockDetailModal from '../StockModal/StockDetailModal';
+import { useTranslation } from '../../context/LanguageContext';
 import './Portfolio.scss';
 
 const Portfolio = () => {
+    const { t, lang } = useTranslation();
     const { balance, refreshBalance } = useContext(UserContext);
     const [holdings, setHoldings] = useState([]);
     const [wallet, setWallet] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [sellModal, setSellModal] = useState(null); // { symbol }  khi mở modal bán
 
     const fetchData = async (showLoading = false) => {
         if (showLoading) setLoading(true);
@@ -57,42 +61,44 @@ const Portfolio = () => {
                 <div className="pf-title">
                     <i className="fa-solid fa-briefcase"></i>
                     <div>
-                        <h1>Danh mục đầu tư</h1>
-                        <p>Tổng quan tài sản và hiệu suất đầu tư</p>
+                        <h1>{t("portfolio.title")}</h1>
+                        <p>{t("portfolio.subtitle")}</p>
                     </div>
                 </div>
                 <button className="btn-refresh" onClick={() => { fetchData(true); refreshBalance(); }}>
-                    <i className="fa-solid fa-rotate"></i> Làm mới
+                    <i className="fa-solid fa-rotate"></i> {t("portfolio.refresh")}
                 </button>
             </div>
 
             <div className="pf-summary-cards">
                 <div className="summary-card total-assets">
-                    <div className="card-label">Tổng tài sản ước tính</div>
+                    <div className="card-label">{t("portfolio.summary.totalAssets")}</div>
                     <div className="card-value">{fmt(totalAssets)} <span className="unit">₫</span></div>
                 </div>
                 <div className="summary-card cash">
-                    <div className="card-label">Tiền mặt khả dụng</div>
+                    <div className="card-label">{t("portfolio.summary.availableCash")}</div>
                     <div className="card-value green">{fmt(availableBalance)} <span className="unit">₫</span></div>
                     {parseFloat(wallet?.pending_cash || 0) > 0 && (
                         <div className="card-sub pending" style={{ color: '#ffc107', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                            <i className="fa-regular fa-clock"></i> Chờ về T+2.5: {fmt(wallet.pending_cash)} ₫
+                            <i className="fa-regular fa-clock"></i> {t("portfolio.summary.pendingCash").replace("{amount}", fmt(wallet.pending_cash))}
                         </div>
                     )}
                     {parseFloat(wallet?.frozen_balance || 0) > 0 && (
-                        <div className="card-sub">Đang đóng băng: {fmt(wallet.frozen_balance)} ₫</div>
+                        <div className="card-sub">
+                            {t("portfolio.summary.frozenCash").replace("{amount}", fmt(wallet.frozen_balance))}
+                        </div>
                     )}
                 </div>
                 <div className="summary-card invested">
-                    <div className="card-label">Tổng vốn đầu tư</div>
+                    <div className="card-label">{t("portfolio.summary.totalInvested")}</div>
                     <div className="card-value orange">{fmt(totalInvested)} <span className="unit">₫</span></div>
                 </div>
                 <div className="summary-card stocks">
-                    <div className="card-label">Giá trị cổ phiếu</div>
+                    <div className="card-label">{t("portfolio.summary.stockValue")}</div>
                     <div className="card-value blue">{fmt(totalHoldingValue)} <span className="unit">₫</span></div>
                 </div>
                 <div className={`summary-card pnl ${totalPnL >= 0 ? 'positive' : 'negative'}`}>
-                    <div className="card-label">Lãi / Lỗ tạm tính</div>
+                    <div className="card-label">{t("portfolio.summary.estimatedPnL")}</div>
                     <div className="card-value">{totalPnL >= 0 ? '+' : ''}{fmt(totalPnL)} <span className="unit">₫</span></div>
                     <div className="card-pct">{fmtPct(totalPnLPct)}</div>
                 </div>
@@ -100,31 +106,32 @@ const Portfolio = () => {
 
             {/* Holdings table */}
             <div className="pf-table-wrapper">
-                <div className="pf-table-title">Danh sách cổ phiếu nắm giữ ({holdings.length} mã)</div>
+                <div className="pf-table-title">{t("portfolio.table.title").replace("{count}", holdings.length)}</div>
                 {loading ? (
                     <div className="pf-loading">
                         <i className="fa-solid fa-spinner fa-spin"></i>
-                        <span>Đang tải danh mục...</span>
+                        <span>{t("portfolio.table.loading")}</span>
                     </div>
                 ) : holdings.length === 0 ? (
                     <div className="pf-empty">
                         <i className="fa-solid fa-chart-line"></i>
-                        <p>Bạn chưa có cổ phiếu nào trong danh mục</p>
-                        <span>Hãy đặt lệnh mua để bắt đầu đầu tư!</span>
+                        <p>{t("portfolio.table.emptyTitle")}</p>
+                        <span>{t("portfolio.table.emptySubtitle")}</span>
                     </div>
                 ) : (
                     <table className="pf-table">
                         <thead>
                             <tr>
-                                <th>Mã CP</th>
-                                <th>Tên công ty</th>
-                                <th>Sàn</th>
-                                <th>Số lượng</th>
-                                <th>Giá TB mua</th>
-                                <th>Giá hiện tại</th>
-                                <th>Giá trị thị trường</th>
-                                <th>Lãi / Lỗ</th>
-                                <th>% Lãi / Lỗ</th>
+                                <th>{t("portfolio.table.headers.symbol")}</th>
+                                <th>{t("portfolio.table.headers.company")}</th>
+                                <th>{t("portfolio.table.headers.exchange")}</th>
+                                <th>{t("portfolio.table.headers.quantity")}</th>
+                                <th>{t("portfolio.table.headers.avgPrice")}</th>
+                                <th>{t("portfolio.table.headers.curPrice")}</th>
+                                <th>{t("portfolio.table.headers.marketValue")}</th>
+                                <th>{t("portfolio.table.headers.pnl")}</th>
+                                <th>{t("portfolio.table.headers.pnlPct")}</th>
+                                <th className="col-action-head">{t("portfolio.table.headers.action")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -154,6 +161,23 @@ const Portfolio = () => {
                                                 {fmtPct(pnlPct)}
                                             </span>
                                         </td>
+                                        <td className="col-action">
+                                            {(h.sellableQuantity ?? 0) > 0 ? (
+                                                <button
+                                                    className="btn-sell"
+                                                    title={t("portfolio.table.actions.sellTitle").replace("{symbol}", h.stock?.symbol || '').replace("{qty}", (h.sellableQuantity || 0).toLocaleString())}
+                                                    onClick={() => setSellModal({ symbol: h.stock?.symbol })}
+                                                >
+                                                    <i className="fa-solid fa-arrow-trend-down" />
+                                                    {t("portfolio.table.actions.sell")}
+                                                </button>
+                                            ) : (
+                                                <span className="badge-pending" title={t("portfolio.table.actions.pendingT25Title")}>
+                                                    <i className="fa-regular fa-clock" />
+                                                    {t("portfolio.table.actions.pendingT25")}
+                                                </span>
+                                            )}
+                                        </td>
                                     </tr>
                                 );
                             })}
@@ -161,6 +185,17 @@ const Portfolio = () => {
                     </table>
                 )}
             </div>
+
+            {/* Modal đặt lệnh bán */}
+            {sellModal && (
+                <StockDetailModal
+                    symbol={sellModal.symbol}
+                    onlyOrder={true}
+                    defaultSide="SELL"
+                    onClose={() => setSellModal(null)}
+                    onChangeSymbol={(s) => setSellModal({ symbol: s })}
+                />
+            )}
         </div>
     );
 };

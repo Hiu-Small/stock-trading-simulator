@@ -22,20 +22,20 @@
 
       th, td {
         padding: 12px 16px; // Added horizontal padding
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid var(--border-primary);
       }
 
       th {
-        color: #8888aa;
+        color: var(--text-muted);
         font-weight: 600;
         position: sticky;
         top: 0;
-        background-color: #1a1b24;
+        background-color: var(--bg-primary); // Đồng bộ header table tông chàm
         z-index: 1;
       }
 
       td {
-        color: #fff;
+        color: var(--text-primary);
         
         &.col-name {
           font-weight: 500;
@@ -54,9 +54,10 @@
       .text-right { text-align: right; }
 
       .no-data {
-        color: #8888aa;
+        color: var(--text-muted);
         padding: 24px;
       }
     }
   }
 }
+

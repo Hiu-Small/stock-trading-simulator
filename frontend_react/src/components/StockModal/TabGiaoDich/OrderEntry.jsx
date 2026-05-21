@@ -4,8 +4,10 @@ import { getUserProfile, verifyPin } from "../../../services/userService";
 import { placeOrder, getMyHoldings } from "../../../services/orderService";
 import { toast } from "react-toastify";
 import { UserContext } from "../../../context/UserContext";
+import { useTranslation } from "../../../context/LanguageContext";
 
-const OrderEntry = ({ symbol, data }) => {
+const OrderEntry = ({ symbol, data, defaultSide }) => {
+  const { t, lang } = useTranslation();
   const { refreshBalance } = useContext(UserContext);
   const [userData, setUserData] = useState(null);
   const [account, setAccount] = useState("");
@@ -16,7 +18,7 @@ const OrderEntry = ({ symbol, data }) => {
   const [saveAuth, setSaveAuth] = useState(true);
 
   const [prevSymbol, setPrevSymbol] = useState(symbol);
-  const [side, setSide] = useState("BUY"); // Mặc định là BUY
+  const [side, setSide] = useState(defaultSide || "BUY"); // Mặc định là BUY, hoặc theo prop
   const [showTooltip, setShowTooltip] = useState(false);
 
   const [sellableQty, setSellableQty] = useState(0);
@@ -261,7 +263,7 @@ const OrderEntry = ({ symbol, data }) => {
 
     const pinCode = pinDigits.join("");
     if (pinCode.length < 6) {
-      toast.error("Vui lòng nhập đầy đủ 6 số PIN!");
+      toast.error(t("trading.orderEntry.toasts.enterPin"));
       return;
     }
 
@@ -270,7 +272,7 @@ const OrderEntry = ({ symbol, data }) => {
       // 1. Xác thực mã PIN thông qua API backend
       const pinRes = await verifyPin(pinCode);
       if (!pinRes || pinRes.EC !== 0) {
-        toast.error(pinRes?.EM || "Mã PIN giao dịch không chính xác!");
+        toast.error(pinRes?.EM || t("trading.orderEntry.toasts.incorrectPin"));
         // Làm trống mã PIN để nhập lại
         setPinDigits(["", "", "", "", "", ""]);
         // Focus lại ô đầu tiên
@@ -285,7 +287,7 @@ const OrderEntry = ({ symbol, data }) => {
       const res = await placeOrder(symbol, qty, numericPrice, orderSide, orderType);
       
       if (res && res.EC === 0) {
-        toast.success(res.EM || "Đặt lệnh thành công!");
+        toast.success(res.EM || t("trading.orderEntry.toasts.orderSuccess"));
         // Làm mới thông tin ví, số dư ở cả ô OrderEntry và Header (Vốn ảo)
         fetchUserData();
         refreshBalance();
@@ -295,11 +297,11 @@ const OrderEntry = ({ symbol, data }) => {
         setPendingOrder(null);
         setPinDigits(["", "", "", "", "", ""]);
       } else {
-        toast.error(res?.EM || "Đặt lệnh thất bại!");
+        toast.error(res?.EM || t("trading.orderEntry.toasts.orderFailed"));
       }
     } catch (err) {
       console.error("[OrderEntry] Lỗi đặt lệnh hoặc mã PIN:", err);
-      toast.error(err?.response?.data?.EM || "Lỗi hệ thống khi đặt lệnh!");
+      toast.error(err?.response?.data?.EM || t("trading.orderEntry.toasts.systemError"));
     } finally {
       setSubmitting(false);
     }
@@ -311,14 +313,14 @@ const OrderEntry = ({ symbol, data }) => {
     // 1. Kiểm tra khối lượng
     const qty = parseInt(quantity);
     if (isNaN(qty) || qty <= 0) {
-      toast.error("Vui lòng nhập khối lượng hợp lệ!");
+      toast.error(t("trading.orderEntry.toasts.invalidQty"));
       return;
     }
 
     // Kiểm tra số lượng cổ phiếu khả dụng để bán
     if (orderSide === "SELL") {
       if (qty > sellableQty) {
-        toast.error(`Số lượng cổ phiếu khả dụng để bán không đủ! Khả dụng: ${sellableQty} CP.`);
+        toast.error(t("trading.orderEntry.toasts.insufficientQty").replace("{qty}", sellableQty));
         return;
       }
     }
@@ -339,14 +341,14 @@ const OrderEntry = ({ symbol, data }) => {
     } else {
       const p = parseFloat(price);
       if (isNaN(p) || p <= 0) {
-        toast.error("Vui lòng nhập giá hợp lệ!");
+        toast.error(t("trading.orderEntry.toasts.invalidPrice"));
         return;
       }
       numericPrice = p * 1000; // Quy đổi từ nghìn đồng sang VNĐ
     }
 
     if (numericPrice <= 0) {
-      toast.error("Không thể xác định giá của cổ phiếu!");
+      toast.error(t("trading.orderEntry.toasts.invalidStockPrice"));
       return;
     }
 
@@ -361,7 +363,7 @@ const OrderEntry = ({ symbol, data }) => {
       const tickInt = Math.round(tickInVnd);
       
       if (priceInt % tickInt !== 0) {
-        toast.error(`Giá đặt không hợp lệ! Với sàn ${currentExchange} ở mức giá này, bước giá phải là bội số của ${tickInt} VNĐ.`);
+        toast.error(t("trading.orderEntry.toasts.invalidTick").replace("{exchange}", currentExchange).replace("{tick}", tickInt));
         return;
       }
     }
@@ -371,7 +373,7 @@ const OrderEntry = ({ symbol, data }) => {
       const baseFeePct = 0.15; // Phí giao dịch tạm tính
       const totalRequired = qty * numericPrice * (1 + baseFeePct / 100);
       if (totalRequired > buyingPower) {
-        toast.error(`Sức mua không đủ để đặt lệnh! Cần khoảng ${formatNumber(totalRequired)} VNĐ (gồm phí), Sức mua tối đa: ${formatNumber(buyingPower)} VNĐ.`);
+        toast.error(t("trading.orderEntry.toasts.insufficientCash").replace("{required}", formatNumber(totalRequired)).replace("{max}", formatNumber(buyingPower)));
         return;
       }
     }
@@ -399,13 +401,13 @@ const OrderEntry = ({ symbol, data }) => {
   return (
     <div className="order-entry-panel">
       <div className="order-entry-header">
-        <div className="title">Đặt lệnh</div>
+        <div className="title">{t("trading.orderEntry.title")}</div>
       </div>
 
       <div className="order-entry-body">
         {/* Account Selection */}
         <div className="form-row">
-          <label>Tài khoản đặt lệnh</label>
+          <label>{t("trading.orderEntry.accountLabel")}</label>
           <div className="account-select-wrapper">
             <select value={account} onChange={(e) => setAccount(e.target.value)}>
               <option value={userData?.account_number}>{userData?.account_number}</option>
@@ -416,7 +418,7 @@ const OrderEntry = ({ symbol, data }) => {
 
         {/* Buying Power */}
         <div className="form-row buying-power">
-          <label>Sức mua <i className="fa-regular fa-circle-question"></i></label>
+          <label>{t("trading.orderEntry.buyingPower")} <i className="fa-regular fa-circle-question"></i></label>
           <div className="value-group">
             <span className="balance">{formatNumber(buyingPower)} VNĐ</span>
             <span className="limits-wrapper">
@@ -428,14 +430,14 @@ const OrderEntry = ({ symbol, data }) => {
         </div>
         {pendingCash > 0 && (
           <div className="form-row pending-cash-info" style={{ fontSize: '11px', color: '#aaa', marginTop: '-10px', display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-            <span>(Gồm {formatNumber(availableCash)} tiền mặt + {formatNumber(pendingCash)} tiền bán chờ về)</span>
+            <span>{t("trading.orderEntry.buyingPowerHint").replace("{availableCash}", formatNumber(availableCash)).replace("{pendingCash}", formatNumber(pendingCash))}</span>
           </div>
         )}
 
         {/* Auto Price */}
         <div className="form-row auto-price">
           <label>
-            Giá tự động 
+            {t("trading.orderEntry.autoPrice")}
             <div 
               className="tooltip-wrapper"
               onMouseEnter={() => setShowTooltip(true)}
@@ -444,8 +446,8 @@ const OrderEntry = ({ symbol, data }) => {
               <i className="fa-regular fa-circle-question"></i>
               {showTooltip && (
                 <div className="tooltip-box">
-                  <p>Giá mua = Giá Dư bán tốt nhất + Biên trượt</p>
-                  <p>Giá bán = Giá Dư mua tốt nhất - Biên trượt</p>
+                  <p>{t("trading.orderEntry.autoPriceBuyHint")}</p>
+                  <p>{t("trading.orderEntry.autoPriceSellHint")}</p>
                 </div>
               )}
             </div>
@@ -457,7 +459,7 @@ const OrderEntry = ({ symbol, data }) => {
 
         {/* Quantity */}
         <div className="form-row">
-          <label>Khối lượng</label>
+          <label>{t("trading.orderEntry.quantity")}</label>
           <div className="number-input">
             <button onClick={handleDecreaseQty}>-</button>
             <input 
@@ -472,7 +474,7 @@ const OrderEntry = ({ symbol, data }) => {
 
         {/* Price */}
         <div className="form-row">
-          <label>Giá (x1000 VNĐ)</label>
+          <label>{t("trading.orderEntry.price")}</label>
           <div className={`number-input ${isAutoPrice || typeof price === "string" ? 'disabled' : ''}`}>
             <button 
               onClick={() => {
@@ -527,7 +529,7 @@ const OrderEntry = ({ symbol, data }) => {
                 setPrice(price === "MTL" ? (data?.matchPrice ? data.matchPrice / 1000 : 0) : "MTL");
               }
             }}
-            title={session.mtl ? "Đặt lệnh thị trường MTL" : "Phiên liên tục (9:15-11:30, 13:00-14:30) mới dùng được"}
+            title={session.mtl ? t("trading.orderEntry.mtlContinuous") : t("trading.orderEntry.mtlContinuousOnly")}
           >
             MTL
           </button>
@@ -538,7 +540,7 @@ const OrderEntry = ({ symbol, data }) => {
                 setPrice(price === "ATO" ? (data?.matchPrice ? data.matchPrice / 1000 : 0) : "ATO");
               }
             }}
-            title={session.ato ? "Đặt lệnh ATO mở cửa" : "Phiên ATO mở cửa (9:00-9:15) mới dùng được"}
+            title={session.ato ? t("trading.orderEntry.atoOpening") : t("trading.orderEntry.atoOpeningOnly")}
           >
             ATO
           </button>
@@ -549,7 +551,7 @@ const OrderEntry = ({ symbol, data }) => {
                 setPrice(price === "ATC" ? (data?.matchPrice ? data.matchPrice / 1000 : 0) : "ATC");
               }
             }}
-            title={session.atc ? "Đặt lệnh ATC đóng cửa (Đặt trước dưới dạng lệnh chờ)" : "Phiên ATC đóng cửa (Đặt lệnh chờ khả dụng từ 9:15 đến 14:45)"}
+            title={session.atc ? t("trading.orderEntry.atcClosing") : t("trading.orderEntry.atcClosingOnly")}
           >
             ATC
           </button>
@@ -558,13 +560,13 @@ const OrderEntry = ({ symbol, data }) => {
 
         {/* Value Display */}
         <div className="form-row total-value">
-          <label>Giá trị</label>
+          <label>{t("trading.orderEntry.value")}</label>
           <span className="value">{formatNumber(totalValue)} VNĐ</span>
         </div>
         {needAdvance && (
           <div className="form-row advance-warning" style={{ fontSize: '12px', color: '#ffc107', marginTop: '-10px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', width: '100%' }}>
-            <span>⚠️ Tự động ứng trước: {formatNumber(estimatedAdvanceAmount)} ₫ từ tiền chờ về</span>
-            <span>Phí ứng trước tạm tính (2 ngày): {formatNumber(estimatedAdvanceFee)} ₫</span>
+            <span>{t("trading.orderEntry.autoAdvance").replace("{amount}", formatNumber(estimatedAdvanceAmount))}</span>
+            <span>{t("trading.orderEntry.estimatedAdvanceFee").replace("{amount}", formatNumber(estimatedAdvanceFee))}</span>
           </div>
         )}
 
@@ -572,13 +574,13 @@ const OrderEntry = ({ symbol, data }) => {
 
         {/* Authentication */}
         <div className="form-row auth-section">
-          <label>Kiểu xác thực</label>
+          <label>{t("trading.orderEntry.verification")}</label>
           <div className="auth-controls">
-            <span className="otp-label">Mã Smart OTP</span>
+            <span className="otp-label">{t("trading.orderEntry.smartOtp")}</span>
             <label className="checkbox-container">
               <input type="checkbox" checked={saveAuth} onChange={() => setSaveAuth(!saveAuth)} />
               <span className="checkmark"></span>
-              Lưu xác thực
+              {t("trading.orderEntry.rememberAuth")}
             </label>
             <select className="otp-select">
               <option>8...</option>
@@ -589,10 +591,10 @@ const OrderEntry = ({ symbol, data }) => {
         {/* Buy/Sell Buttons */}
         <div className="action-buttons">
           <button className="btn-buy" onClick={() => handlePlaceNewOrder("BUY")} disabled={submitting}>
-            {submitting ? "Đang xử lý..." : "Mua"}
+            {submitting ? t("trading.orderEntry.processing") : t("trading.orderEntry.buy")}
           </button>
           <button className="btn-sell" onClick={() => handlePlaceNewOrder("SELL")} disabled={submitting}>
-            {submitting ? "Đang xử lý..." : "Bán"}
+            {submitting ? t("trading.orderEntry.processing") : t("trading.orderEntry.sell")}
           </button>
         </div>
 
@@ -604,23 +606,23 @@ const OrderEntry = ({ symbol, data }) => {
           <div className="pin-confirm-modal">
             <div className="pin-confirm-header">
               <i className="fa-solid fa-shield-halved secure-icon"></i>
-              <h3>Xác thực PIN giao dịch</h3>
-              <p>Vui lòng nhập mã PIN gồm 6 chữ số để xác nhận lệnh của bạn.</p>
+              <h3>{t("trading.orderEntry.pinModal.title")}</h3>
+              <p>{t("trading.orderEntry.pinModal.subtitle")}</p>
             </div>
             
             <div className="order-summary-box">
               <div className="summary-row">
-                <span className="lbl">Mã lệnh:</span>
+                <span className="lbl">{t("trading.orderEntry.pinModal.order")}</span>
                 <span className={`val side-${pendingOrder?.orderSide?.toLowerCase()}`}>
-                  {pendingOrder?.orderSide === "BUY" ? "MUA" : "BÁN"} {pendingOrder?.symbol}
+                  {pendingOrder?.orderSide === "BUY" ? t("trading.orderEntry.pinModal.buySide") : t("trading.orderEntry.pinModal.sellSide")} {pendingOrder?.symbol}
                 </span>
               </div>
               <div className="summary-row">
-                <span className="lbl">Khối lượng:</span>
-                <span className="val">{formatNumber(pendingOrder?.qty)} CP</span>
+                <span className="lbl">{t("trading.orderEntry.pinModal.quantity")}</span>
+                <span className="val">{formatNumber(pendingOrder?.qty)} {lang === "vi" ? t("trading.orderEntry.pinModal.qtyUnit") : t("trading.orderEntry.pinModal.sharesUnit")}</span>
               </div>
               <div className="summary-row">
-                <span className="lbl">Giá đặt:</span>
+                <span className="lbl">{t("trading.orderEntry.pinModal.price")}</span>
                 <span className="val">
                   {pendingOrder?.orderType !== "LO" 
                     ? pendingOrder?.orderType 
@@ -629,7 +631,7 @@ const OrderEntry = ({ symbol, data }) => {
               </div>
               {pendingOrder?.orderSide === "BUY" && (pendingOrder?.qty * pendingOrder?.numericPrice) > availableCash && (
                 <div className="summary-row" style={{ color: '#ffc107', fontSize: '12px' }}>
-                  <span className="lbl">Phí ứng trước (tạm tính):</span>
+                  <span className="lbl">{t("trading.orderEntry.pinModal.advanceFee")}</span>
                   <span className="val">
                     {formatNumber(((pendingOrder?.qty * pendingOrder?.numericPrice) - availableCash) * (0.038 / 100) * 2)} ₫
                   </span>
@@ -641,26 +643,26 @@ const OrderEntry = ({ symbol, data }) => {
               <div className="pin-code-inputs">
                 {pinDigits.map((digit, idx) => (
                   <input
-                    key={`pin-${idx}`}
-                    name={`confirm-order-pin-${idx}`}
-                    type="password"
-                    maxLength="1"
-                    pattern="\d*"
-                    inputMode="numeric"
-                    value={digit}
-                    onChange={(e) => handlePinInput(idx, e.target.value)}
-                    onKeyDown={(e) => handlePinKeyDown(e, idx)}
-                    required
+                     key={`pin-${idx}`}
+                     name={`confirm-order-pin-${idx}`}
+                     type="password"
+                     maxLength="1"
+                     pattern="\d*"
+                     inputMode="numeric"
+                     value={digit}
+                     onChange={(e) => handlePinInput(idx, e.target.value)}
+                     onKeyDown={(e) => handlePinKeyDown(e, idx)}
+                     required
                   />
                 ))}
               </div>
 
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={handleCancelPinConfirm} disabled={submitting}>
-                  Hủy bỏ
+                  {t("trading.orderEntry.pinModal.cancel")}
                 </button>
                 <button type="submit" className="btn-submit" disabled={submitting}>
-                  {submitting ? "Đang xử lý..." : "Xác nhận & Đặt lệnh"}
+                  {submitting ? t("trading.orderEntry.processing") : t("trading.orderEntry.pinModal.confirm")}
                 </button>
               </div>
             </form>

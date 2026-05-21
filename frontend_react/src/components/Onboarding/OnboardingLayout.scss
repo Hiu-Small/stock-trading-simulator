@@ -1,8 +1,8 @@
-.onboarding-container {
+﻿.onboarding-container {
     display: flex;
     height: 100vh;
     width: 100vw;
-    background-color: #0f0f23;
+    background-color: var(--bg-deep);
     overflow: hidden;
 
     .onboarding-left {
@@ -144,7 +144,7 @@
 
     .onboarding-right {
         width: 60%;
-        background-color: #0f0f23;
+        background-color: var(--bg-deep);
         padding: 40px 60px;
         display: flex;
         flex-direction: column;
@@ -250,3 +250,4 @@
         }
     }
 }
+

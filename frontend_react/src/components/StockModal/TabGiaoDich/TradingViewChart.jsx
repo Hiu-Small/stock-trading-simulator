@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { selectTheme } from "../../../store/themeSlice";
 import {
   createChart,
   CandlestickSeries,
@@ -6,6 +8,12 @@ import {
 } from "lightweight-charts";
 import "./TradingViewChart.scss";
 import { fetchStockHistory } from "../../../services/marketApi";
+
+const getCSSColor = (varName, fallback) => {
+  if (typeof window === "undefined") return fallback;
+  const val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  return val || fallback;
+};
 
 const INTERVALS = [
   { label: "1M", value: "1M", zoomDays: 22 },
@@ -45,6 +53,7 @@ class ChartErrorBoundary extends React.Component {
 // COMPONENT CHART CHÍNH
 // ============================================
 const TradingViewChartInner = (props) => {
+  const theme = useSelector(selectTheme); // Lấy theme dynamic
   const chartContainerRef = useRef(null);
   const chartRef = useRef(null);
   const candleSeriesRef = useRef(null);
@@ -75,23 +84,24 @@ const TradingViewChartInner = (props) => {
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
+    const isDark = theme === "dark";
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { color: "#1a1b24" },
-        textColor: "#8888aa",
+        background: { color: isDark ? getCSSColor("--bg-card", "#16162c") : getCSSColor("--bg-card-light", "#f8f9fa") }, // Đồng bộ màu nền card modal
+        textColor: isDark ? "#8888aa" : "#444444",
       },
       grid: {
-        vertLines: { color: "rgba(255, 255, 255, 0.05)" },
-        horzLines: { color: "rgba(255, 255, 255, 0.05)" },
+        vertLines: { color: isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.05)" },
+        horzLines: { color: isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.05)" },
       },
       crosshair: {
         mode: 0,
-        vertLine: { labelBackgroundColor: "#4e5d6c" },
-        horzLine: { labelBackgroundColor: "#4e5d6c" },
+        vertLine: { labelBackgroundColor: isDark ? "#4e5d6c" : "#a0aec0" },
+        horzLine: { labelBackgroundColor: isDark ? "#4e5d6c" : "#a0aec0" },
       },
-      rightPriceScale: { borderColor: "rgba(255, 255, 255, 0.1)" },
+      rightPriceScale: { borderColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)" },
       timeScale: {
-        borderColor: "rgba(255, 255, 255, 0.1)",
+        borderColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)",
         timeVisible: false,
       },
       width: chartContainerRef.current.clientWidth || 600,
@@ -233,6 +243,26 @@ const TradingViewChartInner = (props) => {
       }
     };
   }, []);
+
+  // Lắng nghe thay đổi theme để apply options tức thì
+  useEffect(() => {
+    if (!chartRef.current) return;
+    const isDark = theme === "dark";
+    chartRef.current.applyOptions({
+      layout: {
+        background: { color: isDark ? getCSSColor("--bg-card", "#16162c") : getCSSColor("--bg-card-light", "#f8f9fa") },
+        textColor: isDark ? "#8888aa" : "#444444",
+      },
+      grid: {
+        vertLines: { color: isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.05)" },
+        horzLines: { color: isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.05)" },
+      },
+      rightPriceScale: { borderColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)" },
+      timeScale: {
+        borderColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)",
+      },
+    });
+  }, [theme]);
 
   // Load dữ liệu
   useEffect(() => {

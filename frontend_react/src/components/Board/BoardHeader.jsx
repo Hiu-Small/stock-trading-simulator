@@ -1,5 +1,6 @@
 import React from "react";
 import "./BoardHeader.scss";
+import { useTranslation } from "../../context/LanguageContext";
 
 /**
  * BoardHeader - Thanh công cụ phía trên bảng giá:
@@ -7,6 +8,7 @@ import "./BoardHeader.scss";
  *   - Nút lọc: Active Only, Columns, giờ ATO
  */
 const BoardHeader = (props) => {
+  const { t } = useTranslation();
   const groups = [
     { id: "VN30", label: "VN30" },
     { id: "HNX30", label: "HNX30" },
@@ -35,19 +37,19 @@ const BoardHeader = (props) => {
 
       {/* ===== Thống kê nhanh (tăng / giảm / không đổi / kịch trần / kịch sàn) ===== */}
       <div className="board-header__quick-stats">
-        <span className="quick-stat price--ceiling">
+        <span className="quick-stat price--ceiling" title={t("board.stats.ceiling")}>
           <div>▲</div> <div>{props.stateStock.ceiling}</div>
         </span>
-        <span className="quick-stat price--up">
+        <span className="quick-stat price--up" title={t("board.stats.up")}>
           <div>▲</div> <div>{props.stateStock.increase}</div>
         </span>
-        <span className="quick-stat price--ref">
+        <span className="quick-stat price--ref" title={t("board.stats.ref")}>
           <div>–</div> <div>{props.stateStock.ref}</div>
         </span>
-        <span className="quick-stat price--down">
+        <span className="quick-stat price--down" title={t("board.stats.down")}>
           <div>▼</div> <div>{props.stateStock.decrease}</div>
         </span>
-        <span className="quick-stat price--floor">
+        <span className="quick-stat price--floor" title={t("board.stats.floor")}>
           <div>▼</div> <div>{props.stateStock.floor}</div>
         </span>
       </div>
@@ -60,12 +62,12 @@ const BoardHeader = (props) => {
           onClick={props.onToggleActiveOnly}
         >
           <i className="fa-solid fa-filter"></i>
-          Active Only
+          {t("lang") === "vi" ? "Chỉ mã giao dịch" : "Active Only"}
         </button>
 
         <button className="board-action-btn" id="btn-columns">
           <i className="fa-solid fa-table-columns"></i>
-          Columns
+          {t("lang") === "vi" ? "Cột hiển thị" : "Columns"}
         </button>
       </div>
     </div>

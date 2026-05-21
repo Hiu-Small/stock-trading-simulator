@@ -1,5 +1,5 @@
 .company-intro {
-  color: #d1d4dc;
+  color: var(--text-primary); // Chuyển sang màu dynamic chuẩn (đen ở Light, trắng ở Dark)
   font-size: 13px;
   line-height: 1.6;
 
@@ -10,7 +10,7 @@
 
   .intro-section{
     .section-title {
-      color: #fff;
+      color: var(--text-primary);
       font-size: 14px;
       margin-bottom: 12px;
       font-weight: 500;
@@ -21,10 +21,11 @@
     margin-top: 24px;
 
     .section-title {
-      color: #fff;
+      color: var(--text-primary);
       font-size: 14px;
       margin-bottom: 12px;
       font-weight: 500;
     }
   }
 }
+

@@ -73,7 +73,7 @@
     display: flex;
     gap: 10px;
     margin-bottom: 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border-primary);
     padding-bottom: 1px;
 
     .tab-item {
@@ -126,11 +126,12 @@
     margin-bottom: 30px;
 
     .summary-card {
-      padding: 24px;
+      @include dashboard-section;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       min-height: 180px;
+      margin-bottom: 0;
 
       .card-top {
         display: flex;
@@ -189,7 +190,7 @@
 
       .card-bottom {
         padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 1px solid var(--border-primary);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -239,15 +240,16 @@
         position: relative;
         i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: $text-muted; }
         input {
-          background-color: $card-dark;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background-color: var(--bg-hover);
+          border: 1px solid var(--border-primary);
           padding: 10px 15px 10px 40px;
           border-radius: 8px;
           color: $text-main;
           width: 350px;
           font-size: 14px;
           outline: none;
-          &:focus { border-color: rgba($accent-blue, 0.3); }
+          transition: all 0.2s ease;
+          &:focus { border-color: var(--accent-primary); }
         }
       }
     }
@@ -257,7 +259,6 @@
     @include dashboard-section;
     padding: 0;
     overflow: hidden;
-    background-color: $card-dark;
   }
 
   .admin-table {
@@ -266,12 +267,12 @@
     text-align: left;
     
     thead {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--border-primary);
       th {
         padding: 16px 20px;
         font-size: 12px;
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
@@ -279,10 +280,10 @@
 
     tbody {
       tr {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid var(--border-primary);
         transition: background-color 0.2s;
         
-        &:hover { background-color: rgba(255, 255, 255, 0.02); }
+        &:hover { background-color: var(--bg-hover); }
         &:last-child { border-bottom: none; }
 
         &.row-halted {
@@ -297,9 +298,9 @@
       }
     }
 
-    .col-symbol { color: #fff; font-weight: 700; font-size: 15px; }
+    .col-symbol { color: var(--text-primary); font-weight: 700; font-size: 15px; }
     .col-company { color: $text-main; font-weight: 500; }
-    .col-price { color: #fff; font-weight: 600; font-family: monospace; font-size: 15px; }
+    .col-price { color: var(--text-primary); font-weight: 600; font-family: monospace; font-size: 15px; }
     .col-time { color: $text-muted; font-size: 13px; }
 
     .change-badge {
@@ -349,7 +350,7 @@
     position: absolute;
     cursor: pointer;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--border-secondary);
     transition: .4s;
     border-radius: 34px;
 

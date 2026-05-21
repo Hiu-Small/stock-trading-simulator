@@ -1,50 +1,16 @@
-/* App.scss - Global resets & dark theme base */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* App.scss - Global resets & theme base */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body, #root {
   height: 100%;
-  background-color: #0f0f23;
-  color: #e0e0f0;
+  background-color: var(--bg-deep);
+  color: var(--text-heading);
   font-family: "Inter", "Roboto", sans-serif;
   font-size: 14px;
   overflow: auto;
 }
 
-/* Custom sleek dark scrollbar globally to replace browser defaults */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-/* Make scrollbar track transparent to blend with any background */
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.25);
-  }
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) #0f0f23;
-}
-
-#root {
-  display: flex;
-  flex-direction: column;
-}
+#root { display: flex; flex-direction: column; }
 
 // Ensure toast is above modals
-.Toastify__toast-container {
-  z-index: 99999 !important;
-}
+.Toastify__toast-container { z-index: 99999 !important; }

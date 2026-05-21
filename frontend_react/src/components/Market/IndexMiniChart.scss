@@ -2,7 +2,8 @@
   width: 100%;
   height: 100%; 
   position: relative;
-  background-color: rgba(0, 0, 0, 0.15);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   padding: 4px 4px 16px 4px; 
 
@@ -14,17 +15,17 @@
   }
 
   &__chart-section {
-    position: relative; // Để các nhãn absolute căn theo
+    position: relative; // Ä á»ƒ cÃ¡c nhÃ£n absolute cÄƒn theo
   }
 
   .chart-ref-label {
     position: absolute;
     font-size: 9px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
+    font-weight: 700;
+    color: var(--text-primary);
     pointer-events: none;
     z-index: 5;
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+    text-shadow: 0 0 2px var(--bg-primary);
     white-space: nowrap;
   }
 
@@ -40,7 +41,7 @@
       position: absolute;
       font-size: 10px;
       font-weight: 600;
-      color: #8888aa;
+      color: var(--text-secondary);
       white-space: nowrap;
     }
   }
@@ -56,3 +57,4 @@
   background: rgba(255, 255, 255, 0.02);
   border-radius: 4px;
 }
+

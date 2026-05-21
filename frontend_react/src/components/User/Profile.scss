@@ -1,9 +1,9 @@
 .profile-container {
     padding: 40px 20px;
-    background-color: #1a1a2e; // Đã làm sáng tông màu ngoài
+    background-color: var(--bg-deep);
     min-height: calc(100vh - 60px);
     overflow-y: auto;
-    color: #efeff1;
+    color: var(--text-primary);
     font-family: 'Inter', sans-serif;
 
     &::-webkit-scrollbar {
@@ -14,11 +14,12 @@
 
     .profile-content {
         max-width: 1000px;
-        margin: 0 auto 40px; // Thêm margin bottom để không bị sát mép dưới khi cuộn
-        background-color: #22223b; // Làm sáng tông màu nội dung bên trong
+        margin: 0 auto 40px; // ThÃªm margin bottom Ä‘á»ƒ khÃ´ng bá»‹ sÃ¡t mÃ©p dÆ°á»›i khi cuá»™n
+        background-color: var(--bg-card);
         border-radius: 8px;
         padding: 40px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 10px 30px var(--shadow-md);
+        border: 1px solid var(--border-primary);
 
         .profile-header {
             display: flex;
@@ -26,13 +27,13 @@
             align-items: center;
             margin-bottom: 40px;
             padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border-primary);
 
             h2 {
                 font-size: 26px;
                 font-weight: 700;
                 margin: 0;
-                color: #fff;
+                color: var(--text-primary);
             }
 
             .refresh-btn {
@@ -43,14 +44,14 @@
                 font-size: 20px;
                 transition: color 0.2s;
                 &:hover {
-                    color: #fff;
+                    color: var(--text-primary);
                 }
             }
         }
 
         .dropdown-divider {
             height: 1px;
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: var(--border-primary);
             margin: 32px 0;
         }
 
@@ -62,13 +63,13 @@
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 30px;
-                cursor: pointer; // Cho phép nhấn vào cả dòng tiêu đề
+                cursor: pointer; // Cho phÃ©p nháº¥n vÃ o cáº£ dÃ²ng tiÃªu Ä‘á»
                 user-select: none;
 
                 h3 {
                     font-size: 18px;
                     font-weight: 600;
-                    color: #fff;
+                    color: var(--text-primary);
                     display: flex;
                     align-items: center;
                     gap: 12px;
@@ -76,8 +77,8 @@
 
                     .toggle-icon {
                         font-size: 14px;
-                        color: #888;
-                        transition: transform 0.3s ease; // Hiệu ứng xoay mượt mà
+                        color: var(--text-secondary);
+                        transition: transform 0.3s ease; // Hiá»‡u á»©ng xoay mÆ°á»£t mÃ 
                     }
                 }
 
@@ -118,30 +119,30 @@
                         width: 250px;
                         font-size: 13px;
                         font-weight: 600;
-                        color: #888;
+                        color: var(--text-secondary);
                         text-transform: uppercase;
                         letter-spacing: 0.8px;
                     }
 
                     .info-value {
                         flex: 1;
-                        background-color: #1e1e36;
-                        border: 1px solid transparent;
+                        background-color: var(--bg-elevated);
+                        border: 1px solid var(--border-primary);
                         border-radius: 6px;
                         padding: 10px 18px;
-                        color: #fff;
+                        color: var(--text-primary);
                         font-size: 16px;
                         transition: all 0.2s;
 
                         &.editable {
-                            background-color: #252545;
+                            background-color: var(--bg-hover-strong);
                             border-color: rgba(218, 37, 29, 0.3);
                         }
 
                         input, select, textarea {
                             background: transparent;
                             border: none;
-                            color: #fff;
+                            color: var(--text-primary);
                             width: 100%;
                             outline: none;
                             font-size: inherit;
@@ -149,9 +150,11 @@
                             display: block;
 
                             &:disabled {
-                                color: #ccc;
+                                color: var(--text-primary);
+                                -webkit-text-fill-color: var(--text-primary);
+                                font-weight: 600;
                                 cursor: default;
-                                opacity: 0.8;
+                                opacity: 1;
                             }
                         }
 
@@ -164,8 +167,8 @@
                             padding-right: 20px;
 
                             option {
-                                background-color: #1e1e36;
-                                color: #fff;
+                                background-color: var(--bg-card);
+                                color: var(--text-primary);
                                 padding: 10px;
                             }
 
@@ -187,7 +190,7 @@
     gap: 15px;
     margin-top: 30px;
     padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border-primary);
 
     button {
         padding: 12px 30px;
@@ -200,30 +203,32 @@
 
     .btn-cancel {
         background: transparent;
-        border: 1px solid #444;
-        color: #aaa;
+        border: 1px solid var(--border-primary);
+        color: var(--text-secondary);
         &:hover {
-            border-color: #888;
-            color: #fff;
-            background-color: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+            background-color: var(--bg-hover);
         }
     }
 
     .btn-save-main {
         background-color: #da251d;
         border: none;
-        color: #fff;
+        color: #ffffff;
         &:hover {
             background-color: #f5222d;
             box-shadow: 0 4px 15px rgba(218, 37, 29, 0.3);
             transform: translateY(-1px);
         }
         &:disabled {
-            background-color: #444;
-            color: #888;
+            background-color: var(--bg-hover-strong);
+            border: 1px solid var(--border-primary);
+            color: var(--text-muted);
             cursor: not-allowed;
             box-shadow: none;
             transform: none;
         }
     }
 }
+

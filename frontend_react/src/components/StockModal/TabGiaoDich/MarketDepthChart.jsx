@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import "./MarketDepthChart.scss";
+import { useTranslation } from "../../../context/LanguageContext";
 
 const MarketDepthChart = (props) => {
   // Trạng thái lưu trữ dữ liệu Tooltip
   const [tooltip, setTooltip] = useState(null);
+  const { t, lang } = useTranslation();
 
   if (!props.data)
-    return <div className="market-depth-container">Đang tải...</div>;
+    return <div className="market-depth-container">{t("board.loading")}</div>;
 
   const formatPrice = (price) => {
     if (!price) return "";
@@ -85,7 +87,7 @@ const MarketDepthChart = (props) => {
 
   return (
     <div className="market-depth-container">
-      <div className="section-title">Biểu đồ độ sâu thị trường</div>
+      <div className="section-title">{t("trading.depthChart.title")}</div>
 
       <div className="depth-chart-area">
         <div className="y-axis">
@@ -101,7 +103,7 @@ const MarketDepthChart = (props) => {
               className="depth-step bid-step"
               style={{ height: `${calcHeight(cumBid3)}%`, width: "33%" }}
               onMouseMove={(e) =>
-                handleMouseMove(e, "Bên mua", props.data.bid3Price, cumBid3)
+                handleMouseMove(e, t("trading.depthChart.bidSide"), props.data.bid3Price, cumBid3)
               }
               onMouseLeave={handleMouseLeave}
             ></div>
@@ -109,7 +111,7 @@ const MarketDepthChart = (props) => {
               className="depth-step bid-step"
               style={{ height: `${calcHeight(cumBid2)}%`, width: "33%" }}
               onMouseMove={(e) =>
-                handleMouseMove(e, "Bên mua", props.data.bid2Price, cumBid2)
+                handleMouseMove(e, t("trading.depthChart.bidSide"), props.data.bid2Price, cumBid2)
               }
               onMouseLeave={handleMouseLeave}
             ></div>
@@ -117,7 +119,7 @@ const MarketDepthChart = (props) => {
               className="depth-step bid-step"
               style={{ height: `${calcHeight(cumBid1)}%`, width: "33%" }}
               onMouseMove={(e) =>
-                handleMouseMove(e, "Bên mua", props.data.bid1Price, cumBid1)
+                handleMouseMove(e, t("trading.depthChart.bidSide"), props.data.bid1Price, cumBid1)
               }
               onMouseLeave={handleMouseLeave}
             ></div>
@@ -129,7 +131,7 @@ const MarketDepthChart = (props) => {
               className="depth-step ask-step"
               style={{ height: `${calcHeight(cumAsk1)}%`, width: "33%" }}
               onMouseMove={(e) =>
-                handleMouseMove(e, "Bên bán", props.data.ask1Price, cumAsk1)
+                handleMouseMove(e, t("trading.depthChart.askSide"), props.data.ask1Price, cumAsk1)
               }
               onMouseLeave={handleMouseLeave}
             ></div>
@@ -137,7 +139,7 @@ const MarketDepthChart = (props) => {
               className="depth-step ask-step"
               style={{ height: `${calcHeight(cumAsk2)}%`, width: "33%" }}
               onMouseMove={(e) =>
-                handleMouseMove(e, "Bên bán", props.data.ask2Price, cumAsk2)
+                handleMouseMove(e, t("trading.depthChart.askSide"), props.data.ask2Price, cumAsk2)
               }
               onMouseLeave={handleMouseLeave}
             ></div>
@@ -145,7 +147,7 @@ const MarketDepthChart = (props) => {
               className="depth-step ask-step"
               style={{ height: `${calcHeight(cumAsk3)}%`, width: "33%" }}
               onMouseMove={(e) =>
-                handleMouseMove(e, "Bên bán", props.data.ask3Price, cumAsk3)
+                handleMouseMove(e, t("trading.depthChart.askSide"), props.data.ask3Price, cumAsk3)
               }
               onMouseLeave={handleMouseLeave}
             ></div>
@@ -170,10 +172,10 @@ const MarketDepthChart = (props) => {
         >
           <div className="tooltip-title">{tooltip.type}</div>
           <div className="tooltip-row">
-            Giá: <span className="tooltip-val">{tooltip.price}</span>
+            {t("trading.depthChart.price")} <span className="tooltip-val">{tooltip.price}</span>
           </div>
           <div className="tooltip-row">
-            KL tích lũy: <span className="tooltip-val">{tooltip.vol}</span>
+            {t("trading.depthChart.cumulativeVol")} <span className="tooltip-val">{tooltip.vol}</span>
           </div>
         </div>
       )}

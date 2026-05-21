@@ -3,8 +3,8 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background-color: #20212b;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--bg-primary); // Đồng bộ nền filter bar
+  border-bottom: 1px solid var(--border-primary);
   flex-wrap: wrap;
 
   .filter-item {
@@ -14,14 +14,14 @@
 
     label {
       font-size: 13px;
-      color: #888;
+      color: var(--text-secondary);
       white-space: nowrap;
     }
 
     select, input {
-      background-color: #2a2c3a;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #fff;
+      background-color: var(--bg-elevated); // Tông input nổi chuẩn
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
       border-radius: 4px;
       padding: 6px 12px;
       font-size: 13px;
@@ -42,9 +42,9 @@
   }
 
   .reset-btn {
-    background-color: #313344;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary);
     padding: 6px 16px;
     border-radius: 4px;
     font-size: 13px;
@@ -56,3 +56,4 @@
     }
   }
 }
+

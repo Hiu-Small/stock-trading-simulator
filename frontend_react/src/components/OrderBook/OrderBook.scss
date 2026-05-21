@@ -1,9 +1,9 @@
-.orderbook-page {
+﻿.orderbook-page {
   padding: 30px;
-  color: #e0e0f0;
+  color: var(--text-heading);
   font-family: 'Inter', sans-serif;
   min-height: 100vh;
-  background: #0f0f23;
+  background: var(--bg-deep);
 
   .ob-header {
     display: flex;
@@ -32,12 +32,12 @@
       h1 {
         font-size: 22px;
         font-weight: 700;
-        color: #fff;
+        color: var(--text-primary);
         margin: 0 0 4px;
       }
       p {
         font-size: 13px;
-        color: #6b7280;
+        color: var(--text-muted);
         margin: 0;
       }
     }
@@ -79,9 +79,9 @@
       .filter-btn {
         padding: 7px 16px;
         border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--border-primary);
         background: transparent;
-        color: #888;
+        color: var(--text-secondary);
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
@@ -89,7 +89,7 @@
 
         &:hover {
           border-color: rgba(74, 157, 255, 0.4);
-          color: #e0e0f0;
+          color: var(--text-heading);
         }
 
         &.active {
@@ -105,8 +105,8 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      background: #12122a;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
       border-radius: 20px;
       padding: 6px 16px;
 
@@ -115,7 +115,7 @@
         align-items: center;
         gap: 6px;
         font-size: 13px;
-        color: #6b7280;
+        color: var(--text-muted);
 
         span {
           font-weight: 500;
@@ -124,7 +124,7 @@
         input[type="date"] {
           background: transparent;
           border: none;
-          color: #fff;
+          color: var(--text-primary);
           font-size: 13px;
           outline: none;
           font-family: inherit;
@@ -141,14 +141,14 @@
       }
 
       .date-sep {
-        color: rgba(255, 255, 255, 0.1);
+        color: var(--border-primary);
         font-size: 13px;
       }
 
       .btn-clear-date {
         background: transparent;
         border: none;
-        color: #888;
+        color: var(--text-secondary);
         cursor: pointer;
         font-size: 11px;
         display: flex;
@@ -156,12 +156,12 @@
         gap: 4px;
         padding: 2px 8px;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--border-primary);
+        border: 1px solid var(--border-primary);
         transition: all 0.2s;
 
         &:hover {
-          color: #fff;
+          color: var(--text-primary);
           background: rgba(255, 77, 79, 0.15);
           border-color: rgba(255, 77, 79, 0.3);
         }
@@ -170,8 +170,8 @@
   }
 
   .ob-table-wrapper {
-    background: #12122a;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
     border-radius: 14px;
     overflow: hidden;
 
@@ -193,15 +193,15 @@
       border-collapse: collapse;
 
       thead tr {
-        background: rgba(255, 255, 255, 0.03);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--bg-hover);
+        border-bottom: 1px solid var(--border-primary);
 
         th {
           padding: 14px 18px;
           text-align: left;
           font-size: 12px;
           font-weight: 600;
-          color: #6b7280;
+          color: var(--text-muted);
           letter-spacing: 0.5px;
           text-transform: uppercase;
           white-space: nowrap;
@@ -209,28 +209,28 @@
       }
 
       tbody tr {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid var(--border-primary);
         transition: background 0.15s;
 
         &:last-child { border-bottom: none; }
-        &:hover { background: rgba(255, 255, 255, 0.025); }
+        &:hover { background: var(--bg-hover); }
 
         td {
           padding: 13px 18px;
           font-size: 14px;
-          color: #d1d5db;
+          color: var(--text-body);
           white-space: nowrap;
         }
 
-        .col-time { color: #6b7280; font-size: 13px; }
+        .col-time { color: var(--text-muted); font-size: 13px; }
         .col-symbol { 
           font-weight: 700; 
-          color: #fff; 
+          color: var(--text-primary); 
           font-size: 15px;
           .col-company {
             font-size: 11px;
             font-weight: 400;
-            color: #6b7280;
+            color: var(--text-muted);
             margin-top: 2px;
             white-space: normal;
             word-break: break-word;
@@ -248,12 +248,12 @@
 
         &.trade-detail-row {
           background: rgba(74, 157, 255, 0.02);
-          border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+          border-bottom: 1px dashed var(--border-primary);
 
           td { 
             padding: 7px 18px; 
             font-size: 12px;
-            color: #6b7280;
+            color: var(--text-muted);
           }
 
           .trade-indent {
@@ -268,7 +268,7 @@
                 color: rgba(74, 157, 255, 0.5); 
                 font-size: 11px; 
               }
-              .trade-label { color: #6b7280; }
+              .trade-label { color: var(--text-muted); }
             }
           }
 
@@ -318,7 +318,7 @@
           .fill-bar {
             width: 80px;
             height: 3px;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--border-primary);
             border-radius: 2px;
             overflow: hidden;
 
@@ -397,9 +397,9 @@
       width: 36px;
       height: 36px;
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-primary);
       background: transparent;
-      color: #888;
+      color: var(--text-secondary);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -418,19 +418,19 @@
     }
 
     span {
-      color: #888;
+      color: var(--text-secondary);
       font-size: 14px;
     }
   }
 
-  /* Modal Xác nhận hủy lệnh premium */
+  /* Modal XÃ¡c nháº­n há»§y lá»‡nh premium */
   .cancel-confirm-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(10, 10, 18, 0.75);
+    background: var(--bg-overlay);
     backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
@@ -440,10 +440,10 @@
 
     .cancel-confirm-modal-content {
       width: 420px;
-      background: rgba(22, 22, 45, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--dropdown-bg);
+      border: 1px solid var(--border-primary);
       border-radius: 16px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 20px 50px var(--shadow-lg);
       padding: 24px;
       display: flex;
       flex-direction: column;
@@ -470,7 +470,7 @@
           h2 {
             font-size: 18px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-primary);
             margin: 0;
           }
         }
@@ -478,13 +478,13 @@
         .btn-close-modal {
           background: transparent;
           border: none;
-          color: #6b7280;
+          color: var(--text-muted);
           cursor: pointer;
           font-size: 16px;
           transition: color 0.15s;
 
           &:hover {
-            color: #fff;
+            color: var(--text-primary);
           }
         }
       }
@@ -492,15 +492,15 @@
       .modal-body-custom {
         p {
           font-size: 13.5px;
-          color: #a3a3c2;
+          color: var(--text-secondary);
           margin: 0 0 14px;
           line-height: 1.5;
           text-align: left;
         }
 
         .order-summary-box {
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          background: var(--bg-hover);
+          border: 1px solid var(--border-primary);
           border-radius: 10px;
           padding: 14px;
           display: flex;
@@ -514,11 +514,11 @@
             font-size: 13px;
 
             span {
-              color: #6b7280;
+              color: var(--text-muted);
             }
 
             strong {
-              color: #fff;
+              color: var(--text-primary);
               font-weight: 600;
 
               &.val-symbol {
@@ -546,20 +546,20 @@
         }
 
         .btn-modal-back {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #a3a3c2;
+          background: var(--border-primary);
+          border: 1px solid var(--border-primary);
+          color: var(--text-secondary);
 
           &:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background: var(--border-primary);
+            color: var(--text-primary);
           }
         }
 
         .btn-modal-confirm {
           background: #ff4d4f;
           border: 1px solid #ff4d4f;
-          color: #fff;
+          color: var(--text-primary);
           box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2);
 
           &:hover {
@@ -582,14 +582,14 @@
     to { transform: scale(1); opacity: 1; }
   }
 
-  /* Modal Sửa lệnh premium */
+  /* Modal Sá»­a lá»‡nh premium */
   .modify-confirm-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(10, 10, 18, 0.75);
+    background: var(--bg-overlay);
     backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
@@ -599,10 +599,10 @@
 
     .modify-confirm-modal-content {
       width: 440px;
-      background: rgba(22, 22, 45, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--dropdown-bg);
+      border: 1px solid var(--border-primary);
       border-radius: 16px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 20px 50px var(--shadow-lg);
       padding: 24px;
       display: flex;
       flex-direction: column;
@@ -629,7 +629,7 @@
           h2 {
             font-size: 18px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-primary);
             margin: 0;
           }
         }
@@ -637,13 +637,13 @@
         .btn-close-modal {
           background: transparent;
           border: none;
-          color: #6b7280;
+          color: var(--text-muted);
           cursor: pointer;
           font-size: 16px;
           transition: color 0.15s;
 
           &:hover {
-            color: #fff;
+            color: var(--text-primary);
           }
         }
       }
@@ -655,14 +655,14 @@
 
         p {
           font-size: 13.5px;
-          color: #a3a3c2;
+          color: var(--text-secondary);
           margin: 0;
           line-height: 1.5;
         }
 
         .order-summary-box {
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          background: var(--bg-hover);
+          border: 1px solid var(--border-primary);
           border-radius: 10px;
           padding: 14px;
           display: flex;
@@ -676,11 +676,11 @@
             font-size: 13px;
 
             span {
-              color: #6b7280;
+              color: var(--text-muted);
             }
 
             strong {
-              color: #fff;
+              color: var(--text-primary);
               font-weight: 600;
 
               &.val-symbol {
@@ -696,14 +696,14 @@
           background: rgba(0, 0, 0, 0.2);
           border-radius: 8px;
           padding: 4px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--border-primary);
 
           .toggle-btn {
             flex: 1;
             padding: 8px;
             border: none;
             background: transparent;
-            color: #888;
+            color: var(--text-secondary);
             font-size: 13.5px;
             font-weight: 600;
             border-radius: 6px;
@@ -730,7 +730,7 @@
           label {
             font-size: 12px;
             font-weight: 600;
-            color: #6b7280;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
           }
@@ -739,7 +739,7 @@
             display: flex;
             align-items: center;
             background: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-primary);
             border-radius: 8px;
             overflow: hidden;
 
@@ -748,13 +748,13 @@
               height: 44px;
               background: transparent;
               border: none;
-              color: #fff;
+              color: var(--text-primary);
               font-size: 18px;
               cursor: pointer;
               transition: background 0.15s;
 
               &:hover {
-                background: rgba(255, 255, 255, 0.05);
+                background: var(--border-primary);
               }
             }
 
@@ -763,7 +763,7 @@
               height: 44px;
               background: transparent;
               border: none;
-              color: #fff;
+              color: var(--text-primary);
               text-align: center;
               font-size: 16px;
               font-weight: 600;
@@ -781,7 +781,7 @@
 
           .price-hint, .qty-hint {
             font-size: 11px;
-            color: #6b7280;
+            color: var(--text-muted);
           }
         }
 
@@ -793,7 +793,7 @@
 
           .pin-label {
             font-size: 13px;
-            color: #a3a3c2;
+            color: var(--text-secondary);
             font-weight: 500;
           }
 
@@ -806,12 +806,12 @@
               width: 42px;
               height: 46px;
               background: rgba(0, 0, 0, 0.25);
-              border: 1px solid rgba(255, 255, 255, 0.1);
+              border: 1px solid var(--border-primary);
               border-radius: 8px;
               text-align: center;
               font-size: 22px;
               font-weight: 700;
-              color: #fff;
+              color: var(--text-primary);
               outline: none;
               transition: all 0.2s;
 
@@ -840,20 +840,20 @@
         }
 
         .btn-modal-back {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #a3a3c2;
+          background: var(--border-primary);
+          border: 1px solid var(--border-primary);
+          color: var(--text-secondary);
 
           &:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background: var(--border-primary);
+            color: var(--text-primary);
           }
         }
 
         .btn-modal-confirm {
           background: rgb(74, 157, 255);
           border: 1px solid rgb(74, 157, 255);
-          color: #fff;
+          color: var(--text-primary);
           box-shadow: 0 4px 12px rgba(74, 157, 255, 0.2);
 
           &:hover:not(:disabled) {
@@ -871,3 +871,4 @@
     }
   }
 }
+

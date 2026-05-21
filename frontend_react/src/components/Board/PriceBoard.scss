@@ -1,46 +1,15 @@
-// =============================================
-// PriceBoard.scss
-// Container bảng giá chính
-// =============================================
-
+// PriceBoard.scss — CSS Variables
 .price-board {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-  background: #0f0f23;
+  flex: 1; display: flex; overflow: hidden;
+  background: var(--bg-deep);
 
   &__main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-width: 0;
-
-    // Phần bảng có thể scroll
+    flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0;
     .stock-table-wrapper {
-      overflow-y: auto;
-      overflow-x: auto;
-      flex: 1;
-
-      // Scrollbar tuỳ chỉnh
-      &::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      &::-webkit-scrollbar-track {
-        background: #12122a;
-      }
-      &::-webkit-scrollbar-thumb {
-        background: #3a3a5c;
-        border-radius: 3px;
-      }
-    }
-  }
-
-  // Khi detail panel mở: thu hẹp bảng
-  &--detail-open {
-    .price-board__main {
-      // bảng vẫn scroll được, panel chiếm không gian cố định bên phải
+      overflow-y: auto; overflow-x: auto; flex: 1;
+      &::-webkit-scrollbar { width: 6px; height: 6px; }
+      &::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+      &::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
     }
   }
 }

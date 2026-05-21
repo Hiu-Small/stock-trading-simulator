@@ -2,7 +2,7 @@
 
 .admin-trades-page {
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
 
   .breadcrumb {
     display: flex;
@@ -11,9 +11,9 @@
     margin-bottom: 30px;
     font-size: 13px;
     
-    .parent { color: rgba(255, 255, 255, 0.4); }
-    .separator { font-size: 10px; color: rgba(255, 255, 255, 0.2); }
-    .current { color: #fff; font-weight: 500; }
+    .parent { color: var(--text-secondary); }
+    .separator { font-size: 10px; color: var(--text-muted); }
+    .current { color: var(--text-primary); font-weight: 500; }
   }
 
   .page-header {
@@ -74,23 +74,23 @@
         align-items: center;
         gap: 10px;
         padding: 10px 20px;
-        background-color: oklch(24% 0.03 260);
-        border: 2px solid rgba(255, 255, 255, 0.05);
+        background-color: var(--bg-hover);
+        border: 1px solid var(--border-primary);
         border-radius: 8px;
-        color: $text-muted;
+        color: var(--text-secondary);
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
 
         .count {
           padding: 2px 8px;
-          background-color: rgba(255, 255, 255, 0.05);
+          background-color: var(--bg-elevated);
           border-radius: 6px;
           font-size: 11px;
-          color: rgba(255, 255, 255, 0.4);
+          color: var(--text-secondary);
         }
 
-        &:hover { border-color: rgba(255, 255, 255, 0.1); }
+        &:hover { border-color: var(--accent-primary); }
 
         &.active {
           background-color: rgba($accent-green, 0.1);
@@ -112,8 +112,8 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      background: oklch(24% 0.03 260);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--bg-hover);
+      border: 1px solid var(--border-primary);
       border-radius: 8px;
       padding: 6px 16px;
 
@@ -122,7 +122,7 @@
         align-items: center;
         gap: 6px;
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-secondary);
 
         span {
           font-weight: 500;
@@ -131,21 +131,21 @@
         input[type="date"] {
           background: transparent;
           border: none;
-          color: #fff;
+          color: var(--text-primary);
           font-size: 13px;
           outline: none;
           font-family: inherit;
           cursor: pointer;
 
           &::-webkit-calendar-picker-indicator {
-            filter: invert(1) brightness(0.8);
+            filter: var(--calendar-icon-filter, invert(1) brightness(0.8));
             opacity: 0.6;
           }
         }
       }
 
       .date-sep {
-        color: rgba(255, 255, 255, 0.1);
+        color: var(--border-primary);
         font-size: 13px;
       }
 
@@ -160,8 +160,8 @@
         gap: 4px;
         padding: 2px 8px;
         border-radius: 6px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-hover);
+        border: 1px solid var(--border-primary);
         transition: all 0.2s;
 
         &:hover {
@@ -186,12 +186,12 @@
     text-align: left;
     
     thead {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--border-primary);
       th {
         padding: 16px 20px;
         font-size: 12px;
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
@@ -199,10 +199,10 @@
 
     tbody {
       tr {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid var(--border-primary);
         transition: background-color 0.2s;
         
-        &:hover { background-color: rgba(255, 255, 255, 0.02); }
+        &:hover { background-color: var(--bg-hover); }
         &:last-child { border-bottom: none; }
 
         &.row-problematic {
@@ -229,9 +229,9 @@
     .col-id { color: $text-muted; font-family: monospace; }
     .col-time { color: $text-muted; font-size: 13px; }
     .col-user { color: $text-muted; }
-    .col-symbol { color: #fff; font-weight: 600; }
-    .col-vol { font-weight: 600; color: #fff; }
-    .col-price { font-weight: 600; color: #fff; }
+    .col-symbol { color: var(--text-primary); font-weight: 600; }
+    .col-vol { font-weight: 600; color: var(--text-primary); }
+    .col-price { font-weight: 600; color: var(--text-primary); }
 
     .side-badge {
       display: inline-block;
@@ -255,7 +255,7 @@
       &.matched { background-color: rgba($accent-green, 0.1); color: $accent-green; }
       &.pending { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
       &.stuck, &.failed { background-color: rgba($accent-red, 0.1); color: $accent-red; }
-      &.canceled { background-color: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.4); }
+      &.canceled { background-color: var(--bg-hover); color: var(--text-secondary); }
     }
 
     .action-btns {
@@ -286,9 +286,9 @@
     gap: 16px;
 
     .summary-card {
-      background-color: #0b0e14;
+      background-color: var(--bg-card);
       padding: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-primary);
       border-radius: 8px;
       min-height: 100px;
       display: flex;
@@ -299,11 +299,36 @@
       .value {
         font-size: 24px;
         font-weight: 700;
-        color: #fff;
+        color: var(--text-primary);
         &.matched { color: $accent-green; }
         &.pending { color: $accent-blue; }
         &.failed { color: $accent-red; }
       }
+    }
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    color: var(--text-muted);
+    gap: 8px;
+
+    i {
+      font-size: 32px;
+      color: var(--text-muted);
+      display: inline-block !important;
+      float: none !important;
+      position: static !important;
+      margin: 0 0 4px 0 !important;
+    }
+
+    span {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
     }
   }
 }

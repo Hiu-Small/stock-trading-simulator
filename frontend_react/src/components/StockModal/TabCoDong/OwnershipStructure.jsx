@@ -69,7 +69,7 @@ const OwnershipStructure = ({ data }) => {
               />
             );
           })}
-          <circle cx={center} cy={center} r={radius - strokeWidth / 2 - 1} fill="#1a1a1e" />
+          <circle cx={center} cy={center} r={radius - strokeWidth / 2 - 1} fill="var(--bg-card)" />
         </svg>
         
         <div className="chart-legend">

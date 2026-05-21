@@ -2,6 +2,9 @@ import "./App.scss";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { selectTheme } from "./store/themeSlice";
 import HomePage from "./components/HomePage/HomePage";
 import AdminLayout from "./components/Admin/AdminLayout";
 import RegisterPage from "./components/Onboarding/RegisterPage";
@@ -13,6 +16,7 @@ import Portfolio from "./components/Portfolio/Portfolio";
 import PrivateRoute from "./components/Auth/PrivateRoute";
 import { UserProvider } from "./context/UserContext";
 import { SearchProvider } from "./context/SearchContext";
+import { FavoritesProvider } from "./context/FavoritesContext";
 import MainLayout from "./components/Layout/MainLayout";
 import { UserContext } from "./context/UserContext";
 import LoginModal from "./components/Auth/LoginModal";
@@ -20,8 +24,15 @@ import { useContext } from "react";
 
 function AppContent() {
   const { showLoginModal, setShowLoginModal } = useContext(UserContext);
+  const theme = useSelector(selectTheme);
+
+  // Apply theme attribute lên <html> để CSS variables hoạt động
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   return (
+    <FavoritesProvider>
     <SearchProvider>
       <Router>
         <Routes>
@@ -66,7 +77,7 @@ function AppContent() {
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="dark"
+          theme={theme} // Tự động đổi theo Redux theme
         />
 
         <LoginModal 
@@ -75,6 +86,7 @@ function AppContent() {
         />
       </Router>
     </SearchProvider>
+    </FavoritesProvider>
   );
 }
 

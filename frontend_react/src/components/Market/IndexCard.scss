@@ -1,130 +1,44 @@
+// IndexCard.scss — CSS Variables
 .index-card {
-  background-color: #1a1b24;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 4px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1; 
-  min-width: 0; 
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 6px; padding: 4px 10px;
+  display: flex; flex-direction: column; gap: 4px;
+  flex: 1; min-width: 0;
   transition: transform 0.2s, box-shadow 0.2s;
 
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
+  &:hover { box-shadow: 0 4px 12px var(--shadow-sm); }
 
-  // Lớp màu sắc chuyên dụng
-  .color-ceiling { color: #ff00ff !important; }
-  .color-floor { color: #00ffff !important; }
+  .color-ceiling { color: var(--color-ceiling) !important; }
+  .color-floor   { color: var(--color-floor) !important; }
 
   &__chart-section {
-    height: 90px; 
-    width: calc(100% + 20px); // Bù lại padding của cha để sát mép
-    margin-left: -10px;
-    margin-right: -10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding-bottom: 2px;
+    height: 90px;
+    width: calc(100% + 20px); margin-left: -10px; margin-right: -10px;
+    border-bottom: 1px solid var(--border-primary); padding-bottom: 2px;
   }
 
   &__details {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    display: flex; flex-direction: column; gap: 8px;
+    .detail-row { display: flex; justify-content: space-between; align-items: center; }
 
     .main-row {
-      .index-symbol {
-        color: #fff;
-        font-weight: 600;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-
-        i {
-          font-size: 9px;
-          color: #8888aa;
-        }
-      }
-
-      .index-price-info {
-        font-size: 13px;
-        font-weight: 600;
-        display: flex;
-        flex-direction: row; 
-        align-items: center;
-        gap: 6px;
-
-        .change-info {
-          font-size: 12px;
-          opacity: 0.9;
-        }
-      }
+      .index-symbol { color: var(--text-primary); font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 4px; i { font-size: 9px; color: var(--text-muted); } }
+      .index-price-info { font-size: 13px; font-weight: 600; display: flex; flex-direction: row; align-items: center; gap: 6px; .change-info { font-size: 12px; opacity: 0.9; } }
     }
 
-    .secondary-row {
-      font-size: 11px;
-      color: #fff;
-      font-weight: 500;
-
-      .vol-info {
-        color: #8888aa;
-        font-size: 11px;
-      }
-    }
+    .secondary-row { font-size: 11px; color: var(--text-primary); font-weight: 500; .vol-info { color: var(--text-muted); font-size: 11px; } }
 
     .stats-row {
-      margin-top: 2px;
-      justify-content: space-between;
-
-      .stats-group {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-
-        .stats-item {
-          display: flex;
-          align-items: center;
-          gap: 2px;
-          font-size: 12px; // Số to ra
-          font-weight: 600;
-
-          &.up { color: #00c805; }
-          &.ref { color: #ffd300; }
-          &.down { color: #ff3b30; }
-
-          .sub {
-            font-size: 12px; // Số trần/sàn to bằng số thường
-            font-weight: 600;
-          }
-
-          .ref-dot {
-            width: 10px;
-            height: 2px;
-            background-color: #ffd300;
-            border-radius: 1px;
-          }
+      margin-top: 2px; justify-content: space-between;
+      .stats-group { display: flex; gap: 8px; align-items: center;
+        .stats-item { display: flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 600;
+          &.up { color: var(--color-up); } &.ref { color: var(--color-ref); } &.down { color: var(--color-down); }
+          .sub { font-size: 12px; font-weight: 600; }
+          .ref-dot { width: 10px; height: 2px; background-color: var(--color-ref); border-radius: 1px; }
         }
       }
-
-      .vol-info {
-        color: #8888aa;
-        font-size: 12px;
-        font-weight: 500;
-      }
+      .vol-info { color: var(--text-muted); font-size: 12px; font-weight: 500; }
     }
   }
 }
-
-// Global price classes (nếu chưa có trong global.scss)
-.price--up { color: #00c805 !important; }
-.price--down { color: #ff3b30 !important; }
-.price--ref { color: #ffd300 !important; }
-.price--ceiling { color: #ff00ff !important; }
-.price--floor { color: #00ffff !important; }

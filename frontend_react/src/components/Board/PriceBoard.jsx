@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import "./PriceBoard.scss";
 import BoardHeader from "./BoardHeader";
 import StockTable from "./StockTable";
+import ContextMenu from "./ContextMenu";
 import { toast } from "react-toastify";
 import StockDetailModal from "../StockModal/StockDetailModal";
 import { fetchStockDetail } from "../../services/marketApi";
@@ -24,6 +25,7 @@ const PriceBoard = (props) => {
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [isOnlyOrder, setIsOnlyOrder] = useState(false);
+  const [contextMenu, setContextMenu] = useState(null); // { x, y, symbol }
 
   // Lấy selectedGroup và searchResults từ props (được quản lý ở MainContent)
   const selectedGroup = props.selectedGroup || "VN30";
@@ -59,6 +61,17 @@ const PriceBoard = (props) => {
     return () => window.removeEventListener("open-order-modal", handleOpenOrderModal);
   }, []);
 
+  // Lắng nghe sự kiện mở modal chi tiết cổ phiếu từ ContextMenu
+  useEffect(() => {
+    const handleOpenStockDetail = (e) => {
+      const symbol = e.detail?.symbol;
+      setIsOnlyOrder(false);
+      setSelectedTicker(symbol);
+    };
+    window.addEventListener("open-stock-detail", handleOpenStockDetail);
+    return () => window.removeEventListener("open-stock-detail", handleOpenStockDetail);
+  }, []);
+
   const [stateStock, setStateStock] = useState({
     increase: 0,
     decrease: 0,
@@ -80,6 +93,17 @@ const PriceBoard = (props) => {
   const handleCloseDetail = () => {
     setSelectedTicker(null);
     setIsOnlyOrder(false);
+  };
+
+  const handleContextMenu = (symbol, e) => {
+    // Tính toán vị trí menu, tránh tràn màn hình
+    const menuW = 200;
+    const menuH = 160;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const x = e.clientX + menuW > vw ? e.clientX - menuW : e.clientX;
+    const y = e.clientY + menuH > vh ? e.clientY - menuH : e.clientY;
+    setContextMenu({ x, y, symbol });
   };
 
   const handleUpdateStats = (newStats) => {
@@ -117,9 +141,10 @@ const PriceBoard = (props) => {
           selectedGroup={selectedGroup}
           selectedTicker={selectedTicker}
           onRowClick={handleRowClick}
+          onContextMenu={handleContextMenu}
           onUpdateStats={handleUpdateStats}
           showActiveOnly={showActiveOnly}
-          stocks={searchResults} // Truyền kết quả tìm kiếm xuống
+          stocks={searchResults}
         />
       </div>
 
@@ -130,6 +155,16 @@ const PriceBoard = (props) => {
           onlyOrder={isOnlyOrder}
           onClose={handleCloseDetail} 
           onChangeSymbol={(newSymbol) => setSelectedTicker(newSymbol)}
+        />
+      )}
+
+      {/* Context menu chuột phải */}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          symbol={contextMenu.symbol}
+          onClose={() => setContextMenu(null)}
         />
       )}
     </div>

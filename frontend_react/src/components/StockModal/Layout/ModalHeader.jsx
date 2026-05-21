@@ -2,11 +2,13 @@ import React, { useContext, useState, useEffect, useRef } from "react";
 import "./ModalHeader.scss";
 import "../../../assets/styles/global.scss";
 import { UserContext } from "../../../context/UserContext";
+import { useTranslation } from "../../../context/LanguageContext";
 import { fetchStockDetail } from "../../../services/marketApi";
 import useAllStocks from "../../../hooks/useAllStocks";
 import { toast } from "react-toastify";
 
 const ModalHeader = (props) => {
+  const { t, lang } = useTranslation();
   const { user, setShowLoginModal } = useContext(UserContext);
   const [isSearching, setIsSearching] = useState(false);
   const [searchVal, setSearchVal] = useState("");
@@ -76,15 +78,15 @@ const ModalHeader = (props) => {
       if (res && res.success && res.data && res.data.symbol && res.data.refPrice > 0) {
         handleSelectStock(cleanSymbol);
       } else {
-        toast.error(`Mã cổ phiếu ${cleanSymbol} không hợp lệ!`);
+        toast.error(lang === "vi" ? `Mã cổ phiếu ${cleanSymbol} không hợp lệ!` : `Stock symbol ${cleanSymbol} is invalid!`);
       }
     } catch (err) {
-      toast.error(`Không tìm thấy mã cổ phiếu: ${cleanSymbol}`);
+      toast.error(lang === "vi" ? `Không tìm thấy mã cổ phiếu: ${cleanSymbol}` : `Stock symbol ${cleanSymbol} not found!`);
     }
   };
 
   if (!props.data)
-    return <div className="modal-header">Đang tải dữ liệu...</div>;
+    return <div className="modal-header">{t("board.loading")}</div>;
 
   // Tính toán các giá trị hiển thị
   const matchPrice = props.data.matchPrice || 0;
@@ -134,7 +136,7 @@ const ModalHeader = (props) => {
             className={`stock-title ${isSearching ? "stock-title--hidden" : "stock-title--visible"}`}
             onClick={() => setIsSearching(true)}
             style={{ cursor: "pointer" }}
-            title="Nhấp để tìm kiếm mã khác"
+            title={lang === "vi" ? "Nhấp để tìm kiếm mã khác" : "Click to search another ticker"}
           >
             <div className="search-icon">
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -157,7 +159,7 @@ const ModalHeader = (props) => {
               className="stock-search-input"
               value={searchVal}
               onChange={(e) => handleInputChange(e.target.value)}
-              placeholder={props.isLoading ? "Đang tải dữ liệu..." : "Tìm mã cổ phiếu..."}
+              placeholder={props.isLoading ? t("board.loading") : (lang === "vi" ? "Tìm mã cổ phiếu..." : "Search stock symbol...")}
               disabled={props.isLoading}
               onKeyDown={(e) => {
                 if (e.key === "ArrowDown") {
@@ -215,7 +217,7 @@ const ModalHeader = (props) => {
         <div className="header-actions">
           {!props.onlyOrder && (
             <>
-              <button className="btn-analysis">Phân tích cơ bản</button>
+              <button className="btn-analysis">{lang === "vi" ? "Phân tích cơ bản" : "Fundamental Analysis"}</button>
               <button 
                 className={`btn-order ${props.isOrderActive ? "active" : ""}`}
                 onClick={() => {
@@ -223,10 +225,11 @@ const ModalHeader = (props) => {
                     props.setIsOrderActive(!props.isOrderActive);
                   } else {
                     setShowLoginModal(true);
+                    toast.warning(lang === "vi" ? "Vui lòng đăng nhập để đặt lệnh!" : "Please log in to place an order!");
                   }
                 }}
               >
-                {props.isOrderActive ? "Dữ liệu khớp lệnh" : "Đặt lệnh"}
+                {props.isOrderActive ? (lang === "vi" ? "Dữ liệu khớp lệnh" : "Match History") : (lang === "vi" ? "Đặt lệnh" : "Place Order")}
               </button>
             </>
           )}
@@ -259,7 +262,7 @@ const ModalHeader = (props) => {
 
         <div className="stats-section">
           <div className="stat-row">
-              <span className="label">CAO/THẤP:</span>
+              <span className="label">{lang === "vi" ? "CAO/THẤP:" : "HIGH/LOW:"}</span>
               <span className="value">
               {hasTraded && props.data.high ? (
                 <span className={getPriceClass(props.data.high)}>
@@ -279,7 +282,7 @@ const ModalHeader = (props) => {
               </span>
             </div>
           <div className="stat-row">
-              <span className="label">MỞ CỬA/TRUNG BÌNH:</span>
+              <span className="label">{lang === "vi" ? "MỞ CỬA/TRUNG BÌNH:" : "OPEN/AVG:"}</span>
               <span className="value">
               {hasTraded && props.data.openPrice ? (
                 <span className={getPriceClass(props.data.openPrice)}>
@@ -302,23 +305,23 @@ const ModalHeader = (props) => {
 
         <div className="ref-section">
             <div className="ref-item">
-              <span className="label">Trần</span>
+              <span className="label">{t("board.stats.ceiling")}</span>
             <span className="value color-ceiling">
               {formatPrice(props.data.ceiling || 0)}
             </span>
             </div>
             <div className="ref-item">
-              <span className="label">Sàn</span>
+              <span className="label">{t("board.stats.floor")}</span>
             <span className="value color-floor">
               {formatPrice(props.data.floor || 0)}
             </span>
             </div>
             <div className="ref-item">
-              <span className="label">Tham chiếu</span>
+              <span className="label">{t("board.stats.ref")}</span>
               <span className="value color-ref">{formatPrice(refPrice)}</span>
             </div>
           <div className="ref-item total-vol">
-              <span className="label">TỔNG KL:</span>
+              <span className="label">{lang === "vi" ? "TỔNG KL:" : "TOTAL VOL:"}</span>
             <span className="value">
               {totalVolume > 0 ? formatVol(totalVolume) : ""}
             </span>

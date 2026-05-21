@@ -21,7 +21,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--border-primary);
 
       .breadcrumb {
         display: flex;
@@ -31,16 +31,16 @@
         font-weight: 500;
 
         .parent {
-          color: oklch(55% 0.03 260);
+          color: var(--text-secondary);
         }
 
         .separator {
-          color: oklch(45% 0.02 260);
+          color: var(--text-muted);
           font-weight: 300;
         }
 
         .current {
-          color: #ffffff;
+          color: var(--text-primary);
           font-weight: 700;
         }
       }
@@ -60,16 +60,18 @@
             color: $text-muted;
           }
           input {
-            background-color: rgba(255, 255, 255, 0.05);
-            border: none;
+            background-color: var(--bg-hover);
+            border: 1px solid var(--border-primary);
             padding: 10px 15px 10px 40px;
             border-radius: 8px;
             color: $text-main;
             width: 300px;
             font-size: 14px;
             outline: none;
+            transition: all 0.2s ease;
             &:focus {
-              background-color: rgba(255, 255, 255, 0.08);
+              background-color: var(--bg-elevated);
+              border-color: var(--accent-primary);
             }
           }
         }

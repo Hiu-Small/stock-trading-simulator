@@ -21,12 +21,12 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background-color: #20212b;
+      background-color: var(--bg-primary);
       
       th {
         text-align: left;
         padding: 12px 16px;
-        color: #888;
+        color: var(--text-secondary);
         font-weight: 500;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         white-space: nowrap;
@@ -35,7 +35,7 @@
 
     tbody {
       tr {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid var(--bg-hover);
         transition: background-color 0.2s;
 
         &:nth-child(even) {
@@ -43,21 +43,21 @@
         }
 
         &:hover {
-          background-color: rgba(255, 255, 255, 0.03);
+          background-color: var(--bg-hover);
         }
 
         td {
           padding: 12px 16px;
-          color: #ccc;
+          color: var(--text-primary);
           vertical-align: middle;
 
           &.content-cell {
-            color: #e0e0e0;
+            color: var(--text-primary);
             min-width: 300px;
           }
 
           &.date-cell {
-            color: #888;
+            color: var(--text-secondary);
             text-align: center;
             width: 100px;
           }
@@ -77,3 +77,4 @@
     font-style: italic;
   }
 }
+

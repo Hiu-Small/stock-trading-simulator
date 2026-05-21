@@ -3,32 +3,34 @@ import { toast } from 'react-toastify';
 import { getMyOrders, cancelOrder, modifyOrderAPI } from '../../services/orderService';
 import { verifyPin } from '../../services/userService';
 import { UserContext } from '../../context/UserContext';
+import { useTranslation } from '../../context/LanguageContext';
 import './OrderBook.scss';
 
-
-const STATUS_LABELS = {
-    PENDING: { label: 'Chờ khớp', color: '#f59e0b' },
-    PARTIAL_MATCHED: { label: 'Khớp 1 phần', color: '#60a5fa' },
-    MATCHED: { label: 'Khớp lệnh', color: '#00c805' },
-    CANCELLED: { label: 'Đã hủy', color: '#6b7280' },
-    FAILED_STUCK: { label: 'Thất bại', color: '#ff4d4f' },
-};
-
-const SIDE_LABELS = {
-    BUY: { label: 'MUA', color: '#00c805' },
-    SELL: { label: 'BÁN', color: '#ff4d4f' },
-};
-
-const STATUS_FILTERS = [
-    { value: '', label: 'Tất cả' },
-    { value: 'PENDING', label: 'Chờ khớp' },
-    { value: 'PARTIAL_MATCHED', label: 'Khớp 1 phần' },
-    { value: 'MATCHED', label: 'Đã khớp' },
-    { value: 'CANCELLED', label: 'Đã hủy' },
-];
-
 const OrderBook = () => {
+    const { t, lang } = useTranslation();
     const { refreshBalance } = useContext(UserContext);
+
+    const STATUS_LABELS = {
+        PENDING: { label: t('orderBook.status.pending'), color: '#f59e0b' },
+        PARTIAL_MATCHED: { label: t('orderBook.status.partial'), color: '#60a5fa' },
+        MATCHED: { label: t('orderBook.status.matched'), color: '#00c805' },
+        CANCELLED: { label: t('orderBook.status.cancelled'), color: '#6b7280' },
+        FAILED_STUCK: { label: t('orderBook.status.failed'), color: '#ff4d4f' },
+    };
+
+    const SIDE_LABELS = {
+        BUY: { label: t('orderBook.side.buy'), color: '#00c805' },
+        SELL: { label: t('orderBook.side.sell'), color: '#ff4d4f' },
+    };
+
+    const STATUS_FILTERS = [
+        { value: '', label: t('orderBook.filters.all') },
+        { value: 'PENDING', label: t('orderBook.filters.pending') },
+        { value: 'PARTIAL_MATCHED', label: t('orderBook.filters.partial') },
+        { value: 'MATCHED', label: t('orderBook.filters.matched') },
+        { value: 'CANCELLED', label: t('orderBook.filters.cancelled') },
+    ];
+
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cancellingId, setCancellingId] = useState(null);
@@ -78,11 +80,11 @@ const OrderBook = () => {
                 setTotalPages(res.DT.totalPages);
             }
         } catch (e) {
-            toast.error('Không tải được danh sách lệnh');
+            toast.error(t('orderBook.toasts.loadFailed'));
         } finally {
             setLoading(false);
         }
-    }, [page, statusFilter, startDate, endDate]);
+    }, [page, statusFilter, startDate, endDate, t]);
 
     useEffect(() => {
         fetchOrders();
@@ -101,14 +103,14 @@ const OrderBook = () => {
         try {
             const res = await cancelOrder(orderId);
             if (res && res.EC === 0) {
-                toast.success('Đã hủy lệnh thành công!');
+                toast.success(t('orderBook.toasts.cancelSuccess'));
                 fetchOrders();
                 refreshBalance();
             } else {
-                toast.error(res?.EM || 'Không thể hủy lệnh');
+                toast.error(res?.EM || t('orderBook.toasts.cancelFailed'));
             }
         } catch (e) {
-            toast.error('Lỗi khi hủy lệnh');
+            toast.error(t('orderBook.toasts.cancelError'));
         } finally {
             setCancellingId(null);
             setSelectedOrderId(null);
@@ -183,11 +185,11 @@ const OrderBook = () => {
             if (modifyType === 'PRICE') {
                 const p = parseFloat(newPrice);
                 if (isNaN(p) || p <= 0) {
-                    toast.error("Vui lòng nhập giá mới hợp lệ!");
+                    toast.error(t('orderBook.toasts.invalidPrice'));
                     return;
                 }
                 if (p * 1000 === parseFloat(selectedOrder.price)) {
-                    toast.error("Giá mới phải khác giá hiện tại!");
+                    toast.error(t('orderBook.toasts.samePrice'));
                     return;
                 }
 
@@ -199,26 +201,26 @@ const OrderBook = () => {
                 const priceInt = Math.round(priceInVnd);
                 const tickInt = Math.round(tickInVnd);
                 if (priceInt % tickInt !== 0) {
-                    toast.error(`Giá mới không hợp lệ! Với sàn ${currentExchange}, giá phải là bội số của ${tickInt} VNĐ.`);
+                    toast.error(t('orderBook.toasts.invalidTick').replace('{exchange}', currentExchange).replace('{tick}', tickInt));
                     return;
                 }
             } else {
                 const q = parseInt(newQuantity);
                 const matchedQty = selectedOrder.quantity - selectedOrder.remaining_quantity;
                 if (isNaN(q) || q <= 0) {
-                    toast.error("Vui lòng nhập khối lượng mới hợp lệ!");
+                    toast.error(t('orderBook.toasts.invalidVolume'));
                     return;
                 }
                 if (q === selectedOrder.quantity) {
-                    toast.error("Khối lượng mới phải khác khối lượng cũ!");
+                    toast.error(t('orderBook.toasts.sameVolume'));
                     return;
                 }
                 if (q <= matchedQty) {
-                    toast.error(`Khối lượng đặt mới phải lớn hơn khối lượng đã khớp (${matchedQty} CP)!`);
+                    toast.error(t('orderBook.toasts.minVolumeError').replace('{matchedQty}', matchedQty));
                     return;
                 }
                 if (q >= 100 && q % 100 !== 0) {
-                    toast.error("Khối lượng đặt từ 100 CP trở lên phải là bội số của 100!");
+                    toast.error(t('orderBook.toasts.volumeMultiple'));
                     return;
                 }
             }
@@ -230,7 +232,7 @@ const OrderBook = () => {
         // Bước thực hiện gửi request kèm verify PIN
         const pin = pinDigits.join("");
         if (pin.length < 6) {
-            toast.error("Vui lòng nhập đầy đủ mã PIN 6 số!");
+            toast.error(t('orderBook.toasts.enterPin'));
             return;
         }
 
@@ -239,7 +241,7 @@ const OrderBook = () => {
             // 1. Xác thực mã PIN trước
             const verifyRes = await verifyPin(pin);
             if (!verifyRes || verifyRes.EC !== 0) {
-                toast.error(verifyRes?.EM || "Mã PIN không chính xác!");
+                toast.error(verifyRes?.EM || t('orderBook.toasts.incorrectPin'));
                 setModifyingId(null);
                 return;
             }
@@ -254,16 +256,16 @@ const OrderBook = () => {
 
             const modifyRes = await modifyOrderAPI(selectedOrder.id, dataToSubmit.newPrice, dataToSubmit.newQuantity);
             if (modifyRes && modifyRes.EC === 0) {
-                toast.success("Sửa lệnh thành công!");
+                toast.success(t('orderBook.toasts.modifySuccess'));
                 setShowModifyModal(false);
                 fetchOrders();
                 refreshBalance();
             } else {
-                toast.error(modifyRes?.EM || "Không thể sửa lệnh!");
+                toast.error(modifyRes?.EM || t('orderBook.toasts.modifyFailed'));
             }
         } catch (error) {
             console.error("Error modifying order:", error);
-            toast.error("Đã xảy ra lỗi khi sửa lệnh!");
+            toast.error(t('orderBook.toasts.modifyError'));
         } finally {
             setModifyingId(null);
             setPinDigits(["", "", "", "", "", ""]);
@@ -282,12 +284,12 @@ const OrderBook = () => {
                 <div className="ob-title">
                     <i className="fa-solid fa-list-check"></i>
                     <div>
-                        <h1>Sổ lệnh</h1>
-                        <p>Theo dõi trạng thái và lịch sử các lệnh giao dịch</p>
+                        <h1>{t('orderBook.title')}</h1>
+                        <p>{t('orderBook.subtitle')}</p>
                     </div>
                 </div>
                 <button className="btn-refresh" onClick={fetchOrders}>
-                    <i className="fa-solid fa-rotate"></i> Làm mới
+                    <i className="fa-solid fa-rotate"></i> {t('orderBook.refresh')}
                 </button>
             </div>
 
@@ -307,7 +309,7 @@ const OrderBook = () => {
 
                 <div className="date-filters">
                     <div className="date-input-group">
-                        <span>Từ:</span>
+                        <span>{t('orderBook.filters.from')}</span>
                         <input 
                             type="date" 
                             value={startDate} 
@@ -316,7 +318,7 @@ const OrderBook = () => {
                     </div>
                     <span className="date-sep">|</span>
                     <div className="date-input-group">
-                        <span>Đến:</span>
+                        <span>{t('orderBook.filters.to')}</span>
                         <input 
                             type="date" 
                             value={endDate} 
@@ -331,9 +333,9 @@ const OrderBook = () => {
                                 setEndDate(todayStr); 
                                 setPage(1); 
                             }}
-                            title="Đặt lại về hôm nay"
+                            title={t('orderBook.filters.clear')}
                         >
-                            <i className="fa-solid fa-xmark"></i> Xóa lọc
+                            <i className="fa-solid fa-xmark"></i> {t('orderBook.filters.clear')}
                         </button>
                     )}
                 </div>
@@ -344,25 +346,25 @@ const OrderBook = () => {
                 {loading ? (
                     <div className="ob-loading">
                         <i className="fa-solid fa-spinner fa-spin"></i>
-                        <span>Đang tải dữ liệu...</span>
+                        <span>{t('orderBook.table.loading')}</span>
                     </div>
                 ) : orders.length === 0 ? (
                     <div className="ob-empty">
                         <i className="fa-solid fa-inbox"></i>
-                        <p>Chưa có lệnh giao dịch nào</p>
+                        <p>{t('orderBook.table.empty')}</p>
                     </div>
                 ) : (
                     <table className="ob-table">
                         <thead>
                             <tr>
-                                <th>Thời gian</th>
-                                <th>Mã CP</th>
-                                <th>Loại</th>
-                                <th>Giá lệnh</th>
-                                <th>KL đặt</th>
-                                <th>KL còn lại</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
+                                <th>{t('orderBook.table.time')}</th>
+                                <th>{t('orderBook.table.symbol')}</th>
+                                <th>{t('orderBook.table.side')}</th>
+                                <th>{t('orderBook.table.price')}</th>
+                                <th>{t('orderBook.table.volume')}</th>
+                                <th>{t('orderBook.table.remaining')}</th>
+                                <th>{t('orderBook.table.status')}</th>
+                                <th>{t('orderBook.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -399,7 +401,7 @@ const OrderBook = () => {
                                                         </div>
                                                     )}
                                                     {filledQty > 0 && (
-                                                        <span className="filled-label">{filledQty.toLocaleString()} đã khớp</span>
+                                                        <span className="filled-label">{filledQty.toLocaleString()} {t('orderBook.table.filled')}</span>
                                                     )}
                                                 </div>
                                             </td>
@@ -416,7 +418,7 @@ const OrderBook = () => {
                                                             className="btn-modify-order"
                                                             onClick={() => handleOpenModify(order)}
                                                         >
-                                                            <i className="fa-solid fa-pen-to-square"></i> Sửa
+                                                            <i className="fa-solid fa-pen-to-square"></i> {t('orderBook.table.modify')}
                                                         </button>
                                                         <button
                                                             className="btn-cancel-order"
@@ -425,7 +427,7 @@ const OrderBook = () => {
                                                         >
                                                             {cancellingId === order.id
                                                                 ? <i className="fa-solid fa-spinner fa-spin"></i>
-                                                                : <><i className="fa-solid fa-xmark"></i> Hủy</>
+                                                                : <><i className="fa-solid fa-xmark"></i> {t('orderBook.table.cancel')}</>
                                                             }
                                                         </button>
                                                     </div>
@@ -438,14 +440,14 @@ const OrderBook = () => {
                                                 <td className="trade-indent" colSpan={2}>
                                                     <div className="trade-indent-inner">
                                                         <i className="fa-solid fa-arrow-turn-down-right"></i>
-                                                        <span className="trade-label">Khớp lúc {formatDate(trade.matched_at)}</span>
+                                                        <span className="trade-label">{t('orderBook.table.matchedAt')} {formatDate(trade.matched_at)}</span>
                                                     </div>
                                                 </td>
                                                 <td></td>
                                                 <td className="trade-price">{formatPrice(trade.price)}</td>
                                                 <td>{trade.quantity.toLocaleString()}</td>
                                                 <td></td>
-                                                <td className="trade-fee">Phí: {formatPrice(trade.fee_amount)} ₫</td>
+                                                <td className="trade-fee">{t('orderBook.table.fee')} {formatPrice(trade.fee_amount)} ₫</td>
                                                 <td></td>
                                             </tr>
                                         ))}
@@ -463,7 +465,7 @@ const OrderBook = () => {
                     <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
                         <i className="fa-solid fa-chevron-left"></i>
                     </button>
-                    <span>Trang {page} / {totalPages}</span>
+                    <span>{t('orderBook.table.page')} {page} / {totalPages}</span>
                     <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
                         <i className="fa-solid fa-chevron-right"></i>
                     </button>
@@ -477,34 +479,34 @@ const OrderBook = () => {
                         <div className="modal-header-custom">
                             <div className="modal-title-custom">
                                 <i className="fa-solid fa-triangle-exclamation warning-icon"></i>
-                                <h2>Xác nhận hủy lệnh</h2>
+                                <h2>{t('orderBook.cancelModal.title')}</h2>
                             </div>
                             <button className="btn-close-modal" onClick={() => setShowCancelModal(false)}>
                                 <i className="fa-solid fa-xmark"></i>
                             </button>
                         </div>
                         <div className="modal-body-custom">
-                            <p>Bạn có chắc chắn muốn hủy lệnh đang chờ khớp này không?</p>
+                            <p>{t('orderBook.cancelModal.question')}</p>
                             {orders.find(o => o.id === selectedOrderId) && (() => {
                                 const o = orders.find(o => o.id === selectedOrderId);
                                 const side = SIDE_LABELS[o.side] || { label: o.side, color: '#888' };
                                 return (
                                     <div className="order-summary-box">
                                         <div className="summary-row">
-                                            <span>Mã cổ phiếu:</span>
+                                            <span>{t('orderBook.cancelModal.symbol')}</span>
                                             <strong className="val-symbol">{o.symbol}</strong>
                                         </div>
                                         <div className="summary-row">
-                                            <span>Loại lệnh:</span>
+                                            <span>{t('orderBook.cancelModal.side')}</span>
                                             <strong style={{ color: side.color }}>{side.label}</strong>
                                         </div>
                                         <div className="summary-row">
-                                            <span>Giá đặt:</span>
+                                            <span>{t('orderBook.cancelModal.price')}</span>
                                             <strong>{formatPrice(o.price)} ₫</strong>
                                         </div>
                                         <div className="summary-row">
-                                            <span>Khối lượng còn lại:</span>
-                                            <strong>{o.remaining_quantity.toLocaleString()} CP</strong>
+                                            <span>{t('orderBook.cancelModal.remaining')}</span>
+                                            <strong>{o.remaining_quantity.toLocaleString()} {lang === 'vi' ? 'CP' : 'shares'}</strong>
                                         </div>
                                     </div>
                                 );
@@ -512,7 +514,7 @@ const OrderBook = () => {
                         </div>
                         <div className="modal-footer-custom">
                             <button className="btn-modal-back" onClick={() => setShowCancelModal(false)}>
-                                Quay lại
+                                {t('orderBook.cancelModal.back')}
                             </button>
                             <button 
                                 className="btn-modal-confirm" 
@@ -521,7 +523,7 @@ const OrderBook = () => {
                                     executeCancel(selectedOrderId);
                                 }}
                             >
-                                Xác nhận hủy
+                                {t('orderBook.cancelModal.confirm')}
                             </button>
                         </div>
                     </div>
@@ -535,7 +537,7 @@ const OrderBook = () => {
                         <div className="modal-header-custom">
                             <div className="modal-title-custom">
                                 <i className="fa-solid fa-pen-to-square modify-icon"></i>
-                                <h2>Sửa lệnh giao dịch</h2>
+                                <h2>{t('orderBook.modifyModal.title')}</h2>
                             </div>
                             <button className="btn-close-modal" onClick={() => setShowModifyModal(false)}>
                                 <i className="fa-solid fa-xmark"></i>
@@ -545,22 +547,22 @@ const OrderBook = () => {
                             {/* Order Info Summary */}
                             <div className="order-summary-box">
                                 <div className="summary-row">
-                                    <span>Mã cổ phiếu:</span>
+                                    <span>{t('orderBook.modifyModal.symbol')}</span>
                                     <strong className="val-symbol">{selectedOrder.symbol}</strong>
                                 </div>
                                 <div className="summary-row">
-                                    <span>Loại lệnh:</span>
+                                    <span>{t('orderBook.modifyModal.side')}</span>
                                     <strong style={{ color: selectedOrder.side === 'BUY' ? '#00c805' : '#ff4d4f' }}>
-                                        {selectedOrder.side === 'BUY' ? 'MUA' : 'BÁN'}
+                                        {selectedOrder.side === 'BUY' ? t('orderBook.side.buy') : t('orderBook.side.sell')}
                                     </strong>
                                 </div>
                                 <div className="summary-row">
-                                    <span>Giá hiện tại:</span>
+                                    <span>{t('orderBook.modifyModal.currentPrice')}</span>
                                     <strong>{formatPrice(selectedOrder.price)} ₫</strong>
                                 </div>
                                 <div className="summary-row">
-                                    <span>KL đặt cũ / Đã khớp:</span>
-                                    <strong>{selectedOrder.quantity.toLocaleString()} / {(selectedOrder.quantity - selectedOrder.remaining_quantity).toLocaleString()} CP</strong>
+                                    <span>{t('orderBook.modifyModal.oldQty')}</span>
+                                    <strong>{selectedOrder.quantity.toLocaleString()} / {(selectedOrder.quantity - selectedOrder.remaining_quantity).toLocaleString()} {lang === 'vi' ? 'CP' : 'shares'}</strong>
                                 </div>
                             </div>
 
@@ -573,7 +575,7 @@ const OrderBook = () => {
                                         setNewQuantity(selectedOrder.quantity);
                                     }}
                                 >
-                                    Sửa Giá
+                                    {t('orderBook.modifyModal.modifyPrice')}
                                 </button>
                                 <button 
                                     className={`toggle-btn ${modifyType === 'QTY' ? 'active' : ''}`}
@@ -582,14 +584,14 @@ const OrderBook = () => {
                                         setNewPrice(selectedOrder.price / 1000);
                                     }}
                                 >
-                                    Sửa Khối lượng
+                                    {t('orderBook.modifyModal.modifyVolume')}
                                 </button>
                             </div>
 
                             {/* Dynamic Input Row */}
                             {modifyType === 'PRICE' ? (
                                 <div className="modify-input-section">
-                                    <label>Giá mới (x1000 VNĐ)</label>
+                                    <label>{t('orderBook.modifyModal.newPrice')}</label>
                                     <div className="number-input">
                                         <button onClick={() => {
                                             const tick = getTickSize(newPrice, selectedOrder.stock?.exchange || 'HOSE');
@@ -612,12 +614,15 @@ const OrderBook = () => {
                                         }}>+</button>
                                     </div>
                                     <span className="price-hint">
-                                        Bước giá hiện tại: {(getTickSize(newPrice, selectedOrder.stock?.exchange || 'HOSE') * 1000).toLocaleString()} ₫ (Sàn {selectedOrder.stock?.exchange || 'HOSE'})
+                                        {t('orderBook.modifyModal.currentTick')
+                                            .replace('{tick}', (getTickSize(newPrice, selectedOrder.stock?.exchange || 'HOSE') * 1000).toLocaleString())
+                                            .replace('{exchange}', selectedOrder.stock?.exchange || 'HOSE')
+                                        }
                                     </span>
                                 </div>
                             ) : (
                                 <div className="modify-input-section">
-                                    <label>Khối lượng đặt mới (CP)</label>
+                                    <label>{t('orderBook.modifyModal.newVolume')}</label>
                                     <div className="number-input">
                                         <button onClick={() => {
                                             setNewQuantity(prev => {
@@ -647,7 +652,9 @@ const OrderBook = () => {
                                         }}>+</button>
                                     </div>
                                     <span className="qty-hint">
-                                        Khối lượng đặt mới phải lớn hơn khối lượng đã khớp: {(selectedOrder.quantity - selectedOrder.remaining_quantity).toLocaleString()} CP
+                                        {t('orderBook.modifyModal.minVolumeHint')
+                                            .replace('{matchedQty}', (selectedOrder.quantity - selectedOrder.remaining_quantity).toLocaleString())
+                                        }
                                     </span>
                                 </div>
                             )}
@@ -655,7 +662,7 @@ const OrderBook = () => {
                             {/* PIN Code entry */}
                             {showPinConfirm && (
                                 <div className="pin-confirmation-wrapper" style={{ marginTop: '20px' }}>
-                                    <label className="pin-label">Nhập mã PIN để xác nhận sửa lệnh</label>
+                                    <label className="pin-label">{t('orderBook.modifyModal.pinLabel')}</label>
                                     <div className="pin-input-container">
                                         {pinDigits.map((digit, index) => (
                                             <input
@@ -683,7 +690,7 @@ const OrderBook = () => {
                                     setShowModifyModal(false);
                                 }
                             }}>
-                                {showPinConfirm ? "Quay lại" : "Hủy"}
+                                {showPinConfirm ? t('orderBook.modifyModal.back') : t('orderBook.modifyModal.cancel')}
                             </button>
                             <button 
                                 className="btn-modal-confirm btn-modify-submit" 
@@ -693,9 +700,9 @@ const OrderBook = () => {
                                 {modifyingId !== null ? (
                                     <i className="fa-solid fa-spinner fa-spin"></i>
                                 ) : showPinConfirm ? (
-                                    "Xác nhận Sửa"
+                                    t('orderBook.modifyModal.confirm')
                                 ) : (
-                                    "Tiếp tục"
+                                    t('orderBook.modifyModal.continue')
                                 )}
                             </button>
                         </div>

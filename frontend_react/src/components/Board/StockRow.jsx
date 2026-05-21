@@ -51,6 +51,10 @@ const StockRow = (props) => {
     <tr
       className={`stock-row ${props.isSelected ? "stock-row--selected" : ""}`}
       onClick={() => props.onRowClick && props.onRowClick(stock.symbol)}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        if (props.onContextMenu) props.onContextMenu(stock.symbol, e);
+      }}
       id={`row-${stock.symbol}`}
     >
       {/* ===== Ticker & Tên công ty ===== */}

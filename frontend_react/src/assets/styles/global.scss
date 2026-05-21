@@ -3,28 +3,76 @@
 // =============================================
 // global.scss
 // Chứa các class helper dùng chung toàn dự án
+// + Smooth theme transition
 // =============================================
 
+// ===== Smooth transition khi chuyển theme =====
+*,
+*::before,
+*::after {
+  transition:
+    background-color 0.25s ease,
+    color 0.15s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+// Loại trừ các element không nên animate (animation, transform)
+.stock-row,
+.spinner,
+[class*="fa-spin"],
+.market-summary .dot::after {
+  transition: none !important;
+}
+
+// ===== Scrollbar toàn cục =====
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 3px;
+    &:hover {
+      background: var(--scrollbar-hover);
+    }
+  }
+}
+
+// ===== Màu giá cổ phiếu (sử dụng biến CSS Custom Properties động) =====
 .price--ceiling {
-  @include price-text($color-ceiling);
+  color: var(--color-ceiling) !important;
+  font-weight: 600;
 }
 
 .price--floor {
-  @include price-text($color-floor);
+  color: var(--color-floor) !important;
+  font-weight: 600;
 }
 
 .price--up {
-  @include price-text($color-up);
+  color: var(--color-up) !important;
+  font-weight: 600;
 }
 
 .price--down {
-  @include price-text($color-down);
+  color: var(--color-down) !important;
+  font-weight: 600;
 }
 
 .price--ref {
-  @include price-text($color-ref);
+  color: var(--color-ref) !important;
+  font-weight: 600;
 }
 
 .price--white {
-  @include price-text($color-white);
+  color: var(--text-primary) !important;
+  font-weight: 600;
 }

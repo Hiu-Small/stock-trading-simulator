@@ -91,11 +91,13 @@ const TradeMonitoring = () => {
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     const d = new Date(dateStr);
+    const date = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear();
     const hh = d.getHours().toString().padStart(2, '0');
     const mm = d.getMinutes().toString().padStart(2, '0');
     const ss = d.getSeconds().toString().padStart(2, '0');
-    const ms = d.getMilliseconds().toString().padStart(3, '0');
-    return `${hh}:${mm}:${ss}.${ms}`;
+    return `${date}/${month}/${year} ${hh}:${mm}:${ss}`;
   };
 
   const formatPrice = (p) => {
@@ -236,9 +238,9 @@ const TradeMonitoring = () => {
             Đang tải dữ liệu lệnh...
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div style={{ padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.4)" }}>
-            <i className="fa-solid fa-inbox" style={{ fontSize: "24px", display: "block", marginBottom: "10px" }}></i>
-            Không tìm thấy lệnh nào phù hợp
+          <div className="empty-state">
+            <i className="fa-solid fa-inbox"></i>
+            <span>Không tìm thấy lệnh nào phù hợp</span>
           </div>
         ) : (
           <table className="admin-table">

@@ -1,111 +1,45 @@
-// =============================================
-// StockRow.scss
-// Từng dòng cổ phiếu trong bảng giá
-// =============================================
-
+// StockRow.scss — CSS Variables
 .stock-row {
   cursor: pointer;
 
+  &:hover {
+    td {
+      background-image: linear-gradient(var(--bg-hover-strong), var(--bg-hover-strong)) !important;
+    }
+  }
+
   td {
-    padding: 4px 2px;
-    text-align: center;
-    font-size: 11.5px;
-    vertical-align: middle;
-    white-space: nowrap;
-    color: #ccccdd;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 4px 2px; text-align: center; font-size: 11.5px;
+    vertical-align: middle; white-space: nowrap;
+    color: var(--text-body);
+    border-right: 1px solid var(--border-primary);
+    border-left: 1px solid var(--border-primary);
+    border-top: 1px solid var(--border-primary);
   }
 
-  // ===== Trạng thái được chọn =====
-  &--selected {
-    background: rgba(38, 166, 154, 0.08) !important;
-    outline: 1px solid #26a69a44;
-  }
+  &--selected { background: rgba(38,166,154,0.08) !important; outline: 1px solid #26a69a44; }
 
-  // ===== Cột ticker =====
   .col-ticker {
-    text-align: left;
-    padding-left: 10px;
-    min-width: 95px;
-    max-width: 105px; // Khóa luôn độ rộng tối đa để bảng không bị xô lệch
-    padding-right: 8px; // Thêm khoảng trống để chữ không dính sát vào vách cột TC
-
-    .ticker-symbol {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      color: #e0e0f0;
-
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .ticker-company {
-      display: block;
-      font-size: 8.5px;
-      color: #6666aa;
-    }
+    text-align: left; padding-left: 10px;
+    min-width: 95px; max-width: 105px; padding-right: 8px;
+    .ticker-symbol { display: block; font-size: 13px; font-weight: 700; color: var(--text-ticker); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ticker-company { display: block; font-size: 8.5px; color: var(--text-company); }
   }
 
-  // ===== Cột giá =====
-  .col-price {
-    font-weight: 600;
-    font-size: 12px;
-    background-color: #262630;
+  .col-price { font-weight: 600; font-size: 12px; background-color: var(--table-col-accent); }
+
+  .col-bid, .col-ask {
+    .cell-price { font-size: 12px; font-weight: 600; line-height: 1.2; }
+    .cell-vol { font-size: 9.5px; color: var(--text-secondary); line-height: 1.1; }
   }
 
-  // ===== Cột BID/ASK =====
-  .col-bid,
-  .col-ask {
-    .cell-price {
-      font-size: 12px;
-      font-weight: 600;
-      line-height: 1.2;
-    }
-
-    .cell-vol {
-      font-size: 9.5px;
-      color: #aaaacc;
-      line-height: 1.1;
-    }
-  }
-
-  // ===== Cột khớp lệnh =====
   .col-match {
-    background-color: #262630;
-    .cell-price--bold {
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .cell-vol {
-      font-size: 9.5px;
-      color: #aaaacc;
-    }
+    background-color: var(--table-col-accent);
+    .cell-price--bold { font-weight: 700; font-size: 13px; }
+    .cell-vol { font-size: 9.5px; color: var(--text-secondary); }
   }
 
-  // ===== Cột thay đổi =====
-  .col-change,
-  .col-change-pct {
-    font-weight: 700;
-    font-size: 12px;
-    background-color: #262630;
-  }
-
-  // ===== Tổng KL =====
-  .col-total-vol {
-    font-size: 12px;
-    font-weight: 600;
-    color: #ccccdd;
-    background-color: #262630;
-  }
-
-  // ===== Khối ngoại =====
-  .col-foreign {
-    font-size: 12px;
-    font-weight: 600;
-  }
+  .col-change, .col-change-pct { font-weight: 700; font-size: 12px; background-color: var(--table-col-accent); }
+  .col-total-vol { font-size: 12px; font-weight: 600; color: var(--text-body); background-color: var(--table-col-accent); }
+  .col-foreign { font-size: 12px; font-weight: 600; }
 }

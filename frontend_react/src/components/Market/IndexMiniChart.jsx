@@ -176,14 +176,14 @@ const IndexMiniChart = (props) => {
     <div className="index-mini-chart">
       <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
         {/* Đường lưới ngang */}
-        <line x1="0" y1={chartTop + chartHeight * 0.5} x2={width} y2={chartTop + chartHeight * 0.5} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+        <line x1="0" y1={chartTop + chartHeight * 0.5} x2={width} y2={chartTop + chartHeight * 0.5} stroke="var(--border-primary)" strokeWidth="0.5" />
         
         {/* Đường lưới dọc và mốc giờ */}
         {timeLabels.map((tm) => {
           const x = getXByTime(tm.time);
           return (
             <React.Fragment key={tm.label}>
-              <line x1={x} y1={chartTop} x2={x} y2={chartTop + chartHeight} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+              <line x1={x} y1={chartTop} x2={x} y2={chartTop + chartHeight} stroke="var(--border-primary)" strokeWidth="0.5" />
             </React.Fragment>
           );
         })}
@@ -194,7 +194,7 @@ const IndexMiniChart = (props) => {
           y1={refY}
           x2={width}
           y2={refY}
-          stroke="rgba(255, 255, 255, 0.3)"
+          stroke="var(--text-muted)"
           strokeWidth="0.8"
           strokeDasharray="2,2"
           vectorEffect="non-scaling-stroke"

@@ -6,7 +6,7 @@
   background-color: $sidebar-dark;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid var(--border-primary);
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -18,7 +18,7 @@
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--border-secondary);
     border-radius: 10px;
   }
 
@@ -73,7 +73,7 @@
       }
 
       &:hover {
-        background-color: rgba(255, 255, 255, 0.03);
+        background-color: var(--bg-hover);
         color: $text-main;
       }
 
@@ -84,7 +84,7 @@
 
       &.home-link {
         margin-bottom: 20px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid var(--border-primary);
         padding-bottom: 20px;
         border-radius: 0;
         &:hover {
@@ -98,11 +98,11 @@
   .sidebar-footer {
     padding: 12px;
     padding-bottom: 30px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border-primary);
 
     .sidebar-user {
       padding: 16px;
-      background-color: rgba(255, 255, 255, 0.03);
+      background-color: var(--bg-elevated);
       border-radius: 12px;
       display: flex;
       align-items: center;

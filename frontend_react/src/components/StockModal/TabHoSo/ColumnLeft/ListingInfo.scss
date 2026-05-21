@@ -1,19 +1,19 @@
-.listing-info {
+﻿.listing-info {
   font-size: 13px;
 
   .info-row {
     display: flex;
     justify-content: space-between;
     padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border-primary);
 
     .label {
-      color: #8888aa;
+      color: var(--text-muted);
       flex: 1;
     }
 
     .value {
-      color: #fff;
+      color: var(--text-primary);
       font-weight: 500;
       text-align: right;
       flex: 1;
@@ -24,3 +24,4 @@
     }
   }
 }
+
