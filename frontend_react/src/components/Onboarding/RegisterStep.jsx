@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import axios from '../../setup/axios';
 import { toast } from 'react-toastify';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../context/LanguageContext';
 import './RegisterStep.scss';
 
 const RegisterStep = () => {
+    const { t, lang } = useTranslation();
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -13,27 +15,56 @@ const RegisterStep = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    const renderToastAccNo = (accNum) => {
+        const text = t("onboarding.toastAccNo");
+        const parts = text.split("{account}");
+        return (
+            <>
+                {parts[0]}
+                <span style={{color: '#ffeb3b', fontWeight: '700'}}>{accNum}</span>
+                {parts[1]}
+            </>
+        );
+    };
+
+    const renderAgreeText = () => {
+        const text = t("onboarding.agreeCheckbox");
+        const parts = text.split(/(\{terms\}|\{privacy\}|\{policy\})/g);
+        return parts.map((part, index) => {
+            if (part === "{terms}") {
+                return <Link key={index} to="#">{t("onboarding.termsText")}</Link>;
+            }
+            if (part === "{privacy}") {
+                return <Link key={index} to="#">{t("onboarding.privacyText")}</Link>;
+            }
+            if (part === "{policy}") {
+                return <Link key={index} to="#">{t("onboarding.policyText")}</Link>;
+            }
+            return part;
+        });
+    };
+
     const handleRegister = async (e) => {
         e.preventDefault();
         if (!agree) {
-            toast.warn("Vui lòng đồng ý với điều khoản sử dụng");
+            toast.warn(t("onboarding.toastAgree"));
             return;
         }
 
         // Validate số điện thoại (chỉ số, đúng 10 số)
         const phoneRegex = /^[0-9]{10}$/;
         if (!phoneRegex.test(phone)) {
-            toast.error("Số điện thoại phải là 10 chữ số");
+            toast.error(t("onboarding.toastPhoneDigits"));
             return;
         }
         if (!phone.startsWith('0')) {
-            toast.error("Số điện thoại phải bắt đầu bằng số 0");
+            toast.error(t("onboarding.toastPhoneStart"));
             return;
         }
 
         // Validate mật khẩu
         if (password.length < 8) {
-            toast.error("Mật khẩu phải có ít nhất 8 ký tự");
+            toast.error(t("onboarding.toastPasswordLength"));
             return;
         }
 
@@ -46,25 +77,21 @@ const RegisterStep = () => {
             if (response && +response.EC === 0) {
                 toast.success(
                     <div>
-                        <strong>Khởi tạo tài khoản thành công!</strong>
+                        <strong>{t("onboarding.toastRegisterSuccess")}</strong>
                         <br />
-                        Số tài khoản của bạn là: <span style={{color: '#ffeb3b', fontWeight: '700'}}>{response.DT.account_number}</span>
+                        {renderToastAccNo(response.DT.account_number)}
                         <br />
-                        Vui lòng dùng Số tài khoản hoặc SĐT để đăng nhập.
+                        {t("onboarding.toastLoginGuide")}
                     </div>, 
                     { autoClose: 10000 }
                 );
-                // Lưu thông tin tạm thời hoặc yêu cầu đăng nhập
-                // Theo yêu cầu, sau khi đăng ký có thể tự động đăng nhập hoặc dẫn tới trang KYC
-                // Ở đây ta dẫn tới trang đăng nhập để bảo mật
                 navigate('/');
-                // Hoặc nếu muốn mượt hơn, ta có thể lưu token vào context nếu API trả về
             } else {
                 toast.error(response.EM);
             }
         } catch (error) {
             console.error(error);
-            toast.error("Lỗi hệ thống khi đăng ký");
+            toast.error(t("onboarding.toastRegisterError"));
         } finally {
             setLoading(false);
         }
@@ -74,10 +101,10 @@ const RegisterStep = () => {
         <form className="onboarding-form" onSubmit={handleRegister}>
             <div className="form-group-row">
                 <div className="form-group">
-                    <label>Số điện thoại <span className="required">*</span></label>
+                    <label>{t("onboarding.phoneLabel")} <span className="required">*</span></label>
                     <input 
                         type="text" 
-                        placeholder="Nhập số điện thoại" 
+                        placeholder={t("onboarding.phonePlaceholder")} 
                         value={phone}
                         onChange={(e) => {
                             const val = e.target.value.replace(/\D/g, '').substring(0, 10);
@@ -87,10 +114,10 @@ const RegisterStep = () => {
                     />
                 </div>
                 <div className="form-group">
-                    <label>Email <span className="required">*</span></label>
+                    <label>{t("onboarding.emailLabel")} <span className="required">*</span></label>
                     <input 
                         type="email" 
-                        placeholder="Nhập email" 
+                        placeholder={t("onboarding.emailPlaceholder")} 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -100,11 +127,11 @@ const RegisterStep = () => {
             
             <div className="form-group-row">
                 <div className="form-group">
-                    <label>Mật khẩu <span className="required">*</span></label>
+                    <label>{t("onboarding.passwordLabel")} <span className="required">*</span></label>
                     <div className="input-with-icon">
                         <input 
                             type="password" 
-                            placeholder="Nhập mật khẩu" 
+                            placeholder={t("onboarding.passwordPlaceholder")} 
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
@@ -112,10 +139,10 @@ const RegisterStep = () => {
                     </div>
                 </div>
                 <div className="form-group">
-                    <label>Mã người giới thiệu (Nếu có)</label>
+                    <label>{t("onboarding.referralLabel")}</label>
                     <input 
                         type="text" 
-                        placeholder="Nhập mã giới thiệu" 
+                        placeholder={t("onboarding.referralPlaceholder")} 
                         value={referralCode}
                         onChange={(e) => setReferralCode(e.target.value)}
                     />
@@ -130,17 +157,16 @@ const RegisterStep = () => {
                     onChange={(e) => setAgree(e.target.checked)}
                 />
                 <label htmlFor="agree">
-                    Tôi xác nhận đã đọc, hiểu và đồng ý với <Link to="#">Điều kiện và điều khoản</Link>, 
-                    <Link to="#">Chính sách bảo mật</Link> và <Link to="#">Quy chế hoạt động</Link> của công ty.
+                    {renderAgreeText()}
                 </label>
             </div>
 
             <button type="submit" className="btn-submit" disabled={loading}>
-                {loading ? 'Đang xử lý...' : 'Mở tài khoản'}
+                {loading ? t("onboarding.processing") : t("onboarding.openAccountBtn")}
             </button>
 
             <div className="form-footer">
-                Đã có tài khoản? <Link to="/">Đăng nhập ngay</Link>
+                {t("onboarding.hasAccountText")} <Link to="/">{t("onboarding.loginNowLink")}</Link>
             </div>
         </form>
     );

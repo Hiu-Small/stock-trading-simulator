@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./MarketSummary.scss";
 import IndexCard from "./IndexCard";
 import { fetchAllIndices } from "../../services/marketApi";
+import { useTranslation } from "../../context/LanguageContext";
 
 /**
  * MarketSummary - Thanh chỉ số thị trường trên cùng
@@ -14,6 +15,7 @@ import { checkIsMarketOpen } from "../../utils/marketUtils";
  * Tự động refresh mỗi 30 giây khi thị trường mở cửa
  */
 const MarketSummary = (props) => {
+  const { t, lang } = useTranslation();
   const [indices, setIndices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -158,7 +160,7 @@ const MarketSummary = (props) => {
         </div>
         {lastUpdated && (
           <div className="last-updated">
-            Cập nhật: {lastUpdated.toLocaleTimeString("vi-VN")}
+            {t("marketSummary.updated")} {lastUpdated.toLocaleTimeString(lang === "vi" ? "vi-VN" : "en-US")}
           </div>
         )}
       </div>

@@ -1,10 +1,12 @@
 import React, { useState, useContext } from 'react';
 import axios from '../../setup/axios';
 import { toast } from 'react-toastify';
+import { useTranslation } from '../../context/LanguageContext';
 import './KYCStep.scss';
 import { UserContext } from '../../context/UserContext';
 
 const KYCStep = (props) => {
+    const { t } = useTranslation();
     const { updateUserStatus } = useContext(UserContext);
     const [formData, setFormData] = useState({
         full_name: '',
@@ -31,11 +33,11 @@ const KYCStep = (props) => {
         // 1. Validate Họ tên
         // Chỉ kiểm tra có nhập hay không
         if (!full_name || full_name.trim() === "") {
-            toast.error("Vui lòng nhập họ và tên");
+            toast.error(t("onboarding.toastNameRequired"));
             return false;
         }
         if (full_name.trim().split(/\s+/).length < 2) {
-            toast.error("Họ tên phải có tối thiểu 2 từ");
+            toast.error(t("onboarding.toastNameWords"));
             return false;
         }
 
@@ -48,14 +50,14 @@ const KYCStep = (props) => {
             age--;
         }
         if (age < 18) {
-            toast.error("Bạn phải đủ 18 tuổi để tham gia giao dịch");
+            toast.error(t("onboarding.toastAgeLimit"));
             return false;
         }
 
         // 3. Validate CCCD (9 hoặc 12 số)
         const idRegex = /^\d+$/;
         if (!idRegex.test(id_card_number) || (id_card_number.length !== 9 && id_card_number.length !== 12)) {
-            toast.error("Số CMND/CCCD phải là 9 hoặc 12 chữ số");
+            toast.error(t("onboarding.toastIdDigits"));
             return false;
         }
 
@@ -64,13 +66,13 @@ const KYCStep = (props) => {
         const nextMonth = new Date();
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         if (expiry < nextMonth) {
-            toast.error("Giấy tờ định danh phải còn hạn trên 1 tháng");
+            toast.error(t("onboarding.toastExpiryLimit"));
             return false;
         }
 
         // 5. Validate Địa chỉ (>= 10 ký tự)
         if (address.length < 10) {
-            toast.error("Địa chỉ thường trú quá ngắn (tối thiểu 10 ký tự)");
+            toast.error(t("onboarding.toastAddressLength"));
             return false;
         }
 
@@ -86,7 +88,7 @@ const KYCStep = (props) => {
         try {
             const response = await axios.post('/api/complete-kyc', formData);
             if (response && +response.EC === 0) {
-                toast.success("Thông tin KYC đã được cập nhật!");
+                toast.success(t("onboarding.toastKycSuccess"));
                 updateUserStatus('KYC_COMPLETED');
                 props.onNext();
             } else {
@@ -94,7 +96,7 @@ const KYCStep = (props) => {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Lỗi khi gửi thông tin định danh");
+            toast.error(t("onboarding.toastKycError"));
         } finally {
             setLoading(false);
         }
@@ -112,15 +114,15 @@ const KYCStep = (props) => {
         <form className="onboarding-form" onSubmit={handleSubmit}>
             <div className="info-box">
                 <i className="fa-solid fa-circle-info"></i>
-                <span>Vui lòng nhập thông tin chính xác theo CMND/CCCD để đảm bảo quyền lợi giao dịch</span>
+                <span>{t("onboarding.kycInfoBox")}</span>
             </div>
 
             <div className="form-group">
-                <label>Họ và tên <span className="required">*</span></label>
+                <label>{t("onboarding.fullNameLabel")} <span className="required">*</span></label>
                 <input 
                     name="full_name"
                     type="text" 
-                    placeholder="Nhập họ và tên đầy đủ" 
+                    placeholder={t("onboarding.fullNamePlaceholder")} 
                     value={formData.full_name}
                     onChange={(e) => setFormData({...formData, full_name: e.target.value.toUpperCase()})}
                     required
@@ -129,7 +131,7 @@ const KYCStep = (props) => {
 
             <div className="form-group-row">
                 <div className="form-group">
-                    <label>Ngày sinh <span className="required">*</span></label>
+                    <label>{t("onboarding.dobLabel")} <span className="required">*</span></label>
                     <input 
                         name="dob"
                         type="date" 
@@ -140,33 +142,33 @@ const KYCStep = (props) => {
                     />
                 </div>
                 <div className="form-group">
-                    <label>Giới tính <span className="required">*</span></label>
+                    <label>{t("onboarding.genderLabel")} <span className="required">*</span></label>
                     <select name="gender" value={formData.gender} onChange={handleChange}>
-                        <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
-                        <option value="Khác">Khác</option>
+                        <option value="Nam">{t("onboarding.genderMale")}</option>
+                        <option value="Nữ">{t("onboarding.genderFemale")}</option>
+                        <option value="Khác">{t("onboarding.genderOther")}</option>
                     </select>
                 </div>
             </div>
 
             <div className="form-group-row">
                 <div className="form-group">
-                    <label>Số CMND/CCCD <span className="required">*</span></label>
+                    <label>{t("onboarding.idCardLabel")} <span className="required">*</span></label>
                     <input 
                         name="id_card_number"
                         type="text" 
-                        placeholder="Nhập số CMND/CCCD" 
+                        placeholder={t("onboarding.idCardPlaceholder")} 
                         value={formData.id_card_number}
                         onChange={(e) => setFormData({...formData, id_card_number: e.target.value.replace(/\D/g, '').substring(0, 12)})}
                         required
                     />
                 </div>
                 <div className="form-group">
-                    <label>Nơi cấp <span className="required">*</span></label>
+                    <label>{t("onboarding.issuePlaceLabel")} <span className="required">*</span></label>
                     <input 
                         name="id_card_issue_place"
                         type="text" 
-                        placeholder="Nhập nơi cấp" 
+                        placeholder={t("onboarding.issuePlacePlaceholder")} 
                         value={formData.id_card_issue_place}
                         onChange={handleChange}
                         required
@@ -176,7 +178,7 @@ const KYCStep = (props) => {
 
             <div className="form-group-row">
                 <div className="form-group">
-                    <label>Ngày cấp <span className="required">*</span></label>
+                    <label>{t("onboarding.issueDateLabel")} <span className="required">*</span></label>
                     <input 
                         name="id_card_issue_date"
                         type="date" 
@@ -187,7 +189,7 @@ const KYCStep = (props) => {
                     />
                 </div>
                 <div className="form-group">
-                    <label>Ngày hết hạn <span className="required">*</span></label>
+                    <label>{t("onboarding.expiryDateLabel")} <span className="required">*</span></label>
                     <input 
                         name="id_card_expiry_date"
                         type="date" 
@@ -200,11 +202,11 @@ const KYCStep = (props) => {
             </div>
 
             <div className="form-group">
-                <label>Địa chỉ thường trú <span className="required">*</span></label>
+                <label>{t("onboarding.addressLabel")} <span className="required">*</span></label>
                 <textarea 
                     name="address"
                     rows="3"
-                    placeholder="Nhập địa chỉ chi tiết"
+                    placeholder={t("onboarding.addressPlaceholder")}
                     value={formData.address}
                     onChange={handleChange}
                     required
@@ -212,7 +214,7 @@ const KYCStep = (props) => {
             </div>
 
             <button type="submit" className="btn-submit" disabled={loading}>
-                {loading ? 'Đang gửi...' : 'Tiếp tục'}
+                {loading ? t("onboarding.sending") : t("onboarding.continueBtn")}
             </button>
         </form>
     );

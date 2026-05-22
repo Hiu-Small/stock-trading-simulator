@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import "./SettingsPage.scss";
 import { fetchSettings, updateSettings } from "../../../services/adminService";
 import { toast } from "react-toastify";
+import { useTranslation } from "../../../context/LanguageContext";
 
 const SettingsPage = () => {
+  const { t, lang } = useTranslation();
   const defaultSettings = {
     baseFee: "0.15",
     incomeTax: "0.10",
@@ -26,11 +28,11 @@ const SettingsPage = () => {
         setSettings(res.DT);
         setDbSettings(res.DT);
       } else {
-        toast.error(res.EM || "Không thể tải cấu hình");
+        toast.error(res.EM || t("admin.settings.toastLoadError"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi kết nối tới máy chủ");
+      toast.error(t("admin.settings.toastConnError"));
     } finally {
       setLoading(false);
     }
@@ -52,25 +54,25 @@ const SettingsPage = () => {
 
   const handleDiscard = () => {
     setSettings(dbSettings);
-    toast.info("Đã hoàn tác các thay đổi chưa lưu");
+    toast.info(t("admin.settings.toastDiscardSuccess"));
   };
 
   const handleSave = async () => {
     // Validate inputs
     if (isNaN(settings.baseFee) || parseFloat(settings.baseFee) < 0) {
-      toast.error("Phí giao dịch phải là số dương hợp lệ");
+      toast.error(t("admin.settings.toastFeePositive"));
       return;
     }
     if (isNaN(settings.incomeTax) || parseFloat(settings.incomeTax) < 0) {
-      toast.error("Thuế thu nhập phải là số dương hợp lệ");
+      toast.error(t("admin.settings.toastTaxPositive"));
       return;
     }
     if (isNaN(settings.initialBalance) || parseFloat(settings.initialBalance) < 0) {
-      toast.error("Số dư ảo ban đầu phải là số dương hợp lệ");
+      toast.error(t("admin.settings.toastBalancePositive"));
       return;
     }
     if (isNaN(settings.cashAdvanceRate) || parseFloat(settings.cashAdvanceRate) < 0) {
-      toast.error("Lãi suất ứng trước phải là số dương hợp lệ");
+      toast.error(t("admin.settings.toastAdvanceRatePositive"));
       return;
     }
 
@@ -79,13 +81,13 @@ const SettingsPage = () => {
       if (res && res.EC === 0) {
         setDbSettings(settings);
         setHasChanges(false);
-        toast.success("Lưu cấu hình hệ thống thành công!");
+        toast.success(t("admin.settings.toastSaveSuccess"));
       } else {
-        toast.error(res.EM || "Lỗi lưu cấu hình");
+        toast.error(res.EM || t("admin.settings.toastSaveError"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi kết nối tới máy chủ");
+      toast.error(t("admin.settings.toastConnError"));
     }
   };
 
@@ -93,9 +95,9 @@ const SettingsPage = () => {
     return (
       <div className="admin-settings-page text-center py-5">
         <div className="spinner-border text-success" role="status">
-          <span className="visually-hidden">Đang tải cấu hình...</span>
+          <span className="visually-hidden">{t("admin.settings.loadingText")}</span>
         </div>
-        <p className="mt-3 text-muted">Đang tải cấu hình hệ thống...</p>
+        <p className="mt-3 text-muted">{t("admin.settings.loadingText")}</p>
       </div>
     );
   }
@@ -103,8 +105,8 @@ const SettingsPage = () => {
   return (
     <div className="admin-settings-page">
       <div className="page-header">
-        <h1>Settings & Fees</h1>
-        <p>Configure trading parameters, simulator fees, and default values</p>
+        <h1>{t("admin.settings.title")}</h1>
+        <p>{t("admin.settings.subtitle")}</p>
       </div>
 
       <div className="settings-container">
@@ -116,13 +118,13 @@ const SettingsPage = () => {
                 <i className="fa-solid fa-percent"></i>
               </div>
               <div className="header-info">
-                <h3>Trading Fees & Taxes</h3>
-                <p>Set commission rates and tax percentages</p>
+                <h3>{t("admin.settings.cardFeesTitle")}</h3>
+                <p>{t("admin.settings.cardFeesDesc")}</p>
               </div>
             </div>
 
             <div className="form-group">
-              <label>Base Trading Fee (%)</label>
+              <label>{t("admin.settings.feeBaseLabel")}</label>
               <div className="input-wrapper">
                 <span className="prefix">%</span>
                 <input 
@@ -131,11 +133,11 @@ const SettingsPage = () => {
                   onChange={(e) => handleChange("baseFee", e.target.value)}
                 />
               </div>
-              <span className="helper-text">Applied to both buy and sell transactions (e.g., 0.15%)</span>
+              <span className="helper-text">{t("admin.settings.feeBaseHint")}</span>
             </div>
 
             <div className="form-group">
-              <label>Income Tax on Sell (%)</label>
+              <label>{t("admin.settings.taxSellLabel")}</label>
               <div className="input-wrapper">
                 <span className="prefix">%</span>
                 <input 
@@ -144,11 +146,11 @@ const SettingsPage = () => {
                   onChange={(e) => handleChange("incomeTax", e.target.value)}
                 />
               </div>
-              <span className="helper-text">Tax applied on the value of sell transactions (e.g., 0.10%)</span>
+              <span className="helper-text">{t("admin.settings.taxSellHint")}</span>
             </div>
 
             <div className="form-group">
-              <label>Cash Advance Daily Interest Rate (%)</label>
+              <label>{t("admin.settings.advanceRateLabel")}</label>
               <div className="input-wrapper">
                 <span className="prefix">%</span>
                 <input 
@@ -157,7 +159,7 @@ const SettingsPage = () => {
                   onChange={(e) => handleChange("cashAdvanceRate", e.target.value)}
                 />
               </div>
-              <span className="helper-text">Daily interest rate applied on cash advance amounts (e.g., 0.038%)</span>
+              <span className="helper-text">{t("admin.settings.advanceRateHint")}</span>
             </div>
           </section>
 
@@ -168,13 +170,13 @@ const SettingsPage = () => {
                 <i className="fa-solid fa-dollar-sign"></i>
               </div>
               <div className="header-info">
-                <h3>New Account Defaults</h3>
-                <p>Configure initial settings for new users</p>
+                <h3>{t("admin.settings.cardDefaultsTitle")}</h3>
+                <p>{t("admin.settings.cardDefaultsDesc")}</p>
               </div>
             </div>
 
             <div className="form-group">
-              <label>Initial Virtual Balance (VND)</label>
+              <label>{t("admin.settings.balanceLabel")}</label>
               <div className="input-wrapper">
                 <span className="prefix">₫</span>
                 <input 
@@ -185,7 +187,7 @@ const SettingsPage = () => {
               </div>
               <div className="info-box blue mt-3">
                 <i className="fa-solid fa-circle-info"></i>
-                <span>Default simulator money granted to new accounts. Current value: {Number(settings.initialBalance).toLocaleString('vi-VN')} VND</span>
+                <span>{t("admin.settings.balanceHint", { val: Number(settings.initialBalance).toLocaleString('vi-VN') })}</span>
               </div>
             </div>
           </section>
@@ -198,16 +200,16 @@ const SettingsPage = () => {
               <i className="fa-solid fa-gear"></i>
             </div>
             <div className="header-info">
-              <h3>System Configurations</h3>
-              <p>Enable or disable advanced trading features</p>
+              <h3>{t("admin.settings.cardSystemTitle")}</h3>
+              <p>{t("admin.settings.cardSystemDesc")}</p>
             </div>
           </div>
 
           {/* Chỉ giữ lại cấu hình T+0 */}
           <div className="toggle-item">
             <div className="item-info">
-              <span className="title">Enable T+0 Trading</span>
-              <span className="desc">Allow users to sell securities immediately after purchase (bypass real market T+2 settlement rule)</span>
+              <span className="title">{t("admin.settings.toggleT0Title")}</span>
+              <span className="desc">{t("admin.settings.toggleT0Desc")}</span>
             </div>
             <label className="toggle-switch">
               <input 
@@ -226,14 +228,14 @@ const SettingsPage = () => {
         <div className="bottom-action-bar">
           <div className="bar-left">
             <div className="unsaved-dot"></div>
-            <span>You have unsaved changes</span>
+            <span>{t("admin.settings.hasChangesLabel")}</span>
           </div>
           <div className="bar-right">
             <button className="btn-discard" onClick={handleDiscard}>
-              <i className="fa-solid fa-xmark"></i> Discard Changes
+              <i className="fa-solid fa-xmark"></i> {t("admin.settings.btnDiscard")}
             </button>
             <button className="btn-save" onClick={handleSave}>
-              <i className="fa-solid fa-floppy-disk"></i> Save Configurations
+              <i className="fa-solid fa-floppy-disk"></i> {t("admin.settings.btnSave")}
             </button>
           </div>
         </div>

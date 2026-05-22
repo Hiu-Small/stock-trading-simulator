@@ -1,8 +1,11 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
+import { useTranslation } from "../../../context/LanguageContext";
 import "./ConfirmModal.scss";
 
 const ConfirmModal = ({ show, handleClose, handleConfirm, title, message, confirmText, cancelText, type }) => {
+  const { t } = useTranslation();
+
   return (
     <Modal 
       show={show} 
@@ -23,14 +26,14 @@ const ConfirmModal = ({ show, handleClose, handleConfirm, title, message, confir
 
       <Modal.Footer className="justify-content-center">
         <button type="button" className="btn-cancel" onClick={handleClose}>
-          {cancelText || "Hủy"}
+          {cancelText || t("sidebar.createWatchlistCancel")}
         </button>
         <button 
           type="button" 
           className={`btn-confirm ${type}`} 
           onClick={handleConfirm}
         >
-          {confirmText || "Xác nhận"}
+          {confirmText || (t("lang") === "vi" ? "Xác nhận" : "Confirm")}
         </button>
       </Modal.Footer>
     </Modal>

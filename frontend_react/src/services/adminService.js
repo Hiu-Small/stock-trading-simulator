@@ -126,6 +126,27 @@ const forceMatchOrder = (orderId) => {
     return axios.post("/api/admin/orders/match", { orderId });
 };
 
+/**
+ * Admin hủy lệnh bình thường
+ */
+const cancelStandardOrder = (orderId) => {
+    return axios.post("/api/admin/orders/cancel-standard", { orderId });
+};
+
+/**
+ * Admin sửa lệnh bình thường
+ */
+const modifyAdminOrder = (orderId, newPrice, newQuantity) => {
+    return axios.post("/api/admin/orders/modify", { orderId, newPrice, newQuantity });
+};
+
+/**
+ * Admin đặt lệnh hộ
+ */
+const placeOrderOnBehalf = (targetUserId, symbol, quantity, price, side, type) => {
+    return axios.post("/api/admin/orders/place-on-behalf", { targetUserId, symbol, quantity, price, side, type });
+};
+
 export {
     fetchAllUsers,
     fetchAllOrders,
@@ -143,5 +164,8 @@ export {
     fetchMarketStatus,
     updateMarketStatus,
     fetchSettings,
-    updateSettings
+    updateSettings,
+    cancelStandardOrder,
+    modifyAdminOrder,
+    placeOrderOnBehalf
 };

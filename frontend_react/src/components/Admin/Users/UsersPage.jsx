@@ -3,13 +3,20 @@ import "./UsersPage.scss";
 import BalanceAdjustmentModal from "./BalanceAdjustmentModal";
 import ConfirmModal from "./ConfirmModal";
 import EditUserModal from "./EditUserModal";
+import StockDetailModal from "../../StockModal/StockDetailModal";
 import { fetchAllUsers, updateUserStatus } from "../../../services/adminService";
 import { toast } from "react-toastify";
+import { useTranslation } from "../../../context/LanguageContext";
 
 const UsersPage = () => {
+  const { t, lang } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSellModal, setShowSellModal] = useState(false);
+  const [selectedHolding, setSelectedHolding] = useState(null);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [orderSymbol, setOrderSymbol] = useState("ACB");
   const [confirmConfig, setConfirmConfig] = useState({
     userId: null,
     status: "",
@@ -30,7 +37,7 @@ const UsersPage = () => {
       if (response && response.EC === 0) {
         setUsers(response.DT);
       } else {
-        toast.error(response.EM || "Lỗi khi lấy danh sách người dùng");
+        toast.error(response.EM || (lang === "vi" ? "Lỗi khi lấy danh sách người dùng" : "Error fetching user list"));
       }
     } catch (error) {
       console.error("Fetch users error:", error);
@@ -50,7 +57,7 @@ const UsersPage = () => {
 
   const handleLock = (user) => {
     if (user.role === 'ADMIN') {
-        toast.error("Không thể khóa tài khoản Quản trị viên");
+        toast.error(t("admin.users.toastLockAdmin"));
         return;
     }
 
@@ -60,13 +67,13 @@ const UsersPage = () => {
     setConfirmConfig({
         userId: user.id,
         status: newStatus,
-        title: isCurrentlyLocked ? "Mở khóa tài khoản" : "Khóa tài khoản",
-        message: (
-            <>
-                Bạn có chắc chắn muốn {isCurrentlyLocked ? "mở khóa" : "khóa"} tài khoản <strong>{user.email}</strong>? 
-                {!isCurrentlyLocked && " Người dùng này sẽ không thể đăng nhập vào hệ thống."}
-            </>
-        ),
+        title: isCurrentlyLocked ? t("admin.users.modalUnlockTitle") : t("admin.users.modalLockTitle"),
+        message: t("admin.users.modalLockConfirm", {
+            action: isCurrentlyLocked 
+                ? (lang === "vi" ? "mở khóa" : "unlock") 
+                : (lang === "vi" ? "khóa" : "lock"),
+            email: user.email
+        }) + (!isCurrentlyLocked ? t("admin.users.modalLockDesc") : ""),
         type: isCurrentlyLocked ? "info" : "danger"
     });
     setShowConfirmModal(true);
@@ -80,14 +87,14 @@ const UsersPage = () => {
         });
 
         if (response && response.EC === 0) {
-            toast.success(response.EM || "Cập nhật trạng thái thành công");
+            toast.success(response.EM || (lang === "vi" ? "Cập nhật trạng thái thành công" : "Status updated successfully"));
             fetchUsers();
         } else {
-            toast.error(response.EM || "Lỗi khi cập nhật trạng thái");
+            toast.error(response.EM || (lang === "vi" ? "Lỗi khi cập nhật trạng thái" : "Error updating status"));
         }
     } catch (error) {
         console.error("Update status error:", error);
-        toast.error("Lỗi hệ thống");
+        toast.error(lang === "vi" ? "Lỗi hệ thống" : "System error");
     } finally {
         setShowConfirmModal(false);
     }
@@ -100,7 +107,7 @@ const UsersPage = () => {
 
   const handleExportCSV = () => {
     if (filteredUsers.length === 0) {
-      toast.warning("Không có dữ liệu để xuất");
+      toast.warning(t("admin.users.toastExportNoData"));
       return;
     }
 
@@ -156,7 +163,7 @@ const UsersPage = () => {
     link.click();
     document.body.removeChild(link);
     
-    toast.success("Đã xuất file thành công");
+    toast.success(t("admin.users.toastExportSuccess"));
   };
 
   const formatCurrency = (amount) => {
@@ -207,12 +214,12 @@ const UsersPage = () => {
     <div className="admin-users-page">
       <div className="page-header">
         <div className="header-left">
-          <h1>Users & Accounts</h1>
-          <p>Manage user accounts and virtual balances</p>
+          <h1>{t("admin.users.title")}</h1>
+          <p>{t("admin.users.subtitle")}</p>
         </div>
         <div className="header-right">
           <button className="btn-export" onClick={handleExportCSV}>
-            <i className="fa-solid fa-download"></i> Export CSV
+            <i className="fa-solid fa-download"></i> {t("admin.users.exportCsv")}
           </button>
         </div>
       </div>
@@ -223,7 +230,7 @@ const UsersPage = () => {
             <i className="fa-solid fa-magnifying-glass"></i>
             <input
               type="text"
-              placeholder="Search by name, email, or ID..."
+              placeholder={t("admin.users.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -233,18 +240,15 @@ const UsersPage = () => {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="locked">Locked</option>
-              <option value="pending">Pending</option>
+              <option value="all">{t("admin.users.filterAll")}</option>
+              <option value="active">{t("admin.users.filterActive")}</option>
+              <option value="locked">{t("admin.users.filterLocked")}</option>
+              <option value="pending">{t("admin.users.filterPending")}</option>
             </select>
           </div>
-          {/* <div className="filter-item date">
-            <input type="date" placeholder="dd/mm/yyyy" />
-          </div> */}
         </div>
         <div className="filter-info">
-          Showing <span>{filteredUsers.length} of {users.length}</span> users
+          {t("admin.users.showingCount", { filtered: filteredUsers.length, total: users.length })}
         </div>
       </div>
 
@@ -253,19 +257,19 @@ const UsersPage = () => {
           <thead>
             <tr>
               <th></th>
-              <th>USER ID</th>
-              <th>FULL NAME</th>
-              <th>EMAIL</th>
-              <th>VIRTUAL BALANCE</th>
-              <th>PORTFOLIO VALUE</th>
-              <th>STATUS</th>
-              <th>ACTIONS</th>
+              <th>{t("admin.users.colAcc")}</th>
+              <th>{t("admin.users.colName")}</th>
+              <th>{t("admin.users.colEmail")}</th>
+              <th>{t("admin.users.colBalance")}</th>
+              <th>{t("admin.users.colPortfolio")}</th>
+              <th>{t("admin.users.colStatus")}</th>
+              <th>{t("admin.users.colActions")}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>Đang tải dữ liệu...</td>
+                <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>{t("admin.users.loading")}</td>
               </tr>
             ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user, index) => (
@@ -303,46 +307,125 @@ const UsersPage = () => {
                     <tr className="holdings-detail-row">
                       <td colSpan="8">
                         <div className="holdings-expand-container">
-                          <h4>Chi tiết danh mục nắm giữ</h4>
+                          <div className="holdings-header-row">
+                            <h4>{t("admin.users.holdingsTitle")}</h4>
+                            {user.holdings && user.holdings.length > 0 && (
+                              <button
+                                className="btn-place-order-admin"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  const defaultSym = user.holdings[0].stock?.symbol || "ACB";
+                                  setOrderSymbol(defaultSym);
+                                  setShowOrderModal(true);
+                                }}
+                              >
+                                <i className="fa-solid fa-cart-shopping"></i> {t("admin.users.btnPlaceOrder")}
+                              </button>
+                            )}
+                          </div>
                           {user.holdings && user.holdings.length > 0 ? (
                             <table className="holdings-inner-table">
                               <thead>
                                 <tr>
-                                  <th>Mã CK</th>
-                                  <th>Số lượng</th>
-                                  <th>Giá vốn</th>
-                                  <th>Giá hiện tại</th>
-                                  <th>Tổng giá trị</th>
-                                  <th>Lãi/Lỗ</th>
-                                  <th>% Lãi/Lỗ</th>
+                                  <th>{t("admin.users.colSymbol")}</th>
+                                  <th>{t("admin.users.colQty")}</th>
+                                  <th>{t("admin.users.colCostPrice")}</th>
+                                  <th>{t("admin.users.colCurrPrice")}</th>
+                                  <th>{t("admin.users.colTotalValue")}</th>
+                                  <th>{t("admin.users.colPnL")}</th>
+                                  <th>{t("admin.users.colPnLPercent")}</th>
+                                  <th>{t("admin.users.colAction")}</th>
                                 </tr>
                               </thead>
                               <tbody>
-                                {user.holdings.map((h, hIndex) => {
-                                  const costValue = h.quantity * h.average_price;
-                                  const profit = h.totalValue - costValue;
-                                  const profitPercent = costValue > 0 ? (profit / costValue) * 100 : 0;
-                                  const isProfit = profit >= 0;
+                                {(() => {
+                                  let totalCostValue = 0;
+                                  let totalMarketValue = 0;
+                                  user.holdings.forEach(h => {
+                                    const cost = h.quantity * h.average_price;
+                                    totalCostValue += cost;
+                                    totalMarketValue += (h.totalValue || 0);
+                                  });
+                                  const totalProfitLoss = totalMarketValue - totalCostValue;
+                                  const totalProfitPercent = totalCostValue > 0 ? (totalProfitLoss / totalCostValue) * 100 : 0;
+                                  const isTotalProfit = totalProfitLoss >= 0;
+                                  
                                   return (
-                                    <tr key={hIndex}>
-                                      <td>{h.stock?.symbol}</td>
-                                      <td>{h.quantity.toLocaleString()}</td>
-                                      <td>{formatCurrency(h.average_price)}</td>
-                                      <td className="current-price">{formatCurrency(h.currentPrice)}</td>
-                                      <td>{formatCurrency(h.totalValue)}</td>
-                                      <td className={isProfit ? 'text-profit' : 'text-loss'}>
-                                        {isProfit ? '+' : ''}{formatCurrency(profit)}
-                                      </td>
-                                      <td className={isProfit ? 'text-profit' : 'text-loss'}>
-                                        {isProfit ? '+' : ''}{profitPercent.toFixed(2)}%
-                                      </td>
-                                    </tr>
+                                    <>
+                                      {user.holdings.map((h, hIndex) => {
+                                        const costValue = h.quantity * h.average_price;
+                                        const profit = h.totalValue - costValue;
+                                        const profitPercent = costValue > 0 ? (profit / costValue) * 100 : 0;
+                                        const isProfit = profit >= 0;
+                                        const sellableQty = h.sellableQuantity ?? h.quantity ?? 0;
+                                        return (
+                                          <tr key={hIndex}>
+                                            <td>{h.stock?.symbol}</td>
+                                            <td>{h.quantity.toLocaleString()}</td>
+                                            <td>{formatCurrency(h.average_price)}</td>
+                                            <td className="current-price">{formatCurrency(h.currentPrice)}</td>
+                                            <td>{formatCurrency(h.totalValue)}</td>
+                                            <td className={isProfit ? 'text-profit' : 'text-loss'}>
+                                              {isProfit ? '+' : ''}{formatCurrency(profit)}
+                                            </td>
+                                            <td className={isProfit ? 'text-profit' : 'text-loss'}>
+                                              {isProfit ? '+' : ''}{profitPercent.toFixed(2)}%
+                                            </td>
+                                            <td>
+                                              {sellableQty > 0 ? (
+                                                <button
+                                                  className="btn-sell-custom"
+                                                  title={t("admin.users.sellTitle", { symbol: h.stock?.symbol, qty: sellableQty.toLocaleString() })}
+                                                  onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setSelectedHolding(h);
+                                                    setShowSellModal(true);
+                                                  }}
+                                                >
+                                                  <i className="fa-solid fa-arrow-trend-down" /> {t("admin.users.btnSell")}
+                                                </button>
+                                              ) : (
+                                                <span className="badge-pending-custom" title={lang === "vi" ? "Cổ phiếu chưa về, cần chờ T+2.5 ngày sau khi mua" : "Stock not settled, wait for T+2.5 days after purchase"}>
+                                                  <i className="fa-regular fa-clock" /> {t("admin.users.btnPendingT25")}
+                                                </span>
+                                              )}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                      <tr className="holdings-total-row">
+                                        <td><strong>{t("admin.users.holdingsTotal")}</strong></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td><strong>{formatCurrency(totalMarketValue)}</strong></td>
+                                        <td className={isTotalProfit ? 'text-profit' : 'text-loss'}>
+                                          <strong>{isTotalProfit ? '+' : ''}{formatCurrency(totalProfitLoss)}</strong>
+                                        </td>
+                                        <td className={isTotalProfit ? 'text-profit' : 'text-loss'}>
+                                          <strong>{isTotalProfit ? '+' : ''}{totalProfitPercent.toFixed(2)}%</strong>
+                                        </td>
+                                        <td></td>
+                                      </tr>
+                                    </>
                                   );
-                                })}
+                                })()}
                               </tbody>
                             </table>
                           ) : (
-                            <p className="no-data">Người dùng này chưa nắm giữ cổ phiếu nào.</p>
+                            <div className="no-holdings-container">
+                              <p className="no-data">{t("admin.users.noHoldings")}</p>
+                              <button
+                                className="btn-place-order-admin btn-place-order-empty"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setOrderSymbol("ACB");
+                                  setShowOrderModal(true);
+                                }}
+                              >
+                                <i className="fa-solid fa-cart-shopping"></i> {t("admin.users.btnPlaceOrder")}
+                              </button>
+                            </div>
                           )}
                         </div>
                       </td>
@@ -352,7 +435,7 @@ const UsersPage = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>Không tìm thấy người dùng nào.</td>
+                <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>{t("admin.users.noData")}</td>
               </tr>
             )}
           </tbody>
@@ -373,7 +456,8 @@ const UsersPage = () => {
         title={confirmConfig.title}
         message={confirmConfig.message}
         type={confirmConfig.type}
-        confirmText="Xác nhận"
+        confirmText={lang === "vi" ? "Xác nhận" : "Confirm"}
+        cancelText={lang === "vi" ? "Hủy" : "Cancel"}
       />
 
       <EditUserModal
@@ -382,6 +466,36 @@ const UsersPage = () => {
         userData={selectedUser}
         onSuccess={fetchUsers}
       />
+
+      {showSellModal && selectedHolding && selectedUser && (
+        <StockDetailModal
+          symbol={selectedHolding.stock?.symbol}
+          onlyOrder={true}
+          defaultSide="SELL"
+          onClose={() => {
+            setShowSellModal(false);
+            setSelectedHolding(null);
+          }}
+          targetUser={selectedUser}
+          isAdmin={true}
+          onSuccess={fetchUsers}
+        />
+      )}
+
+      {showOrderModal && selectedUser && (
+        <StockDetailModal
+          symbol={orderSymbol}
+          onlyOrder={true}
+          defaultSide="BUY"
+          onClose={() => {
+            setShowOrderModal(false);
+          }}
+          onChangeSymbol={(newSym) => setOrderSymbol(newSym)}
+          targetUser={selectedUser}
+          isAdmin={true}
+          onSuccess={fetchUsers}
+        />
+      )}
     </div>
   );
 };

@@ -29,6 +29,25 @@
         &:hover { background-color: var(--bg-hover); } 
         .col-time { color: var(--text-muted); } 
       }
+      .loading-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 50px 0;
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 500;
+        gap: 10px;
+        text-align: center;
+        width: 100%;
+
+        i {
+          font-size: 28px;
+          opacity: 0.25;
+          color: var(--text-muted);
+        }
+      }
     }
     .col-time { flex: 1.2; text-align: left; }
     .col-vol { flex: 1.4; text-align: right; }

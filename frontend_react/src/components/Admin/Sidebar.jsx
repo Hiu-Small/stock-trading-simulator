@@ -2,29 +2,31 @@ import { NavLink, useNavigate, Link } from "react-router-dom";
 import { useContext } from "react";
 import { UserContext } from "../../context/UserContext";
 import { toast } from "react-toastify";
+import { useTranslation } from "../../context/LanguageContext";
 import "./Sidebar.scss";
 
 const Sidebar = () => {
   const { logoutContext } = useContext(UserContext);
   const navigate = useNavigate();
+  const { t, lang } = useTranslation();
 
   const handleLogout = () => {
     logoutContext();
     sessionStorage.removeItem("account");
-    toast.success("Đăng xuất thành công!");
+    toast.success(lang === "vi" ? "Đăng xuất thành công!" : "Logged out successfully!");
     navigate("/");
   };
 
   const menuItems = [
-    { icon: "fa-solid fa-house", label: "Back to Home", path: "/", isExternal: true },
-    { icon: "fa-solid fa-table-columns", label: "Dashboard", path: "/admin/dashboard" },
-    { icon: "fa-solid fa-users", label: "Users & Accounts", path: "/admin/users" },
-    { icon: "fa-solid fa-chart-line", label: "Market Data", path: "/admin/market" },
-    { icon: "fa-solid fa-wave-square", label: "Trade Monitoring", path: "/admin/trades" },
-    { icon: "fa-solid fa-building-columns", label: "Corporate Actions", path: "/admin/corporate-actions" },
-    { icon: "fa-solid fa-gear", label: "Settings & Fees", path: "/admin/settings" },
-    { icon: "fa-solid fa-trophy", label: "Leaderboard", path: "/admin/leaderboard" },
-    { icon: "fa-solid fa-file-lines", label: "System Logs", path: "/admin/logs" },
+    { icon: "fa-solid fa-house", label: t("admin.sidebar.backHome"), path: "/", isExternal: true },
+    { icon: "fa-solid fa-table-columns", label: t("admin.sidebar.dashboard"), path: "/admin/dashboard" },
+    { icon: "fa-solid fa-users", label: t("admin.sidebar.users"), path: "/admin/users" },
+    { icon: "fa-solid fa-chart-line", label: t("admin.sidebar.market"), path: "/admin/market" },
+    { icon: "fa-solid fa-wave-square", label: t("admin.sidebar.trades"), path: "/admin/trades" },
+    { icon: "fa-solid fa-building-columns", label: t("admin.sidebar.corporate"), path: "/admin/corporate-actions" },
+    { icon: "fa-solid fa-gear", label: t("admin.sidebar.settings"), path: "/admin/settings" },
+    { icon: "fa-solid fa-trophy", label: t("admin.sidebar.leaderboard"), path: "/admin/leaderboard" },
+    { icon: "fa-solid fa-file-lines", label: t("admin.sidebar.logs"), path: "/admin/logs" },
   ];
 
   return (
@@ -35,7 +37,7 @@ const Sidebar = () => {
         </div>
         <div className="logo-text">
           <h1>Trading Sim</h1>
-          <span>Admin Portal</span>
+          <span>{t("admin.sidebar.adminPortal")}</span>
         </div>
       </div>
 
@@ -72,7 +74,7 @@ const Sidebar = () => {
         
         <button className="btn-logout" onClick={handleLogout}>
           <i className="fa-solid fa-right-from-bracket"></i>
-          <span>Logout</span>
+          <span>{t("admin.sidebar.logout")}</span>
         </button>
       </div>
     </div>

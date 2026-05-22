@@ -30,6 +30,8 @@ const PriceBoard = (props) => {
   // Lấy selectedGroup và searchResults từ props (được quản lý ở MainContent)
   const selectedGroup = props.selectedGroup || "VN30";
   const searchResults = props.searchResults || null;
+  const isSpecialMode = props.isPortfolioMode || props.isFavoritesMode || !!props.isWatchlistMode || searchResults !== null;
+  const headerSelectedGroup = isSpecialMode ? null : selectedGroup;
 
   // Xử lý khi có yêu cầu tìm kiếm từ Nav (thông qua SearchContext)
   useEffect(() => {
@@ -120,7 +122,7 @@ const PriceBoard = (props) => {
       <div className="price-board__main">
         <BoardHeader
           stateStock={stateStock}
-          selectedGroup={selectedGroup}
+          selectedGroup={headerSelectedGroup}
           onGroupChange={(group) => {
             if (props.onGroupChange) props.onGroupChange(group);
             if (props.onSearchResults) props.onSearchResults(null); // Khi chuyển nhóm thì xóa kết quả tìm kiếm
@@ -164,6 +166,8 @@ const PriceBoard = (props) => {
           x={contextMenu.x}
           y={contextMenu.y}
           symbol={contextMenu.symbol}
+          isWatchlistMode={props.isWatchlistMode}
+          onRemoveFromWatchlist={props.onRemoveFromWatchlist}
           onClose={() => setContextMenu(null)}
         />
       )}

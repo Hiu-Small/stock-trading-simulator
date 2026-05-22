@@ -9,6 +9,188 @@ import { SearchContext } from "../../context/SearchContext";
 import { useTranslation } from "../../context/LanguageContext";
 import useAllStocks from "../../hooks/useAllStocks";
 
+const translateNotificationText = (text, currentLang, t) => {
+  if (!text || !t) return text;
+
+  // 1. Đặt thành công lệnh MUA/BÁN
+  // Ví dụ: "Đặt thành công lệnh MUA 2500 CP CAN với giá 29.000 đ"
+  let match = text.match(/Đặt thành công lệnh (MUA|BÁN) (\d+) CP ([A-Z0-9]+) với giá ([0-9.,]+)/i);
+  if (match) {
+    const rawSide = match[1];
+    const side = rawSide === "MUA" ? t("nav.notifTemplates.buy") : t("nav.notifTemplates.sell");
+    const qty = match[2];
+    const symbol = match[3];
+    const price = match[4];
+    return t("nav.notifTemplates.successPlace")
+      .replace("{side}", side)
+      .replace("{qty}", qty)
+      .replace("{symbol}", symbol)
+      .replace("{price}", price);
+  }
+
+  // 2. Lệnh hết hạn cuối ngày: Đã tự động hủy lệnh MUA/BÁN
+  // Ví dụ: "Lệnh hết hạn cuối ngày: Đã tự động hủy lệnh MUA 18000 CP DXP"
+  match = text.match(/Lệnh hết hạn cuối ngày:\s*Đã tự động hủy lệnh (MUA|BÁN) (\d+) CP ([A-Z0-9]+)/i);
+  if (match) {
+    const rawSide = match[1];
+    const side = rawSide === "MUA" ? t("nav.notifTemplates.buy") : t("nav.notifTemplates.sell");
+    const qty = match[2];
+    const symbol = match[3];
+    return t("nav.notifTemplates.expiredCancel")
+      .replace("{side}", side)
+      .replace("{qty}", qty)
+      .replace("{symbol}", symbol);
+  }
+
+  // 3. Khớp một phần / Khớp hoàn toàn
+  // Ví dụ: "Khớp một phần lệnh MUA: Đã khớp 12000 CP DXP với giá 13.200 đ vào lúc 14:45:03"
+  // Ví dụ: "Khớp hoàn toàn lệnh MUA: Đã khớp 2500 CP CAN với giá 29.000 đ vào lúc 10:14:15"
+  match = text.match(/(Khớp một phần|Khớp hoàn toàn) lệnh (MUA|BÁN):\s*Đã khớp (\d+) CP ([A-Z0-9]+) với giá ([0-9.,]+)(?:\s*đ)? vào lúc (.*)/i);
+  if (match) {
+    const rawMatchType = match[1];
+    const matchType = rawMatchType === "Khớp một phần" 
+      ? t("nav.notifTemplates.partiallyMatched") 
+      : t("nav.notifTemplates.fullyMatched");
+    const rawSide = match[2];
+    const side = rawSide === "MUA" ? t("nav.notifTemplates.buy") : t("nav.notifTemplates.sell");
+    const qty = match[3];
+    const symbol = match[4];
+    const price = match[5];
+    const time = match[6];
+    return t("nav.notifTemplates.matchedStatus")
+      .replace("{matchType}", matchType)
+      .replace("{side}", side)
+      .replace("{qty}", qty)
+      .replace("{symbol}", symbol)
+      .replace("{price}", price)
+      .replace("{time}", time);
+  }
+
+  // 4. Tài khoản của bạn vừa được Admin cộng thêm/khấu trừ tiền ảo
+  // Ví dụ: "Tài khoản của bạn vừa được Admin cộng thêm 500.000.000 ₫ vốn ảo. Lý do: Cấp vốn 500 củ"
+  match = text.match(/Tài khoản của bạn vừa được Admin (cộng thêm|khấu trừ) ([0-9.,]+)\s*(?:₫|đ)?\s*vốn ảo\.\s*Lý do:\s*(.*)/i);
+  if (match) {
+    const rawType = match[1];
+    const type = rawType === "cộng thêm" ? t("nav.notifTemplates.adminAdd") : t("nav.notifTemplates.adminDeduct");
+    const amount = match[2];
+    const reason = match[3];
+    return t("nav.notifTemplates.adminAdjust")
+      .replace("{type}", type)
+      .replace("{amount}", amount)
+      .replace("{reason}", reason);
+  }
+
+  // 5. Admin đã hủy lệnh MUA/BÁN
+  // Ví dụ: "Admin đã hủy lệnh MUA 2500 CP CAN"
+  match = text.match(/Admin đã hủy lệnh (MUA|BÁN) (\d+)\s*(?:CP|shares)?\s*([A-Z0-9]+)/i);
+  if (match) {
+    const rawSide = match[1];
+    const side = rawSide === "MUA" ? t("nav.notifTemplates.buy") : t("nav.notifTemplates.sell");
+    const qty = match[2];
+    const symbol = match[3];
+    return t("nav.notifTemplates.adminOrderCancelled")
+      .replace("{side}", side)
+      .replace("{qty}", qty)
+      .replace("{symbol}", symbol);
+  }
+
+  // 5a. Admin đã đặt lệnh MUA/BÁN hộ bạn
+  // Ví dụ: "Admin đã đặt lệnh BÁN hộ bạn: 100 CP ACB với giá 22.900 ₫"
+  match = text.match(/Admin đã đặt lệnh (MUA|BÁN) hộ bạn:\s*(\d+)\s*(?:CP|shares)?\s*([A-Z0-9]+)\s*với giá\s*(.*)/i);
+  if (match) {
+    const rawSide = match[1];
+    const side = rawSide === "MUA" ? t("nav.notifTemplates.buy") : t("nav.notifTemplates.sell");
+    const qty = match[2];
+    const symbol = match[3];
+    const price = match[4];
+    return t("nav.notifTemplates.adminOrderPlaced")
+      .replace("{side}", side)
+      .replace("{qty}", qty)
+      .replace("{symbol}", symbol)
+      .replace("{price}", price);
+  }
+
+  // 5b. Đã hủy thành công lệnh MUA/BÁN
+  // Ví dụ: "Đã hủy thành công lệnh MUA 50 CP BID"
+  match = text.match(/Đã hủy thành công lệnh (MUA|BÁN) (\d+)\s*(?:CP|shares)?\s*([A-Z0-9]+)/i);
+  if (match) {
+    const rawSide = match[1];
+    const side = rawSide === "MUA" ? t("nav.notifTemplates.buy") : t("nav.notifTemplates.sell");
+    const qty = match[2];
+    const symbol = match[3];
+    return t("nav.notifTemplates.orderCancelled")
+      .replace("{side}", side)
+      .replace("{qty}", qty)
+      .replace("{symbol}", symbol);
+  }
+
+  // 6. Admin đã sửa lệnh MUA/BÁN
+  // Ví dụ: "Admin đã sửa lệnh MUA ACB: Thay đổi Giá từ 22.700 ₫ sang 22.650 ₫"
+  match = text.match(/Admin đã sửa lệnh (MUA|BÁN) ([A-Z0-9]+):\s*(.*)/i);
+  if (match) {
+    const rawSide = match[1];
+    const side = rawSide === "MUA" ? t("nav.notifTemplates.buy") : t("nav.notifTemplates.sell");
+    const symbol = match[2];
+    let desc = match[3];
+    if (currentLang !== "vi") {
+      desc = desc
+        .replace(/Thay đổi Giá từ/gi, "Changed Price from")
+        .replace(/Thay đổi Khối lượng từ/gi, "Changed Volume from")
+        .replace(/sang/gi, "to")
+        .replace(/CP/g, "shares")
+        .replace(/Còn lại/gi, "Remaining");
+    }
+    return t("nav.notifTemplates.adminOrderModified")
+      .replace("{side}", side)
+      .replace("{symbol}", symbol)
+      .replace("{desc}", desc);
+  }
+
+  // 6a. Đã sửa lệnh MUA/BÁN
+  // Ví dụ: "Đã sửa lệnh SELL ACB: Thay đổi Giá từ 22.700 đ sang 22.650 đ"
+  match = text.match(/Đã sửa lệnh (MUA|BÁN) ([A-Z0-9]+):\s*(.*)/i);
+  if (match) {
+    const rawSide = match[1];
+    const side = rawSide === "MUA" ? t("nav.notifTemplates.buy") : t("nav.notifTemplates.sell");
+    const symbol = match[2];
+    let desc = match[3];
+    if (currentLang !== "vi") {
+      desc = desc
+        .replace(/Thay đổi Giá từ/gi, "Changed Price from")
+        .replace(/Thay đổi Khối lượng từ/gi, "Changed Volume from")
+        .replace(/sang/gi, "to")
+        .replace(/CP/g, "shares")
+        .replace(/Còn lại/gi, "Remaining");
+    }
+    return t("nav.notifTemplates.orderModified")
+      .replace("{side}", side)
+      .replace("{symbol}", symbol)
+      .replace("{desc}", desc);
+  }
+
+  // Fallback: Nếu ngôn ngữ hiện tại là vi thì giữ nguyên, ngược lại dịch tĩnh đơn giản
+  if (currentLang === "vi") return text;
+
+  let translated = text;
+  translated = translated.replace(/Đặt thành công lệnh/gi, "Successfully placed order");
+  translated = translated.replace(/Lệnh hết hạn cuối ngày:/gi, "End of day expired order:");
+  translated = translated.replace(/Đã tự động hủy lệnh/gi, "Automatically cancelled order");
+  translated = translated.replace(/Khớp một phần lệnh/gi, "Partially matched order");
+  translated = translated.replace(/Khớp hoàn toàn lệnh/gi, "Fully matched order");
+  translated = translated.replace(/Đã khớp/gi, "Matched");
+  translated = translated.replace(/với giá/gi, "at price");
+  translated = translated.replace(/vào lúc/gi, "at");
+  translated = translated.replace(/CP/g, "shares");
+  translated = translated.replace(/MUA/g, "BUY");
+  translated = translated.replace(/BÁN/g, "SELL");
+  translated = translated.replace(/Admin đã hủy lệnh/gi, "Admin cancelled order");
+  translated = translated.replace(/Admin đã đặt lệnh/gi, "Admin placed order");
+  translated = translated.replace(/hộ bạn:/gi, "on your behalf:");
+  translated = translated.replace(/Admin đã sửa lệnh/gi, "Admin modified order");
+
+  return translated;
+};
+
 const Nav = (props) => {
   const { user, logoutContext, setShowLoginModal, balance, refreshBalance, notifications, markAllAsRead, toggleReadStatus } = useContext(UserContext);
   const { handleSearch, clearSearch } = useContext(SearchContext);
@@ -326,7 +508,7 @@ const Nav = (props) => {
                                <i className={notifDetails.icon}></i>
                              </div>
                              <div className="notif-item-content">
-                               <div className="notif-item-text">{item.new_value}</div>
+                               <div className="notif-item-text">{translateNotificationText(item.new_value, lang, t)}</div>
                                <div className="notif-item-time-row">
                                  <span className="notif-item-time">{formatTimeAgo(item.createdAt)}</span>
                                  <span 

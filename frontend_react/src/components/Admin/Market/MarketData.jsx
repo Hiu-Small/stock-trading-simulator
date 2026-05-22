@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import "./MarketData.scss";
 import { fetchMarketData, updateStockStatus, syncStocks, fetchMarketStatus, updateMarketStatus } from "../../../services/adminService";
 import { toast } from "react-toastify";
+import { useTranslation } from "../../../context/LanguageContext";
 
 const MarketData = () => {
+  const { t, lang } = useTranslation();
   const [symbols, setSymbols] = useState([]);
   const [summary, setSummary] = useState({ total: 0, active: 0, halted: 0 });
   const [activeGroup, setActiveGroup] = useState("VN30");
@@ -19,14 +21,14 @@ const MarketData = () => {
     try {
       const response = await syncStocks();
       if (response && response.EC === 0) {
-        toast.success(response.EM);
+        toast.success(t("admin.market.toastSyncSuccess"));
         loadData();
       } else {
-        toast.error(response.EM || "Lỗi đồng bộ");
+        toast.error(response.EM || t("admin.market.toastSyncError"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi kết nối server");
+      toast.error(t("admin.market.toastConnError"));
     } finally {
       setSyncing(false);
     }
@@ -87,11 +89,11 @@ const MarketData = () => {
         setSymbols(mappedData);
         setSummary(stats);
       } else {
-        toast.error(response.EM || "Lỗi tải dữ liệu thị trường");
+        toast.error(response.EM || t("admin.market.toastLoadError"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi kết nối server");
+      toast.error(t("admin.market.toastConnError"));
     } finally {
       setLoading(false);
     }
@@ -127,13 +129,13 @@ const MarketData = () => {
       const response = await updateMarketStatus(newStatus);
       if (response && response.EC === 0) {
         setMarketOpen(newStatus === "OPEN");
-        toast.info(`Trạng thái thị trường đã chuyển sang: ${newStatus}`);
+        toast.info(t("admin.market.toastMarketStatusChanged", { status: newStatus }));
       } else {
-        toast.error(response.EM || "Lỗi cập nhật trạng thái");
+        toast.error(response.EM || (lang === "vi" ? "Lỗi cập nhật trạng thái" : "Error updating status"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi kết nối server");
+      toast.error(t("admin.market.toastConnError"));
     }
   };
 
@@ -149,13 +151,13 @@ const MarketData = () => {
         setSymbols(symbols.map(s => 
           s.code === code ? { ...s, status: newStatus ? "Active" : "Halted" } : s
         ));
-        toast.success(`Mã ${code} đã chuyển sang: ${newStatus ? "ACTIVE" : "HALTED"}`);
+        toast.success(t("admin.market.toastStockStatusChanged", { symbol: code, status: newStatus ? "ACTIVE" : "HALTED" }));
       } else {
-        toast.error(response.EM || "Lỗi cập nhật trạng thái");
+        toast.error(response.EM || (lang === "vi" ? "Lỗi cập nhật trạng thái" : "Error updating status"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Lỗi kết nối server");
+      toast.error(t("admin.market.toastConnError"));
     }
   };
 
@@ -168,16 +170,16 @@ const MarketData = () => {
     <div className="admin-market-page">
       <div className="page-header">
         <div className="header-left">
-          <h1>Market Data & Symbols</h1>
-          <p>Monitor and control market status and symbol trading</p>
+          <h1>{t("admin.market.title")}</h1>
+          <p>{t("admin.market.subtitle")}</p>
         </div>
         <div className="header-right">
           <button className="sync-btn" onClick={handleSync} disabled={syncing}>
             <i className={`fa-solid fa-cloud-arrow-down ${syncing ? 'fa-bounce' : ''}`}></i> 
-            {syncing ? ' Đang đồng bộ...' : ' Đồng bộ Database'}
+            {syncing ? ` ${t("admin.market.btnSyncing")}` : ` ${t("admin.market.btnSync")}`}
           </button>
           <button className="refresh-btn" onClick={() => { setLoading(true); loadData(); }}>
-            <i className={`fa-solid fa-arrows-rotate ${loading ? 'fa-spin' : ''}`}></i> Làm mới
+            <i className={`fa-solid fa-arrows-rotate ${loading ? 'fa-spin' : ''}`}></i> {t("admin.market.btnRefresh")}
           </button>
         </div>
       </div>
@@ -186,7 +188,7 @@ const MarketData = () => {
         <div className="summary-card dashboard-section">
           <div className="card-top">
             <div className="status-info">
-              <span className="label">Global Market Status</span>
+              <span className="label">{t("admin.market.globalStatus")}</span>
               <div className={`market-badge ${marketOpen ? "open" : "closed"}`}>
                 <div className="dot"></div>
                 <span>{marketOpen ? "OPEN" : "CLOSED"}</span>
@@ -195,8 +197,8 @@ const MarketData = () => {
           </div>
           <div className="card-bottom">
             <div className="control-info">
-              <span className="title">Master Trading Control</span>
-              <span className="desc">{marketOpen ? "Click to halt entire market" : "Click to resume trading"}</span>
+              <span className="title">{t("admin.market.masterControl")}</span>
+              <span className="desc">{marketOpen ? t("admin.market.clickToHalt") : t("admin.market.clickToResume")}</span>
             </div>
             <label className="toggle-switch">
               <input type="checkbox" checked={marketOpen} onChange={handleToggleMarket} />
@@ -208,7 +210,7 @@ const MarketData = () => {
         <div className="summary-card dashboard-section">
           <div className="card-top">
             <div className="status-info">
-              <span className="label">Total Listed Symbols</span>
+              <span className="label">{t("admin.market.totalSymbols")}</span>
               <div className="big-number">
                 {summary.total} <i className="fa-solid fa-arrow-trend-up trend-icon"></i>
               </div>
@@ -216,11 +218,11 @@ const MarketData = () => {
           </div>
           <div className="card-bottom stats">
             <div className="stat-item">
-              <span className="label">Active Trading</span>
+              <span className="label">{t("admin.market.activeTrading")}</span>
               <span className="value active">{summary.active}</span>
             </div>
             <div className="stat-item">
-              <span className="label">Halted</span>
+              <span className="label">{t("admin.market.haltedSymbols")}</span>
               <span className="value halted">{summary.halted}</span>
             </div>
           </div>
@@ -241,15 +243,15 @@ const MarketData = () => {
 
       <div className="list-header">
         <div className="header-left">
-          <h2>Listed Symbols</h2>
-          <p>Showing <span>{filteredSymbols.length} of {symbols.length}</span> symbols</p>
+          <h2>{t("admin.market.tabListedSymbols")}</h2>
+          <p>{t("admin.market.showingSymbols", { filtered: filteredSymbols.length, total: symbols.length })}</p>
         </div>
         <div className="header-right">
           <div className="search-box">
             <i className="fa-solid fa-magnifying-glass"></i>
             <input 
               type="text" 
-              placeholder="Search by symbol or company name..." 
+              placeholder={t("admin.market.searchPlaceholder")} 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -259,17 +261,17 @@ const MarketData = () => {
 
       <div className="table-container dashboard-section">
         {loading && symbols.length === 0 ? (
-          <div className="table-loading">Đang tải dữ liệu {activeGroup}...</div>
+          <div className="table-loading">{t("admin.market.loading", { group: activeGroup })}</div>
         ) : (
           <table className="admin-table market-table">
             <thead>
               <tr>
-                <th className="col-symbol">SYMBOL</th>
-                <th className="col-company">COMPANY NAME</th>
-                <th className="col-price">CURRENT PRICE</th>
-                <th className="col-change">DAILY CHANGE</th>
-                <th className="col-status">TRADING STATUS</th>
-                <th className="col-time">LAST UPDATED</th>
+                <th className="col-symbol">{t("admin.market.colSymbol")}</th>
+                <th className="col-company">{t("admin.market.colCompany")}</th>
+                <th className="col-price">{t("admin.market.colPrice")}</th>
+                <th className="col-change">{t("admin.market.colChange")}</th>
+                <th className="col-status">{t("admin.market.colStatus")}</th>
+                <th className="col-time">{t("admin.market.colUpdated")}</th>
               </tr>
             </thead>
             <tbody>

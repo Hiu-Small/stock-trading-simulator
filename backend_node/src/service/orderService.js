@@ -134,7 +134,7 @@ const updateWalletTotalInvested = async (userId, transaction = null) => {
 const placeOrder = async (orderData) => {
     const t = await db.sequelize.transaction();
     try {
-        const { userId, symbol, quantity, price, side, type } = orderData;
+        const { userId, symbol, quantity, price, side, type, isAdmin } = orderData;
         const qtyToTrade = parseInt(quantity);
         const tradePrice = parseFloat(price);
 
@@ -283,7 +283,9 @@ const placeOrder = async (orderData) => {
             user_id: userId,
             field_name: symbol.toUpperCase(),
             old_value: '',
-            new_value: `Đặt thành công lệnh ${sideText} ${qtyToTrade} CP ${symbol.toUpperCase()} với giá ${priceText}`,
+            new_value: isAdmin
+                ? `Admin đã đặt lệnh ${sideText} hộ bạn: ${qtyToTrade} CP ${symbol.toUpperCase()} với giá ${priceText}`
+                : `Đặt thành công lệnh ${sideText} ${qtyToTrade} CP ${symbol.toUpperCase()} với giá ${priceText}`,
             change_type: 'ORDER_PLACE'
         }, { transaction: t });
 
@@ -363,20 +365,24 @@ const getUserOrders = async (userId, { page = 1, limit = 20, status, startDate, 
 /**
  * Hủy lệnh đang chờ — hoàn trả tiền/cổ phiếu đã đóng băng
  */
-const cancelOrder = async (orderId, userId) => {
+const cancelOrder = async (orderId, userId, isAdmin = false) => {
     const t = await db.sequelize.transaction();
     try {
-        const order = await db.Order.findOne({ where: { id: orderId, user_id: userId }, transaction: t });
+        const order = await db.Order.findOne({
+            where: isAdmin ? { id: orderId } : { id: orderId, user_id: userId },
+            transaction: t
+        });
         if (!order) {
             await t.rollback();
-            return { EM: 'Lệnh không tồn tại hoặc không thuộc về bạn.', EC: -1, DT: '' };
+            return { EM: isAdmin ? 'Lệnh không tồn tại.' : 'Lệnh không tồn tại hoặc không thuộc về bạn.', EC: -1, DT: '' };
         }
         if (order.status !== 'PENDING' && order.status !== 'PARTIAL_MATCHED') {
             await t.rollback();
             return { EM: `Không thể hủy lệnh ở trạng thái ${order.status}.`, EC: -1, DT: '' };
         }
 
-        const wallet = await db.Wallet.findOne({ where: { user_id: userId }, transaction: t });
+        const actualUserId = order.user_id;
+        const wallet = await db.Wallet.findOne({ where: { user_id: actualUserId }, transaction: t });
         const feeSetting = await db.Setting.findOne({ where: { key: 'base_fee' }, transaction: t });
         const baseFeePct = feeSetting ? parseFloat(feeSetting.value) : 0.15;
 
@@ -394,19 +400,19 @@ const cancelOrder = async (orderId, userId) => {
             // Hoàn cổ phiếu chưa bán được về Holding
             const stock = await db.Stock.findOne({ where: { symbol: order.symbol }, transaction: t });
             if (stock) {
-                let holding = await db.Holding.findOne({ where: { user_id: userId, stock_id: stock.id }, transaction: t });
+                let holding = await db.Holding.findOne({ where: { user_id: actualUserId, stock_id: stock.id }, transaction: t });
                 if (holding) {
                     await holding.update({ quantity: holding.quantity + order.remaining_quantity }, { transaction: t });
                 } else {
                     await db.Holding.create({
-                        user_id: userId, stock_id: stock.id,
+                        user_id: actualUserId, stock_id: stock.id,
                         quantity: order.remaining_quantity,
                         average_price: parseFloat(order.price),
                         currentPrice: parseFloat(order.price),
                         totalValue: order.remaining_quantity * parseFloat(order.price)
                     }, { transaction: t });
                 }
-                await updateWalletTotalInvested(userId, t);
+                await updateWalletTotalInvested(actualUserId, t);
             }
         }
 
@@ -415,10 +421,12 @@ const cancelOrder = async (orderId, userId) => {
         // Tạo lịch sử hủy lệnh
         const sideText = order.side === 'BUY' ? 'MUA' : 'BÁN';
         await db.UserHistory.create({
-            user_id: userId,
+            user_id: actualUserId,
             field_name: order.symbol,
             old_value: '',
-            new_value: `Đã hủy thành công lệnh ${sideText} ${order.remaining_quantity} CP ${order.symbol}`,
+            new_value: isAdmin 
+                ? `Admin đã hủy lệnh ${sideText} ${order.remaining_quantity} CP ${order.symbol}`
+                : `Đã hủy thành công lệnh ${sideText} ${order.remaining_quantity} CP ${order.symbol}`,
             change_type: 'ORDER_CANCEL'
         }, { transaction: t });
 
@@ -492,7 +500,7 @@ const getUserHoldings = async (userId) => {
 /**
  * Sửa lệnh đang chờ (Giá hoặc Khối lượng - không được cả hai cùng lúc)
  */
-const modifyOrder = async (orderId, userId, { newPrice, newQuantity }) => {
+const modifyOrder = async (orderId, userId, { newPrice, newQuantity }, isAdmin = false) => {
     // 1. Kiểm tra không được sửa đồng thời cả 2
     if (newPrice !== undefined && newQuantity !== undefined) {
         return { EM: 'Không được phép sửa đồng thời cả Giá và Khối lượng cùng lúc.', EC: -1, DT: '' };
@@ -505,14 +513,14 @@ const modifyOrder = async (orderId, userId, { newPrice, newQuantity }) => {
     try {
         // 2. Lấy lệnh cần sửa
         const order = await db.Order.findOne({
-            where: { id: orderId, user_id: userId },
+            where: isAdmin ? { id: orderId } : { id: orderId, user_id: userId },
             include: [{ model: db.Stock, as: 'stock' }],
             transaction: t
         });
 
         if (!order) {
             await t.rollback();
-            return { EM: 'Lệnh không tồn tại hoặc không thuộc về bạn.', EC: -1, DT: '' };
+            return { EM: isAdmin ? 'Lệnh không tồn tại.' : 'Lệnh không tồn tại hoặc không thuộc về bạn.', EC: -1, DT: '' };
         }
 
         if (order.status !== 'PENDING' && order.status !== 'PARTIAL_MATCHED') {
@@ -520,6 +528,7 @@ const modifyOrder = async (orderId, userId, { newPrice, newQuantity }) => {
             return { EM: `Không thể sửa lệnh ở trạng thái ${order.status}.`, EC: -1, DT: '' };
         }
 
+        const actualUserId = order.user_id;
         const stock = order.stock;
         if (!stock || !stock.is_active) {
             await t.rollback();
@@ -589,7 +598,7 @@ const modifyOrder = async (orderId, userId, { newPrice, newQuantity }) => {
         const newRemainingQuantity = finalQuantity - matchedQuantity;
 
         // 3. Tính toán lại phong tỏa (Wallet / Holding adjustments)
-        const wallet = await db.Wallet.findOne({ where: { user_id: userId }, transaction: t });
+        const wallet = await db.Wallet.findOne({ where: { user_id: actualUserId }, transaction: t });
         const feeSetting = await db.Setting.findOne({ where: { key: 'base_fee' }, transaction: t });
         const baseFeePct = feeSetting ? parseFloat(feeSetting.value) : 0.15;
 
@@ -649,12 +658,12 @@ const modifyOrder = async (orderId, userId, { newPrice, newQuantity }) => {
 
         } else if (order.side === 'SELL') {
             // Đối với lệnh bán
-            const holding = await db.Holding.findOne({ where: { user_id: userId, stock_id: stock.id }, transaction: t });
+            const holding = await db.Holding.findOne({ where: { user_id: actualUserId, stock_id: stock.id }, transaction: t });
             const diffQty = newRemainingQuantity - parseInt(order.remaining_quantity);
 
             if (diffQty > 0) {
                 // Kiểm tra quy tắc T+2.5 đối với phần tăng thêm
-                const sellable = await getSellableQtyHelper(userId, stock.symbol, holding.quantity, t);
+                const sellable = await getSellableQtyHelper(actualUserId, stock.symbol, holding.quantity, t);
                 if (diffQty > sellable) {
                     await t.rollback();
                     return {
@@ -683,7 +692,7 @@ const modifyOrder = async (orderId, userId, { newPrice, newQuantity }) => {
                 remaining_quantity: newRemainingQuantity
             }, { transaction: t });
 
-            await updateWalletTotalInvested(userId, t);
+            await updateWalletTotalInvested(actualUserId, t);
         }
 
         // 4. Tạo lịch sử sửa lệnh
@@ -693,10 +702,12 @@ const modifyOrder = async (orderId, userId, { newPrice, newQuantity }) => {
             : `Thay đổi Khối lượng từ ${oldQuantity} CP sang ${finalQuantity} CP (Còn lại ${newRemainingQuantity} CP)`;
 
         await db.UserHistory.create({
-            user_id: userId,
+            user_id: actualUserId,
             field_name: stock.symbol,
             old_value: '',
-            new_value: `Đã sửa lệnh ${sideText} ${stock.symbol}: ${changeDesc}`,
+            new_value: isAdmin
+                ? `Admin đã sửa lệnh ${sideText} ${stock.symbol}: ${changeDesc}`
+                : `Đã sửa lệnh ${sideText} ${stock.symbol}: ${changeDesc}`,
             change_type: 'ORDER_MODIFY'
         }, { transaction: t });
 
@@ -710,4 +721,4 @@ const modifyOrder = async (orderId, userId, { newPrice, newQuantity }) => {
     }
 };
 
-export default { placeOrder, getUserOrders, cancelOrder, getUserHoldings, modifyOrder };
+export default { placeOrder, getUserOrders, cancelOrder, getUserHoldings, modifyOrder, getSellableQtyHelper };

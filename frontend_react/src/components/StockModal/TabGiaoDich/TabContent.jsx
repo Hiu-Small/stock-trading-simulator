@@ -27,7 +27,14 @@ const TabContentGiaoDich = (props) => {
 
         <div className="right-panel-column history-column">
           {props.isOrderActive ? (
-            <OrderEntry symbol={props.symbol} data={props.data} />
+            <OrderEntry 
+              symbol={props.symbol} 
+              data={props.data} 
+              targetUser={props.targetUser} 
+              isAdmin={props.isAdmin} 
+              onSuccess={props.onSuccess} 
+              onClose={props.onClose} 
+            />
           ) : (
             <MatchHistoryLog symbol={props.symbol} data={props.data} />
           )}

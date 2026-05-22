@@ -1,38 +1,56 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { UserContext } from "./UserContext";
 
 const FavoritesContext = createContext();
 
-const STORAGE_KEY = "iboard_favorites";
-
 export const FavoritesProvider = (props) => {
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const { user } = useContext(UserContext);
+  const username = user?.isAuthenticated && user?.account?.username ? user.account.username : null;
 
-  // Tự động lưu vào localStorage mỗi khi favorites thay đổi
+  const [favorites, setFavorites] = useState([]);
+
+  // Load favorites for the logged-in user when username changes
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
-  }, [favorites]);
+    if (username) {
+      const key = `iboard_favorites_${username}`;
+      try {
+        const saved = localStorage.getItem(key);
+        setFavorites(saved ? JSON.parse(saved) : []);
+      } catch {
+        setFavorites([]);
+      }
+    } else {
+      setFavorites([]);
+    }
+  }, [username]);
+
+  // Automatically save to localStorage when favorites or username changes
+  useEffect(() => {
+    if (username) {
+      const key = `iboard_favorites_${username}`;
+      localStorage.setItem(key, JSON.stringify(favorites));
+    }
+  }, [favorites, username]);
 
   const addFavorite = useCallback((symbol) => {
+    if (!username) return;
     setFavorites((prev) => {
       if (prev.includes(symbol)) return prev;
       return [...prev, symbol];
     });
-  }, []);
+  }, [username]);
 
   const removeFavorite = useCallback((symbol) => {
+    if (!username) return;
     setFavorites((prev) => prev.filter((s) => s !== symbol));
-  }, []);
+  }, [username]);
 
   const isFavorite = useCallback(
-    (symbol) => favorites.includes(symbol),
-    [favorites]
+    (symbol) => {
+      if (!username) return false;
+      return favorites.includes(symbol);
+    },
+    [favorites, username]
   );
 
   return (

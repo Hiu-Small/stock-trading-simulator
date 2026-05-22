@@ -2,11 +2,12 @@ import React, { useState, useEffect, useContext } from "react";
 import "./OrderEntry.scss";
 import { getUserProfile, verifyPin } from "../../../services/userService";
 import { placeOrder, getMyHoldings } from "../../../services/orderService";
+import { placeOrderOnBehalf } from "../../../services/adminService";
 import { toast } from "react-toastify";
 import { UserContext } from "../../../context/UserContext";
 import { useTranslation } from "../../../context/LanguageContext";
 
-const OrderEntry = ({ symbol, data, defaultSide }) => {
+const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess, onClose }) => {
   const { t, lang } = useTranslation();
   const { refreshBalance } = useContext(UserContext);
   const [userData, setUserData] = useState(null);
@@ -27,6 +28,14 @@ const OrderEntry = ({ symbol, data, defaultSide }) => {
   const [session, setSession] = useState({ ato: false, mtl: false, atc: false });
 
   const fetchSellableQuantity = async () => {
+    if (isAdmin && targetUser) {
+      const holdings = targetUser.holdings || [];
+      const currentHolding = holdings.find(
+        (h) => h.stock?.symbol?.toUpperCase() === symbol?.toUpperCase()
+      );
+      setSellableQty(currentHolding ? (currentHolding.sellableQuantity ?? currentHolding.quantity) : 0);
+      return;
+    }
     try {
       const response = await getMyHoldings();
       if (response && response.EC === 0) {
@@ -91,16 +100,59 @@ const OrderEntry = ({ symbol, data, defaultSide }) => {
     fetchSellableQuantity();
   }, [symbol, userData]);
 
+  // Lấy phiên hiện tại dựa trên giờ Việt Nam thực tế
+  const getCurrentPeriod = () => {
+    const vnNow = getVietnamTime();
+    const day = vnNow.getDay();
+    const hours = vnNow.getHours();
+    const minutes = vnNow.getMinutes();
+    const totalMinutes = hours * 60 + minutes;
+
+    // Thứ 7, Chủ Nhật: Ngoài phiên => ATO phiên tiếp theo
+    if (day === 0 || day === 6) {
+      return "ATO";
+    }
+
+    // Phiên ATO: 09:00 - 09:15
+    if (totalMinutes >= 540 && totalMinutes < 555) {
+      return "ATO";
+    }
+
+    // Phiên liên tục MTL: 09:15 - 11:30 và 13:00 - 14:30
+    if ((totalMinutes >= 555 && totalMinutes < 690) || (totalMinutes >= 780 && totalMinutes < 870)) {
+      return "MTL";
+    }
+
+    // Phiên đóng cửa ATC: 14:30 - 14:45
+    if (totalMinutes >= 870 && totalMinutes < 885) {
+      return "ATC";
+    }
+
+    // Trước giờ giao dịch (00:00 - 09:00): ATO
+    if (totalMinutes < 540) {
+      return "ATO";
+    }
+
+    // Nghỉ trưa (11:30 - 13:00): MTL (chuẩn bị cho phiên chiều)
+    if (totalMinutes >= 690 && totalMinutes < 780) {
+      return "MTL";
+    }
+
+    // Sau giờ đóng cửa (14:45 - 24:00): ATO (cho ngày hôm sau)
+    if (totalMinutes >= 885) {
+      return "ATO";
+    }
+
+    return "ATO";
+  };
+
   useEffect(() => {
     // Nếu chế độ giá tự động đang BẬT
-    if (isAutoPrice && data) {
-      if (side === "BUY" && data.ask1Price) {
-        setPrice(data.ask1Price / 1000);
-      } else if (side === "SELL" && data.bid1Price) {
-        setPrice(data.bid1Price / 1000);
-      }
+    if (isAutoPrice) {
+      const period = getCurrentPeriod();
+      setPrice(period);
     }
-  }, [isAutoPrice, data, side]);
+  }, [isAutoPrice, session, side]);
 
   useEffect(() => {
     // Nếu đổi mã chứng khoán hoặc giá hiện tại đang bằng 0, cập nhật giá theo thị trường
@@ -117,6 +169,19 @@ const OrderEntry = ({ symbol, data, defaultSide }) => {
   }, [data, symbol, isAutoPrice, prevSymbol, price]);
 
   const fetchUserData = async () => {
+    if (isAdmin && targetUser) {
+      const mappedUserData = {
+        ...targetUser,
+        wallet: {
+          balance: targetUser.virtual_balance,
+          frozen_balance: 0,
+          pending_cash: 0
+        }
+      };
+      setUserData(mappedUserData);
+      setAccount(targetUser.account_number);
+      return;
+    }
     try {
       let response = await getUserProfile();
       if (response && response.EC === 0) {
@@ -159,13 +224,37 @@ const OrderEntry = ({ symbol, data, defaultSide }) => {
     return Math.floor(Number(num || 0)).toLocaleString('vi-VN');
   };
 
+  const getButtonLabel = (orderSide) => {
+    if (submitting) return t("trading.orderEntry.processing");
+    const baseLabel = orderSide === "BUY" ? t("trading.orderEntry.buy") : t("trading.orderEntry.sell");
+    
+    if (["ATO", "ATC", "MTL"].includes(price)) {
+      return `${baseLabel} (${price})`;
+    }
+    return baseLabel;
+  };
+
+  const handleToggleAutoPrice = () => {
+    const nextVal = !isAutoPrice;
+    setIsAutoPrice(nextVal);
+    if (!nextVal) {
+      // Đưa về giá khớp gần nhất hoặc giá tham chiếu khi tắt đi
+      const targetPrice = data?.matchPrice || data?.refPrice || 0;
+      if (targetPrice > 0) {
+        setPrice(targetPrice / 1000);
+      } else {
+        setPrice(0);
+      }
+    }
+  };
+
   // Tính toán sức mua và giá trị (Hỗ trợ cả trường hợp chọn ATO/ATC/MTL dạng chữ bằng cách dùng matchPrice hiện tại làm ước lượng)
   const availableCash = Number(userData?.wallet?.balance || 0) - Number(userData?.wallet?.frozen_balance || 0);
   const pendingCash = Number(userData?.wallet?.pending_cash || 0);
   const buyingPower = availableCash + pendingCash;
 
   const currentPrice = typeof price === "string" 
-    ? (data?.matchPrice || 0) 
+    ? (data?.matchPrice || data?.refPrice || 0) 
     : (Number(price || 0) > 0 ? Number(price) * 1000 : 0);
   const maxBuyQty = currentPrice > 0 ? Math.floor(buyingPower / currentPrice) : 0;
   const totalValue = Number(quantity || 0) * currentPrice;
@@ -331,13 +420,13 @@ const OrderEntry = ({ symbol, data, defaultSide }) => {
 
     if (price === "ATO") {
       orderType = "ATO";
-      numericPrice = data?.matchPrice || 0;
+      numericPrice = data?.matchPrice || data?.refPrice || 0;
     } else if (price === "ATC") {
       orderType = "ATC";
-      numericPrice = data?.matchPrice || 0;
+      numericPrice = data?.matchPrice || data?.refPrice || 0;
     } else if (price === "MTL") {
       orderType = "MTL";
-      numericPrice = data?.matchPrice || 0;
+      numericPrice = data?.matchPrice || data?.refPrice || 0;
     } else {
       const p = parseFloat(price);
       if (isNaN(p) || p <= 0) {
@@ -376,6 +465,26 @@ const OrderEntry = ({ symbol, data, defaultSide }) => {
         toast.error(t("trading.orderEntry.toasts.insufficientCash").replace("{required}", formatNumber(totalRequired)).replace("{max}", formatNumber(buyingPower)));
         return;
       }
+    }
+
+    if (isAdmin && targetUser) {
+      setSubmitting(true);
+      try {
+        const res = await placeOrderOnBehalf(targetUser.id, symbol, qty, numericPrice, orderSide, orderType);
+        if (res && res.data?.EC === 0) {
+          toast.success(res.data?.EM || `Đã đặt lệnh ${orderSide === "BUY" ? "Mua" : "Bán"} ${qty} ${symbol} thành công!`);
+          if (onSuccess) onSuccess();
+          if (onClose) onClose();
+        } else {
+          toast.error(res?.data?.EM || res?.EM || "Đặt lệnh thất bại");
+        }
+      } catch (err) {
+        console.error("Order behalf error:", err);
+        toast.error("Lỗi kết nối máy chủ");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
     }
 
     // Thay vì gửi lệnh trực tiếp, chúng ta lưu thông tin và yêu cầu nhập mã PIN
@@ -452,7 +561,7 @@ const OrderEntry = ({ symbol, data, defaultSide }) => {
               )}
             </div>
           </label>
-          <div className={`toggle-switch ${isAutoPrice ? 'active' : ''}`} onClick={() => setIsAutoPrice(!isAutoPrice)}>
+          <div className={`toggle-switch ${isAutoPrice ? 'active' : ''}`} onClick={handleToggleAutoPrice}>
             <span className="toggle-circle"></span>
           </div>
         </div>
@@ -591,10 +700,10 @@ const OrderEntry = ({ symbol, data, defaultSide }) => {
         {/* Buy/Sell Buttons */}
         <div className="action-buttons">
           <button className="btn-buy" onClick={() => handlePlaceNewOrder("BUY")} disabled={submitting}>
-            {submitting ? t("trading.orderEntry.processing") : t("trading.orderEntry.buy")}
+            {getButtonLabel("BUY")}
           </button>
           <button className="btn-sell" onClick={() => handlePlaceNewOrder("SELL")} disabled={submitting}>
-            {submitting ? t("trading.orderEntry.processing") : t("trading.orderEntry.sell")}
+            {getButtonLabel("SELL")}
           </button>
         </div>
 

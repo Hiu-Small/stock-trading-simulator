@@ -17,6 +17,7 @@ import PrivateRoute from "./components/Auth/PrivateRoute";
 import { UserProvider } from "./context/UserContext";
 import { SearchProvider } from "./context/SearchContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
+import { WatchlistsProvider } from "./context/WatchlistsContext";
 import MainLayout from "./components/Layout/MainLayout";
 import { UserContext } from "./context/UserContext";
 import LoginModal from "./components/Auth/LoginModal";
@@ -33,6 +34,7 @@ function AppContent() {
 
   return (
     <FavoritesProvider>
+    <WatchlistsProvider>
     <SearchProvider>
       <Router>
         <Routes>
@@ -86,6 +88,7 @@ function AppContent() {
         />
       </Router>
     </SearchProvider>
+    </WatchlistsProvider>
     </FavoritesProvider>
   );
 }

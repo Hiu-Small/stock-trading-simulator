@@ -3,8 +3,10 @@ import { Modal } from "react-bootstrap";
 import "./BalanceAdjustmentModal.scss";
 import { updateUserBalance } from "../../../services/adminService";
 import { toast } from "react-toastify";
+import { useTranslation } from "../../../context/LanguageContext";
 
 const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
+  const { t, lang } = useTranslation();
   const [operation, setOperation] = useState("add"); // "add" or "deduct"
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -60,8 +62,8 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
     >
       <Modal.Header>
         <div className="header-info">
-          <Modal.Title className="title">Điều chỉnh số dư thủ công</Modal.Title>
-          <p className="subtitle">Điều chỉnh số dư cho: <span>{user.profile?.full_name || user.email}</span></p>
+          <Modal.Title className="title">{t("admin.users.modalBalanceTitle")}</Modal.Title>
+          <p className="subtitle">{t("admin.users.modalBalanceDesc")} <span>{user.profile?.full_name || user.email}</span></p>
         </div>
         <button className="btn-close-custom" onClick={handleClose} disabled={loading}>
           <i className="fa-solid fa-xmark"></i>
@@ -71,12 +73,12 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
       <form onSubmit={handleSubmit}>
         <Modal.Body>
           <div className="current-balance-box">
-            <span className="label">Số dư hiện tại</span>
+            <span className="label">{t("admin.users.modalBalanceCurrent")}</span>
             <div className="value">{formatCurrency(user.virtual_balance)}</div>
           </div>
 
           <div className="form-group-custom">
-            <label>Loại giao dịch</label>
+            <label>{t("admin.users.modalBalanceType")}</label>
             <div className="operation-buttons">
               <button
                 type="button"
@@ -84,7 +86,7 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
                 onClick={() => setOperation("add")}
                 disabled={loading}
               >
-                Cộng tiền
+                {t("admin.users.modalBalanceAdd")}
               </button>
               <button
                 type="button"
@@ -92,13 +94,13 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
                 onClick={() => setOperation("deduct")}
                 disabled={loading}
               >
-                Trừ tiền
+                {t("admin.users.modalBalanceDeduct")}
               </button>
             </div>
           </div>
 
           <div className="form-group-custom">
-            <label>Số tiền ($)</label>
+            <label>{t("admin.users.modalBalanceAmount")}</label>
             <div className="input-wrapper">
               <span className="currency">$</span>
               <input
@@ -113,9 +115,9 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
           </div>
 
           <div className="form-group-custom">
-            <label>Lý do / Ghi chú</label>
+            <label>{t("admin.users.modalBalanceNote")}</label>
             <textarea
-              placeholder="Nhập lý do điều chỉnh..."
+              placeholder={t("admin.users.modalBalanceNotePlaceholder")}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows="4"
@@ -126,14 +128,14 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
 
         <Modal.Footer>
           <button type="button" className="btn-cancel" onClick={handleClose} disabled={loading}>
-            Hủy
+            {t("sidebar.createWatchlistCancel")}
           </button>
           <button 
             type="submit" 
             className={`btn-confirm ${operation === "add" ? "add" : "deduct"} ${loading ? "loading" : ""}`}
             disabled={loading}
           >
-            {loading ? "Đang xử lý..." : `Xác nhận ${operation === "add" ? "Cộng tiền" : "Trừ tiền"}`}
+            {loading ? (lang === "vi" ? "Đang xử lý..." : "Processing...") : (operation === "add" ? t("admin.users.modalBalanceConfirmAdd") : t("admin.users.modalBalanceConfirmDeduct"))}
           </button>
         </Modal.Footer>
       </form>

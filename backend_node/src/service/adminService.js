@@ -1,6 +1,7 @@
 import db from '../models';
 import marketService from './marketService';
 import bcrypt from 'bcryptjs';
+import orderService from './orderService';
 
 const getAllUsers = async () => {
     try {
@@ -68,23 +69,33 @@ const getAllUsers = async () => {
         }));
 
         // 3. Calculate portfolio value for each user using real-time prices
-        const result = users.map(user => {
+        const result = await Promise.all(users.map(async (user) => {
             let totalHoldingsValue = 0;
             const updatedHoldings = [];
 
             if (user.holdings && user.holdings.length > 0) {
-                user.holdings.forEach(h => {
+                await Promise.all(user.holdings.map(async (h) => {
                     const symbol = h.stock?.symbol;
                     const currentPrice = priceMap[symbol] || 0;
                     const holdingsValue = h.quantity * currentPrice;
                     totalHoldingsValue += holdingsValue;
 
+                    let sellableQuantity = h.quantity;
+                    if (symbol) {
+                        try {
+                            sellableQuantity = await orderService.getSellableQtyHelper(user.id, symbol, h.quantity);
+                        } catch (err) {
+                            console.error(`Error calculating sellableQty for user ${user.id} and symbol ${symbol}:`, err);
+                        }
+                    }
+
                     updatedHoldings.push({
                         ...h.get({ plain: true }),
                         currentPrice: currentPrice,
-                        totalValue: holdingsValue
+                        totalValue: holdingsValue,
+                        sellableQuantity: sellableQuantity
                     });
-                });
+                }));
                 // Sắp xếp theo updatedAt giảm dần (mới nhất lên đầu)
                 updatedHoldings.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
             }
@@ -105,7 +116,7 @@ const getAllUsers = async () => {
                 createdAt: user.createdAt,
                 holdings: updatedHoldings
             };
-        });
+        }));
 
         return {
             EM: 'Lấy danh sách người dùng thành công',
@@ -991,6 +1002,78 @@ const updateSettings = async (settingsData, adminId, ipAddress) => {
     }
 };
 
+const adminCancelOrder = async (orderId, adminId, ipAddress) => {
+    try {
+        const data = await orderService.cancelOrder(orderId, null, true);
+        if (data && data.EC === 0) {
+            await db.AdminLog.create({
+                admin_id: adminId || 1,
+                action: 'ADMIN_CANCEL_ORDER',
+                level: 'INFO',
+                target_id: orderId,
+                details: `Admin cancelled pending/partial order #${orderId}`,
+                ip_address: ipAddress
+            });
+        }
+        return data;
+    } catch (e) {
+        console.error('[adminCancelOrder] Error:', e);
+        return { EM: 'Lỗi hệ thống khi hủy lệnh', EC: -1, DT: '' };
+    }
+};
+
+const adminModifyOrder = async (orderId, { newPrice, newQuantity }, adminId, ipAddress) => {
+    try {
+        const data = await orderService.modifyOrder(orderId, null, { newPrice, newQuantity }, true);
+        if (data && data.EC === 0) {
+            const changeDesc = newPrice !== undefined
+                ? `thành giá mới ${newPrice}`
+                : `thành khối lượng mới ${newQuantity}`;
+            await db.AdminLog.create({
+                admin_id: adminId || 1,
+                action: 'ADMIN_MODIFY_ORDER',
+                level: 'INFO',
+                target_id: orderId,
+                details: `Admin modified order #${orderId} ${changeDesc}`,
+                ip_address: ipAddress
+            });
+        }
+        return data;
+    } catch (e) {
+        console.error('[adminModifyOrder] Error:', e);
+        return { EM: 'Lỗi hệ thống khi sửa lệnh', EC: -1, DT: '' };
+    }
+};
+
+const adminPlaceOrderOnBehalf = async (orderData, adminId, ipAddress) => {
+    try {
+        const { targetUserId, symbol, quantity, price, side, type } = orderData;
+        const data = await orderService.placeOrder({
+            userId: targetUserId,
+            symbol,
+            quantity,
+            price,
+            side,
+            type: type || 'LO',
+            isAdmin: true
+        });
+        if (data && data.EC === 0) {
+            await db.AdminLog.create({
+                admin_id: adminId || 1,
+                action: 'ADMIN_PLACE_ORDER_BEHALF',
+                level: 'INFO',
+                target_id: targetUserId,
+                details: `Admin placed ${side} order behalf of user #${targetUserId}: ${quantity} ${symbol} @ ${price}`,
+                ip_address: ipAddress
+            });
+        }
+        return data;
+    } catch (e) {
+        console.error('[adminPlaceOrderOnBehalf] Error:', e);
+        return { EM: 'Lỗi hệ thống khi đặt lệnh hộ', EC: -1, DT: '' };
+    }
+};
+
 module.exports = {
     getAllUsers,
     getAllOrders,
@@ -1008,5 +1091,8 @@ module.exports = {
     getMarketStatus,
     updateMarketStatus,
     getSettings,
-    updateSettings
+    updateSettings,
+    adminCancelOrder,
+    adminModifyOrder,
+    adminPlaceOrderOnBehalf
 };

@@ -28,7 +28,7 @@ $color-white: #ffffff;   // Màu trắng
   --bg-secondary:     #111222;    // Nền sidebar, nền sâu hơn
   --bg-tertiary:      #111111;    // Dòng chẵn bảng giá
   --bg-card:          #16162c;    // Nền card, input, chip (xanh tím sẫm sang trọng, làm nổi bật bảng biểu và bộ lọc)
-  --bg-elevated:      #2a2b4d;    // Nền nổi cao hơn (button bg, badge)
+  --bg-elevated:      #1f203a;    // Nền nổi cao hơn (button bg, badge)
   --bg-deep:          #181928;    // Nền sâu nhất đằng sau (tối huyền bí và dịu mắt)
   --bg-board-row:     #1b1b36;    // Dòng bảng giá lẻ
   --bg-board-even:    #111111;    // Dòng bảng giá chẵn
@@ -144,7 +144,7 @@ $color-white: #ffffff;   // Màu trắng
 
   // --- Hover ---
   --bg-hover:         rgba(0, 0, 0, 0.04);
-  --bg-hover-strong:  rgba(0, 0, 0, 0.07);
+  --bg-hover-strong:  rgba(12, 12, 12, 0);
 
   // --- Shadow ---
   --shadow-sm:        rgba(0, 0, 0, 0.08);

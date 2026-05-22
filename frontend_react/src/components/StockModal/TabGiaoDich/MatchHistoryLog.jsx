@@ -4,7 +4,7 @@ import "../../../assets/styles/global.scss";
 import { useTranslation } from "../../../context/LanguageContext";
 
 const MatchHistoryLog = (props) => {
-  const { lang } = useTranslation();
+  const { lang, t } = useTranslation();
   // Lấy dữ liệu từ props.data (do StockDetailModal đã gọi API và truyền xuống)
   const history = props.data?.matchHistory || [];
   const stats = props.data?.matchStats || {
@@ -76,7 +76,8 @@ const MatchHistoryLog = (props) => {
         <div className="table-body">
           {history.length === 0 ? (
             <div className="loading-text">
-              {lang === "vi" ? "Chưa có dữ liệu khớp lệnh" : "No match history data available"}
+              <i className="fa-solid fa-chart-line"></i>
+              <div>{t("stockModal.noMatchHistory")}</div>
             </div>
           ) : (
             history.map((row, index) => {

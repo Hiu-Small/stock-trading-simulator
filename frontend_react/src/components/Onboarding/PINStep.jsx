@@ -2,10 +2,12 @@ import React, { useState, useRef, useContext } from 'react';
 import axios from '../../setup/axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../context/LanguageContext';
 import './PINStep.scss';
 import { UserContext } from '../../context/UserContext';
 
 const PINStep = () => {
+    const { t } = useTranslation();
     const { updateUserStatus } = useContext(UserContext);
     const [pin, setPin] = useState(['', '', '', '', '', '']);
     const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ const PINStep = () => {
         e.preventDefault();
         const pinString = pin.join('');
         if (pinString.length !== 6) {
-            toast.warn("Vui lòng nhập đầy đủ 6 chữ số");
+            toast.warn(t("onboarding.toastPinDigits"));
             return;
         }
 
@@ -42,7 +44,7 @@ const PINStep = () => {
         try {
             const response = await axios.post('/api/setup-pin', { pin: pinString });
             if (response && +response.EC === 0) {
-                toast.success("Thiết lập mã PIN thành công! Tài khoản của bạn đã được kích hoạt.");
+                toast.success(t("onboarding.toastPinSuccess"));
                 updateUserStatus('ACTIVE');
                 // Chuyển hướng về trang chủ
                 navigate('/');
@@ -52,7 +54,7 @@ const PINStep = () => {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Lỗi khi thiết lập mã PIN");
+            toast.error(t("onboarding.toastPinError"));
         } finally {
             setLoading(false);
         }
@@ -65,8 +67,7 @@ const PINStep = () => {
             </div>
             
             <p className="pin-description">
-                Mã PIN gồm 6 chữ số dùng để xác thực mỗi khi đặt lệnh mua/bán cổ phiếu hoặc rút tiền. 
-                Tuyệt đối không chia sẻ mã này.
+                {t("onboarding.pinDesc")}
             </p>
 
             <div className="pin-input-container">
@@ -86,7 +87,7 @@ const PINStep = () => {
             </div>
 
             <button type="submit" className="btn-submit" disabled={loading}>
-                {loading ? 'Đang xác nhận...' : 'Xác nhận'}
+                {loading ? t("onboarding.confirming") : t("onboarding.confirmBtn")}
             </button>
         </form>
     );

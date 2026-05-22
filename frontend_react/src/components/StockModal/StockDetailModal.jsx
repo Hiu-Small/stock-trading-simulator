@@ -115,7 +115,15 @@ const StockDetailModal = (props) => {
               )}
               {props.onlyOrder ? (
                 <div className="stock-modal-body__only-order">
-                  <OrderEntry symbol={props.symbol} data={stockData} defaultSide={props.defaultSide} />
+                  <OrderEntry 
+                    symbol={props.symbol} 
+                    data={stockData} 
+                    defaultSide={props.defaultSide} 
+                    targetUser={props.targetUser}
+                    isAdmin={props.isAdmin}
+                    onSuccess={props.onSuccess}
+                    onClose={props.onClose}
+                  />
                 </div>
               ) : (
                 <>
@@ -124,6 +132,10 @@ const StockDetailModal = (props) => {
                       symbol={props.symbol} 
                       data={stockData} 
                       isOrderActive={isOrderActive} 
+                      targetUser={props.targetUser}
+                      isAdmin={props.isAdmin}
+                      onSuccess={props.onSuccess}
+                      onClose={props.onClose}
                     />
                   )}
                   {activeTab === "Hồ sơ" && (

@@ -148,6 +148,11 @@ const runMatchingCycle = async () => {
             return;
         }
 
+        // Tự động giải tỏa Tiền bán chờ về đã đủ ngày T+2.5
+        // Đặt ở đây để luôn chạy mỗi 10 giây khi máy chủ hoạt động, không bị ảnh hưởng bởi giờ đóng/mở cửa sàn
+        // hoặc sự tồn tại của các lệnh chờ khớp khác.
+        await clearPendingCashesCycle();
+
         // 2. Kiểm tra giờ giao dịch chuẩn Việt Nam (Thứ 2 - Thứ 6, 9:00-11:30 & 13:00-15:00)
         if (!isMarketOpenNow()) {
             engineRunning = false;
@@ -209,9 +214,6 @@ const runMatchingCycle = async () => {
                 console.warn(`[MatchingEngine] Không lấy được dữ liệu khớp lệnh cho ${symbol}:`, apiErr.message);
             }
         }
-
-        // Tự động giải tỏa Tiền bán chờ về đã đủ ngày T+2.5
-        await clearPendingCashesCycle();
 
     } catch (e) {
         console.error('[MatchingEngine] Lỗi chu kỳ:', e);

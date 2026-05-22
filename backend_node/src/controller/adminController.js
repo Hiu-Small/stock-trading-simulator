@@ -302,6 +302,66 @@ const handleUpdateSettings = async (req, res) => {
     }
 }
 
+const handleAdminCancelOrder = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const adminId = req.user.id;
+        const ipAddress = getRealIp(req);
+        const data = await adminService.adminCancelOrder(orderId, adminId, ipAddress);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+};
+
+const handleAdminModifyOrder = async (req, res) => {
+    try {
+        const { orderId, newPrice, newQuantity } = req.body;
+        const adminId = req.user.id;
+        const ipAddress = getRealIp(req);
+        const data = await adminService.adminModifyOrder(orderId, { newPrice, newQuantity }, adminId, ipAddress);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+};
+
+const handlePlaceOrderOnBehalf = async (req, res) => {
+    try {
+        const { targetUserId, symbol, quantity, price, side, type } = req.body;
+        const adminId = req.user.id;
+        const ipAddress = getRealIp(req);
+        
+        if (!targetUserId || !symbol || !quantity || !price || !side) {
+            return res.status(400).json({ EM: 'Thiếu thông tin đặt lệnh', EC: -1, DT: '' });
+        }
+        
+        const data = await adminService.adminPlaceOrderOnBehalf(
+            { targetUserId, symbol, quantity, price, side, type: type || 'LO' }, 
+            adminId, 
+            ipAddress
+        );
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+};
+
 export default {
     handleGetAllUsers,
     handleGetAllOrders,
@@ -319,5 +379,8 @@ export default {
     handleGetMarketStatus,
     handleUpdateMarketStatus,
     handleGetSettings,
-    handleUpdateSettings
+    handleUpdateSettings,
+    handleAdminCancelOrder,
+    handleAdminModifyOrder,
+    handlePlaceOrderOnBehalf
 };

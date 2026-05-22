@@ -6,8 +6,10 @@ import { loginUser } from "../../services/userService";
 import { UserContext } from "../../context/UserContext";
 import "./LoginModal.scss";
 import loginBg from "../../assets/images/login-bg.svg";
+import { useTranslation } from "../../context/LanguageContext";
 
 const LoginModal = (props) => {
+  const { t } = useTranslation();
   const { loginContext } = useContext(UserContext);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -84,15 +86,15 @@ const LoginModal = (props) => {
           </div>
 
           <div className="login-right">
-            <h2 className="login-title">Đăng nhập</h2>
+            <h2 className="login-title">{t("login.title")}</h2>
 
             <form onSubmit={handleSubmit} className="login-form">
               <div className="form-group">
-                <label>Số tài khoản / Số điện thoại</label>
+                <label>{t("login.usernameLabel")}</label>
                 <input
                   type="text"
                   name="username"
-                  placeholder="Nhập STK hoặc SĐT"
+                  placeholder={t("login.usernamePlaceholder")}
                   value={formData.username}
                   onChange={handleInputChange}
                   autoComplete="username"
@@ -101,12 +103,12 @@ const LoginModal = (props) => {
               </div>
 
               <div className="form-group">
-                <label>Mật khẩu</label>
+                <label>{t("login.passwordLabel")}</label>
                 <div className="password-input-wrapper">
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    placeholder="Nhập mật khẩu"
+                    placeholder={t("login.passwordPlaceholder")}
                     value={formData.password}
                     onChange={handleInputChange}
                     autoComplete="current-password"
@@ -126,16 +128,16 @@ const LoginModal = (props) => {
               </div>
 
               <div className="forgot-password">
-                <a href="#forgot">Quên mật khẩu</a>
+                <a href="#forgot">{t("login.forgotPassword")}</a>
               </div>
 
               <button type="submit" className="btn-login-submit">
-                Đăng nhập
+                {t("login.submitBtn")}
               </button>
             </form>
 
             <div className="social-divider">
-              <span>Hoặc đăng nhập tài khoản trải nghiệm với</span>
+              <span>{t("login.socialDivider")}</span>
             </div>
 
             <div className="social-actions">
@@ -156,7 +158,7 @@ const LoginModal = (props) => {
                   navigate("/register");
                 }}
               >
-                Mở tài khoản giao dịch
+                {t("login.openAccountLink")}
               </a>
             </div>
           </div>

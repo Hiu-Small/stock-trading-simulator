@@ -133,29 +133,73 @@
         .holdings-expand-container {
           padding: 18px 20px;
           
-          h4 {
-            margin-bottom: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-primary);
+          .holdings-header-row {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
+            margin-bottom: 16px;
 
-            &::before {
-              content: '';
-              display: inline-block;
-              width: 3.5px;
-              height: 14px;
-              background-color: $accent-blue;
-              border-radius: 2px;
+            h4 {
+              margin-bottom: 0;
+              font-size: 15px;
+              font-weight: 700;
+              color: var(--text-primary);
+              display: flex;
+              align-items: center;
+              gap: 8px;
+
+              &::before {
+                content: '';
+                display: inline-block;
+                width: 3.5px;
+                height: 14px;
+                background-color: $accent-blue;
+                border-radius: 2px;
+              }
+            }
+
+            .btn-place-order-admin {
+              margin-right: 40px;
             }
           }
 
-          .no-data {
-            color: $text-muted;
-            font-style: italic;
+          .btn-place-order-admin {
+            background-color: $accent-green;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 700;
             font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+
+            &:hover {
+              opacity: 0.95;
+              box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+              transform: translateY(-1px);
+            }
+
+            &:active {
+              transform: translateY(0);
+            }
+          }
+
+          .no-holdings-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+
+            .no-data {
+              color: $text-muted;
+              font-style: italic;
+              font-size: 13px;
+              margin: 0;
+            }
           }
 
           .holdings-inner-table {
@@ -195,10 +239,85 @@
                   color: $accent-green;
                   font-weight: 600;
                 }
+
+                .btn-sell-custom {
+                  background-color: rgba(244, 63, 94, 0.1);
+                  color: #f43f5e;
+                  border: 1px solid rgba(244, 63, 94, 0.2);
+                  padding: 4px 10px;
+                  border-radius: 4px;
+                  font-size: 12px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: all 0.2s ease-in-out;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 4px;
+
+                  &:hover {
+                    background-color: #f43f5e;
+                    color: #fff;
+                    border-color: #f43f5e;
+                    box-shadow: 0 0 10px rgba(244, 63, 94, 0.3);
+                  }
+                }
+
+                .badge-pending-custom {
+                  background-color: rgba(245, 158, 11, 0.08);
+                  color: #ff9800;
+                  border: 1px solid rgba(245, 158, 11, 0.45);
+                  padding: 5px 14px;
+                  border-radius: 20px;
+                  font-size: 12px;
+                  font-weight: 700;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 6px;
+                  transition: all 0.25s ease;
+                  cursor: default;
+
+                  i {
+                    color: #ff9800;
+                    font-size: 13px;
+                    animation: clock-pulse 2s infinite ease-in-out;
+                  }
+
+                  &:hover {
+                    background-color: rgba(245, 158, 11, 0.14);
+                    box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+                  }
+                }
               }
 
               .text-profit { color: $accent-green; font-weight: 600; }
               .text-loss { color: $accent-red; font-weight: 600; }
+
+              .holdings-total-row {
+                background-color: rgba($accent-blue, 0.04) !important;
+                border-top: 2px double var(--border-primary) !important;
+                border-bottom: none !important;
+
+                &:hover {
+                  background-color: rgba($accent-blue, 0.06) !important;
+                }
+
+                td {
+                  padding: 12px 16px !important;
+                  color: var(--text-primary);
+                  font-weight: 700;
+
+                  &.text-profit {
+                    color: $accent-green !important;
+                  }
+                  &.text-loss {
+                    color: $accent-red !important;
+                  }
+                  
+                  strong {
+                    font-weight: 700;
+                  }
+                }
+              }
             }
           }
         }
@@ -231,4 +350,10 @@
       }
     }
   }
+}
+
+@keyframes clock-pulse {
+  0% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.85; }
 }

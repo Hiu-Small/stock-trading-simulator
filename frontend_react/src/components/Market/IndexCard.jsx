@@ -3,8 +3,10 @@ import "./IndexCard.scss";
 import "../../assets/styles/global.scss";
 import IndexMiniChart from "./IndexMiniChart";
 import { fetchIndexIntraday } from "../../services/marketApi";
+import { useTranslation } from "../../context/LanguageContext";
 
 const IndexCard = (props) => {
+  const { t } = useTranslation();
   const [intradayData, setIntradayData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -102,7 +104,7 @@ const IndexCard = (props) => {
             </span>
           </div>
           <div className="vol-info">
-           KL: {formatVolume(props.data.volume)} CP
+            {t("marketSummary.volumeFormat", { volume: formatVolume(props.data.volume) })}
           </div>
         </div>
       </div>

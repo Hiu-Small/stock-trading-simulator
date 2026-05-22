@@ -4,11 +4,13 @@ import KYCStep from './KYCStep';
 import PINStep from './PINStep';
 import { UserContext } from '../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../context/LanguageContext';
 
 const OnboardingProcess = () => {
     const { user } = useContext(UserContext);
     const [currentStep, setCurrentStep] = useState(2); // Start at step 2 for KYC
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (user?.isAuthenticated) {
@@ -29,7 +31,7 @@ const OnboardingProcess = () => {
     return (
         <OnboardingLayout 
             step={currentStep} 
-            title={currentStep === 2 ? "Định danh cá nhân (eKYC)" : "Thiết lập mã PIN giao dịch"}
+            title={currentStep === 2 ? t("onboarding.kycTitle") : t("onboarding.pinTitle")}
         >
             {currentStep === 2 && <KYCStep onNext={handleNext} />}
             {currentStep === 3 && <PINStep />}

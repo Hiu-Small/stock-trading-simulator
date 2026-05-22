@@ -793,11 +793,22 @@ def get_stock_intraday(symbol: str, page_size: int = 7000):
     print(f"--- [PYTHON CACHE MISS] --- Intraday: {symbol} - CALLING KBS")
     try:
         # 1. Lấy dữ liệu khớp lệnh (Đổi sang kbs)
-        quote = Quote(symbol=symbol, source='kbs')
-        df = quote.intraday(page_size=page_size)
+        df = None
+        try:
+            quote = Quote(symbol=symbol, source='kbs')
+            df = quote.intraday(page_size=page_size)
+        except Exception as inner_e:
+            print(f"Lỗi lấy intraday từ KBS cho {symbol}: {inner_e}")
+            df = None
 
         if df is None or df.empty:
-            result = {"success": True, "data": [], "stats": {"totalBuy": 0, "totalSell": 0, "total": 0}}
+            result = {
+                "success": True, 
+                "symbol": symbol,
+                "data": [], 
+                "match": [],
+                "stats": {"totalBuy": 0, "totalSell": 0, "total": 0}
+            }
             return result
 
         # Sắp xếp mới nhất lên đầu

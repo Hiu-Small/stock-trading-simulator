@@ -9,6 +9,9 @@ const initAdminRoutes = (app) => {
     router.get("/users", checkUserJWT, checkAdminRole, adminController.handleGetAllUsers);
     router.get("/orders", checkUserJWT, checkAdminRole, adminController.handleGetAllOrders);
     router.post("/orders/cancel", checkUserJWT, checkAdminRole, adminController.handleForceCancelOrder);
+    router.post("/orders/cancel-standard", checkUserJWT, checkAdminRole, adminController.handleAdminCancelOrder);
+    router.post("/orders/modify", checkUserJWT, checkAdminRole, adminController.handleAdminModifyOrder);
+    router.post("/orders/place-on-behalf", checkUserJWT, checkAdminRole, adminController.handlePlaceOrderOnBehalf);
     router.post("/orders/match", checkUserJWT, checkAdminRole, adminController.handleForceMatchOrder);
     router.post("/update-balance", checkUserJWT, checkAdminRole, adminController.handleUpdateBalance);
     router.post("/update-status", checkUserJWT, checkAdminRole, adminController.handleUpdateStatus);
