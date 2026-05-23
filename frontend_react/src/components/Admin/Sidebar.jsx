@@ -19,13 +19,13 @@ const Sidebar = () => {
 
   const menuItems = [
     { icon: "fa-solid fa-house", label: t("admin.sidebar.backHome"), path: "/", isExternal: true },
-    { icon: "fa-solid fa-table-columns", label: t("admin.sidebar.dashboard"), path: "/admin/dashboard" },
+    { icon: "fa-solid fa-table-columns", label: t("admin.sidebar.dashboard"), path: "/admin/dashboard", isDev: true },
     { icon: "fa-solid fa-users", label: t("admin.sidebar.users"), path: "/admin/users" },
     { icon: "fa-solid fa-chart-line", label: t("admin.sidebar.market"), path: "/admin/market" },
     { icon: "fa-solid fa-wave-square", label: t("admin.sidebar.trades"), path: "/admin/trades" },
-    { icon: "fa-solid fa-building-columns", label: t("admin.sidebar.corporate"), path: "/admin/corporate-actions" },
+    { icon: "fa-solid fa-building-columns", label: t("admin.sidebar.corporate"), path: "/admin/corporate-actions", isDev: true },
     { icon: "fa-solid fa-gear", label: t("admin.sidebar.settings"), path: "/admin/settings" },
-    { icon: "fa-solid fa-trophy", label: t("admin.sidebar.leaderboard"), path: "/admin/leaderboard" },
+    { icon: "fa-solid fa-trophy", label: t("admin.sidebar.leaderboard"), path: "/admin/leaderboard", isDev: true },
     { icon: "fa-solid fa-file-lines", label: t("admin.sidebar.logs"), path: "/admin/logs" },
   ];
 
@@ -42,13 +42,29 @@ const Sidebar = () => {
       </div>
 
       <nav className="sidebar-nav">
-        {menuItems.map((item) => (
-          item.isExternal ? (
-            <Link key={item.path} to={item.path} className="nav-item home-link">
-              <i className={item.icon}></i>
-              <span>{item.label}</span>
-            </Link>
-          ) : (
+        {menuItems.map((item) => {
+          if (item.isExternal) {
+            return (
+              <Link key={item.path} to={item.path} className="nav-item home-link">
+                <i className={item.icon}></i>
+                <span>{item.label}</span>
+              </Link>
+            );
+          }
+          if (item.isDev) {
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}
+                onClick={() => toast.info(t("nav.devNotice"))}
+              >
+                <i className={item.icon}></i>
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          }
+          return (
             <NavLink
               key={item.path}
               to={item.path}
@@ -57,8 +73,8 @@ const Sidebar = () => {
               <i className={item.icon}></i>
               <span>{item.label}</span>
             </NavLink>
-          )
-        ))}
+          );
+        })}
       </nav>
 
       <div className="sidebar-footer">

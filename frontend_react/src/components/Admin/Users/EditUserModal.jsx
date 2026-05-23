@@ -23,6 +23,18 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
         address: ''
     });
 
+    const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+    const [showGenderDropdown, setShowGenderDropdown] = useState(false);
+
+    useEffect(() => {
+        const closeDropdowns = () => {
+            setShowRoleDropdown(false);
+            setShowGenderDropdown(false);
+        };
+        window.addEventListener("click", closeDropdowns);
+        return () => window.removeEventListener("click", closeDropdowns);
+    }, []);
+
     // Helper to format date string to YYYY-MM-DD for date input
     const formatDateForInput = (dateStr) => {
         if (!dateStr) return '';
@@ -158,11 +170,11 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
                 </button>
             </Modal.Header>
             <Modal.Body className="edit-modal-scrollable">
-                <div className="edit-section-header">{t("admin.users.accountInfo") || (lang === "vi" ? "Thông tin tài khoản" : "Account Information")}</div>
+                <div className="edit-section-header">{t("admin.users.accountInfo")}</div>
                 <div className="row">
                     <div className="col-md-4">
                         <div className="form-group">
-                            <label>{t("admin.users.accountNumber") || (lang === "vi" ? "Số tài khoản" : "Account Number")}</label>
+                            <label>{t("admin.users.accountNumber")}</label>
                             <input type="text" value={formData.account_number} readOnly className="readonly-input" />
                         </div>
                     </div>
@@ -174,95 +186,169 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
                     </div>
                     <div className="col-md-6">
                         <div className="form-group">
-                            <label>{lang === "vi" ? "Số điện thoại" : "Phone Number"}</label>
+                            <label>{t("admin.users.phoneLabel")}</label>
                             <input 
                                 type="text" 
                                 name="phone" 
                                 value={formData.phone} 
                                 onChange={handleInputChange} 
                                 maxLength="10"
-                                placeholder={lang === "vi" ? "VD: 0912345678" : "e.g. 0912345678"}
+                                placeholder={t("admin.users.phonePlaceholder")}
                             />
                         </div>
                     </div>
                     <div className="col-md-6">
                         <div className="form-group">
-                            <label>{lang === "vi" ? "Quyền hạn" : "Role"}</label>
-                            <select name="role" value={formData.role} onChange={handleInputChange}>
-                                <option value="USER">User</option>
-                                <option value="ADMIN">Admin</option>
-                            </select>
+                            <label>{t("admin.users.roleLabel")}</label>
+                            <div 
+                              className="custom-select-wrapper"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowRoleDropdown(!showRoleDropdown);
+                                setShowGenderDropdown(false);
+                              }}
+                            >
+                                <div className={`custom-select-trigger ${showRoleDropdown ? "active" : ""}`}>
+                                    <span>{formData.role === "ADMIN" ? t("admin.users.roleAdmin") : t("admin.users.roleUser")}</span>
+                                    <i className="fa-solid fa-chevron-down select-arrow"></i>
+                                </div>
+                                {showRoleDropdown && (
+                                    <div className="custom-select-options" onClick={(e) => e.stopPropagation()}>
+                                        <div 
+                                          className={`custom-select-option ${formData.role === "USER" ? "selected" : ""}`}
+                                          onClick={() => {
+                                            setFormData(prev => ({ ...prev, role: "USER" }));
+                                            setShowRoleDropdown(false);
+                                          }}
+                                        >
+                                            {t("admin.users.roleUser")}
+                                        </div>
+                                        <div 
+                                          className={`custom-select-option ${formData.role === "ADMIN" ? "selected" : ""}`}
+                                          onClick={() => {
+                                            setFormData(prev => ({ ...prev, role: "ADMIN" }));
+                                            setShowRoleDropdown(false);
+                                          }}
+                                        >
+                                            {t("admin.users.roleAdmin")}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <hr className="my-4 border-secondary opacity-25" />
 
-                <div className="edit-section-header">{lang === "vi" ? "Thông tin cá nhân & Định danh" : "Personal Information & Identification"}</div>
+                <div className="edit-section-header">{t("admin.users.personalIdHeader")}</div>
                 <div className="form-group">
-                    <label>{lang === "vi" ? "Họ và tên" : "Full Name"}</label>
+                    <label>{t("admin.users.fullNameLabel")}</label>
                     <input type="text" name="full_name" value={formData.full_name} onChange={handleInputChange} style={{ textTransform: 'uppercase' }} />
                 </div>
                 <div className="row">
                     <div className="col-md-6">
                         <div className="form-group">
-                            <label>{lang === "vi" ? "Ngày sinh" : "Date of Birth"}</label>
+                            <label>{t("admin.users.dobLabel")}</label>
                             <input type="date" name="dob" value={formData.dob} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="col-md-6">
                         <div className="form-group">
-                            <label>{lang === "vi" ? "Giới tính" : "Gender"}</label>
-                            <select name="gender" value={formData.gender} onChange={handleInputChange}>
-                                <option value="Nam">{lang === "vi" ? "Nam" : "Male"}</option>
-                                <option value="Nữ">{lang === "vi" ? "Nữ" : "Female"}</option>
-                                <option value="Khác">{lang === "vi" ? "Khác" : "Other"}</option>
-                            </select>
+                            <label>{t("admin.users.genderLabel")}</label>
+                            <div 
+                              className="custom-select-wrapper"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowGenderDropdown(!showGenderDropdown);
+                                setShowRoleDropdown(false);
+                              }}
+                            >
+                                <div className={`custom-select-trigger ${showGenderDropdown ? "active" : ""}`}>
+                                    <span>
+                                        {formData.gender === "Nam" && t("admin.users.genderMale")}
+                                        {formData.gender === "Nữ" && t("admin.users.genderFemale")}
+                                        {formData.gender === "Khác" && t("admin.users.genderOther")}
+                                    </span>
+                                    <i className="fa-solid fa-chevron-down select-arrow"></i>
+                                </div>
+                                {showGenderDropdown && (
+                                    <div className="custom-select-options" onClick={(e) => e.stopPropagation()}>
+                                        <div 
+                                          className={`custom-select-option ${formData.gender === "Nam" ? "selected" : ""}`}
+                                          onClick={() => {
+                                            setFormData(prev => ({ ...prev, gender: "Nam" }));
+                                            setShowGenderDropdown(false);
+                                          }}
+                                        >
+                                            {t("admin.users.genderMale")}
+                                        </div>
+                                        <div 
+                                          className={`custom-select-option ${formData.gender === "Nữ" ? "selected" : ""}`}
+                                          onClick={() => {
+                                            setFormData(prev => ({ ...prev, gender: "Nữ" }));
+                                            setShowGenderDropdown(false);
+                                          }}
+                                        >
+                                            {t("admin.users.genderFemale")}
+                                        </div>
+                                        <div 
+                                          className={`custom-select-option ${formData.gender === "Khác" ? "selected" : ""}`}
+                                          onClick={() => {
+                                            setFormData(prev => ({ ...prev, gender: "Khác" }));
+                                            setShowGenderDropdown(false);
+                                          }}
+                                        >
+                                            {t("admin.users.genderOther")}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div className="form-group">
-                    <label>{lang === "vi" ? "Số CMND/CCCD" : "ID Card Number"}</label>
+                    <label>{t("admin.users.idCardNumberLabel")}</label>
                     <input type="text" name="id_card_number" value={formData.id_card_number} onChange={handleInputChange} />
                 </div>
                 <div className="row">
                     <div className="col-md-6">
                         <div className="form-group">
-                            <label>{lang === "vi" ? "Ngày cấp" : "Issue Date"}</label>
+                            <label>{t("admin.users.issueDateLabel")}</label>
                             <input type="date" name="id_card_issue_date" value={formData.id_card_issue_date} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="col-md-6">
                         <div className="form-group">
-                            <label>{lang === "vi" ? "Ngày hết hạn" : "Expiry Date"}</label>
+                            <label>{t("admin.users.expiryDateLabel")}</label>
                             <input type="date" name="id_card_expiry_date" value={formData.id_card_expiry_date} onChange={handleInputChange} />
                         </div>
                     </div>
                 </div>
                 <div className="form-group">
-                    <label>{lang === "vi" ? "Nơi cấp" : "Issue Place"}</label>
+                    <label>{t("admin.users.issuePlaceLabel")}</label>
                     <input type="text" name="id_card_issue_place" value={formData.id_card_issue_place} onChange={handleInputChange} />
                 </div>
                 <div className="form-group">
-                    <label>{lang === "vi" ? "Địa chỉ" : "Address"}</label>
+                    <label>{t("admin.users.addressLabel")}</label>
                     <textarea name="address" value={formData.address} onChange={handleInputChange} rows="3"></textarea>
                 </div>
 
                 <hr className="my-4 border-secondary opacity-25" />
 
-                <div className="edit-section-header">{lang === "vi" ? "Bảo mật & Hệ thống" : "Security & System"}</div>
+                <div className="edit-section-header">{t("admin.users.securitySystemHeader")}</div>
                 <div className="security-actions">
                     <button className="btn btn-outline-warning w-100 mb-2" onClick={handleResetPass}>
-                        <i className="fa-solid fa-key me-2"></i> {lang === "vi" ? "Reset Mật khẩu (12345678)" : "Reset Password (12345678)"}
+                        <i className="fa-solid fa-key me-2"></i> {t("admin.users.btnResetPassLabel")}
                     </button>
                     <button className="btn btn-outline-info w-100" onClick={handleResetPinAction}>
-                        <i className="fa-solid fa-shield me-2"></i> {lang === "vi" ? "Reset mã PIN (123456)" : "Reset PIN (123456)"}
+                        <i className="fa-solid fa-shield me-2"></i> {t("admin.users.btnResetPinLabel")}
                     </button>
                 </div>
             </Modal.Body>
             <Modal.Footer>
                 <button className="btn btn-secondary" onClick={handleClose}>{t("sidebar.createWatchlistCancel")}</button>
-                <button className="btn btn-primary" onClick={handleSubmit}>{lang === "vi" ? "Lưu thay đổi" : "Save Changes"}</button>
+                <button className="btn btn-primary" onClick={handleSubmit}>{t("admin.users.btnSaveChangesLabel")}</button>
             </Modal.Footer>
 
             <Modal 

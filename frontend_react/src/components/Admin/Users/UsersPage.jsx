@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import "./UsersPage.scss";
 import BalanceAdjustmentModal from "./BalanceAdjustmentModal";
 import ConfirmModal from "./ConfirmModal";
@@ -10,6 +11,7 @@ import { useTranslation } from "../../../context/LanguageContext";
 
 const UsersPage = () => {
   const { t, lang } = useTranslation();
+  const location = useLocation();
   const [showModal, setShowModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -27,6 +29,7 @@ const UsersPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,6 +51,14 @@ const UsersPage = () => {
 
   useEffect(() => {
     fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const closeDropdown = () => {
+      setShowStatusDropdown(false);
+    };
+    window.addEventListener("click", closeDropdown);
+    return () => window.removeEventListener("click", closeDropdown);
   }, []);
 
   const handleEdit = (user) => {
@@ -210,6 +221,25 @@ const UsersPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (location.state && location.state.expandUserId) {
+      setExpandedUser(location.state.expandUserId);
+      // clear navigation state to prevent re-expanding on back button or reload
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (expandedUser && !loading) {
+      setTimeout(() => {
+        const element = document.getElementById(`user-row-${expandedUser}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 150);
+    }
+  }, [expandedUser, loading]);
+
   return (
     <div className="admin-users-page">
       <div className="page-header">
@@ -235,16 +265,63 @@ const UsersPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="filter-item select">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+          <div className="filter-item custom-select-wrapper">
+            <div 
+              className={`custom-select-trigger ${showStatusDropdown ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowStatusDropdown(!showStatusDropdown);
+              }}
             >
-              <option value="all">{t("admin.users.filterAll")}</option>
-              <option value="active">{t("admin.users.filterActive")}</option>
-              <option value="locked">{t("admin.users.filterLocked")}</option>
-              <option value="pending">{t("admin.users.filterPending")}</option>
-            </select>
+              <span>
+                {statusFilter === "all" && t("admin.users.filterAll")}
+                {statusFilter === "active" && t("admin.users.filterActive")}
+                {statusFilter === "locked" && t("admin.users.filterLocked")}
+                {statusFilter === "pending" && t("admin.users.filterPending")}
+              </span>
+              <i className="fa-solid fa-chevron-down select-arrow"></i>
+            </div>
+            
+            {showStatusDropdown && (
+              <div className="custom-select-options" onClick={(e) => e.stopPropagation()}>
+                <div 
+                  className={`custom-select-option ${statusFilter === "all" ? "selected" : ""}`}
+                  onClick={() => {
+                    setStatusFilter("all");
+                    setShowStatusDropdown(false);
+                  }}
+                >
+                  {t("admin.users.filterAll")}
+                </div>
+                <div 
+                  className={`custom-select-option ${statusFilter === "active" ? "selected" : ""}`}
+                  onClick={() => {
+                    setStatusFilter("active");
+                    setShowStatusDropdown(false);
+                  }}
+                >
+                  {t("admin.users.filterActive")}
+                </div>
+                <div 
+                  className={`custom-select-option ${statusFilter === "locked" ? "selected" : ""}`}
+                  onClick={() => {
+                    setStatusFilter("locked");
+                    setShowStatusDropdown(false);
+                  }}
+                >
+                  {t("admin.users.filterLocked")}
+                </div>
+                <div 
+                  className={`custom-select-option ${statusFilter === "pending" ? "selected" : ""}`}
+                  onClick={() => {
+                    setStatusFilter("pending");
+                    setShowStatusDropdown(false);
+                  }}
+                >
+                  {t("admin.users.filterPending")}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="filter-info">
@@ -275,6 +352,7 @@ const UsersPage = () => {
               filteredUsers.map((user, index) => (
                 <React.Fragment key={index}>
                   <tr 
+                    id={`user-row-${user.id}`}
                     className={`user-row ${expandedUser === user.id ? 'active' : ''}`}
                     onClick={() => toggleExpand(user.id)}
                   >

@@ -330,7 +330,7 @@ const Nav = (props) => {
   const handleUnderDevelopment = (e) => {
     e.preventDefault();
     toast.info(t("nav.devNotice"), {
-      position: "top-center",
+      position: "top-right",
       autoClose: 3000,
     });
   };

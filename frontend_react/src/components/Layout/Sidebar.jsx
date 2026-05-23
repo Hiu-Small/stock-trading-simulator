@@ -323,13 +323,13 @@ const Sidebar = (props) => {
       <div className="sidebar__section sidebar__tools">
         <div className="sidebar__section-title">{t("sidebar.tools")}</div>
 
-        <div className="sidebar__tool-item">
+        <div className="sidebar__tool-item" onClick={() => toast.info(t("nav.devNotice"))}>
           <i className="fa-solid fa-bolt-lightning"></i>
           <span>{t("sidebar.screener")}</span>
           <span className="tool-badge tool-badge--new">New</span>
         </div>
 
-        <div className="sidebar__tool-item">
+        <div className="sidebar__tool-item" onClick={() => toast.info(t("nav.devNotice"))}>
           <i className="fa-solid fa-sliders"></i>
           <span>{t("sidebar.preferences")}</span>
         </div>
