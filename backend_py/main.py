@@ -20,6 +20,10 @@ app.add_middleware(
 # Cấu hình API Key cho vnstock (đã tích hợp từ trước)
 vnstock.change_api_key("vnstock_6f91e0ac6e8c2723329a928451f8633a")
 
+@app.get("/")
+def read_root():
+    return {"status": "healthy", "message": "VN Stock API Service is running"}
+
 # Cache cho thông tin mã chứng khoán (tên và sàn)
 SYMBOL_INFO_MAP = {}
 
