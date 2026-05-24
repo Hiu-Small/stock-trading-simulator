@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 
 // Set config defaults when creating the instance
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_API_URL || "http://localhost:8080",
+  baseURL: import.meta.env.VITE_BACKEND_API_URL || "https://stock-trading-simulator-1-b8in.onrender.com",
 });
 
 // Add a request interceptor
