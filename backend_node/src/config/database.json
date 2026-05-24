@@ -16,10 +16,12 @@
     "dialect": "mysql"
   },
   "production": {
-    "username": "root",
-    "password": "",
-    "database": "stock_db_prod",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
+    "use_env_variable": "DATABASE_URL",
+    "dialect": "mysql",
+    "dialectOptions": {
+      "ssl": {
+        "rejectUnauthorized": false
+      }
+    }
   }
 }
