@@ -3,8 +3,13 @@ require("dotenv").config();
 const configCors = (app) => {
   // Add headers before the routes are defined
   app.use(function (req, res, next) {
-    // Website you wish to allow to connect
-    res.setHeader("Access-Control-Allow-Origin", process.env.REACT_URL);
+    // Website you wish to allow to connect (dynamically resolve request origin for Vercel/Local support)
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    } else {
+      res.setHeader("Access-Control-Allow-Origin", process.env.REACT_URL || "*");
+    }
 
     // Request methods you wish to allow
     res.setHeader(
