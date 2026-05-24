@@ -28,6 +28,13 @@ fs
   })
   .forEach(file => {
     const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    // Force table name to be lowercase to handle Linux case-sensitivity issues
+    if (model.options && model.options.tableName) {
+      model.options.tableName = model.options.tableName.toLowerCase();
+    }
+    if (model.tableName) {
+      model.tableName = model.tableName.toLowerCase();
+    }
     db[model.name] = model;
   });
 
