@@ -52,24 +52,44 @@ const EditUserModal = ({ show, handleClose, userData, onSuccess }) => {
     };
 
     useEffect(() => {
-        if (userData) {
+        if (show) {
+            if (userData) {
+                setFormData({
+                    userId: userData.id || '',
+                    account_number: userData.account_number || '',
+                    full_name: (userData.profile?.full_name || '').toUpperCase(),
+                    email: userData.email || '',
+                    phone: userData.phone || '',
+                    role: userData.role || 'USER',
+                    id_card_number: userData.profile?.id_card_number || '',
+                    dob: formatDateForInput(userData.profile?.dob),
+                    gender: userData.profile?.gender || 'Nam',
+                    id_card_issue_date: formatDateForInput(userData.profile?.id_card_issue_date),
+                    id_card_issue_place: userData.profile?.id_card_issue_place || '',
+                    id_card_expiry_date: formatDateForInput(userData.profile?.id_card_expiry_date),
+                    address: userData.profile?.address || ''
+                });
+            }
+        } else {
             setFormData({
-                userId: userData.id || '',
-                account_number: userData.account_number || '',
-                full_name: (userData.profile?.full_name || '').toUpperCase(),
-                email: userData.email || '',
-                phone: userData.phone || '',
-                role: userData.role || 'USER',
-                id_card_number: userData.profile?.id_card_number || '',
-                dob: formatDateForInput(userData.profile?.dob),
-                gender: userData.profile?.gender || 'Nam',
-                id_card_issue_date: formatDateForInput(userData.profile?.id_card_issue_date),
-                id_card_issue_place: userData.profile?.id_card_issue_place || '',
-                id_card_expiry_date: formatDateForInput(userData.profile?.id_card_expiry_date),
-                address: userData.profile?.address || ''
+                userId: '',
+                account_number: '',
+                full_name: '',
+                email: '',
+                phone: '',
+                role: 'USER',
+                id_card_number: '',
+                dob: '',
+                gender: 'Nam',
+                id_card_issue_date: '',
+                id_card_issue_place: '',
+                id_card_expiry_date: '',
+                address: ''
             });
+            setShowRoleDropdown(false);
+            setShowGenderDropdown(false);
         }
-    }, [userData]);
+    }, [userData, show]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;

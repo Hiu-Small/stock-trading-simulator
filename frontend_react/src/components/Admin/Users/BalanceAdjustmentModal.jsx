@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "react-bootstrap";
 import "./BalanceAdjustmentModal.scss";
 import { updateUserBalance } from "../../../services/adminService";
@@ -11,6 +11,16 @@ const BalanceAdjustmentModal = ({ show, handleClose, user, onSuccess }) => {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!show) {
+      setOperation("add");
+      setAmount("");
+      setNote("");
+      setLoading(false);
+    }
+  }, [show]);
+
 
   if (!user) return null;
 

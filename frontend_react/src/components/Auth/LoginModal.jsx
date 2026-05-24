@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -16,6 +16,17 @@ const LoginModal = (props) => {
     username: "",
     password: "",
   });
+
+  useEffect(() => {
+    if (!props.show) {
+      setFormData({
+        username: "",
+        password: "",
+      });
+      setShowPassword(false);
+    }
+  }, [props.show]);
+
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
