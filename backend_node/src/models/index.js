@@ -3,6 +3,24 @@
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
+
+// Override Model.init to force all table names to be lowercase (fixing Linux case-sensitivity issues)
+const originalInit = Sequelize.Model.init;
+Sequelize.Model.init = function (attributes, options) {
+  if (options) {
+    let tableName = options.tableName || options.modelName + 's';
+    if (options.modelName === 'UserHistory') {
+      tableName = 'userhistories';
+    } else if (options.modelName === 'CorporateAction') {
+      tableName = 'corporateactions';
+    } else if (options.modelName === 'PendingCash') {
+      tableName = 'pendingcashes';
+    }
+    options.tableName = tableName.toLowerCase();
+    options.freezeTableName = true;
+  }
+  return originalInit.call(this, attributes, options);
+};
 const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
@@ -28,13 +46,6 @@ fs
   })
   .forEach(file => {
     const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    // Force table name to be lowercase to handle Linux case-sensitivity issues
-    if (model.options && model.options.tableName) {
-      model.options.tableName = model.options.tableName.toLowerCase();
-    }
-    if (model.tableName) {
-      model.tableName = model.tableName.toLowerCase();
-    }
     db[model.name] = model;
   });
 
