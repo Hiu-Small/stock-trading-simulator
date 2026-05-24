@@ -77,11 +77,13 @@ const RegisterStep = () => {
             if (response && +response.EC === 0) {
                 toast.success(
                     <div>
-                        <strong>{t("onboarding.toastRegisterSuccess")}</strong>
-                        <br />
-                        {renderToastAccNo(response.DT.account_number)}
-                        <br />
-                        {t("onboarding.toastLoginGuide")}
+                        <strong style={{ fontSize: '13px' }}>{t("onboarding.toastRegisterSuccess")}</strong>
+                        <div style={{ marginTop: '4px', fontSize: '12px' }}>
+                            {renderToastAccNo(response.DT.account_number)}
+                        </div>
+                        <div style={{ marginTop: '6px', fontSize: '11px', opacity: 0.9 }}>
+                            {t("onboarding.toastLoginGuide")}
+                        </div>
                     </div>, 
                     { autoClose: 10000 }
                 );

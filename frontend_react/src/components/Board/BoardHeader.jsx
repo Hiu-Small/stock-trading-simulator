@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./BoardHeader.scss";
 import { useTranslation } from "../../context/LanguageContext";
 
@@ -9,6 +9,21 @@ import { useTranslation } from "../../context/LanguageContext";
  */
 const BoardHeader = (props) => {
   const { t } = useTranslation();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const groups = [
     { id: "VN30", label: "VN30" },
     { id: "HNX30", label: "HNX30" },
@@ -65,10 +80,56 @@ const BoardHeader = (props) => {
           {t("lang") === "vi" ? "Chỉ mã giao dịch" : "Active Only"}
         </button>
 
-        <button className="board-action-btn" id="btn-columns">
-          <i className="fa-solid fa-table-columns"></i>
-          {t("lang") === "vi" ? "Cột hiển thị" : "Columns"}
-        </button>
+        <div className="board-header__dropdown-container" ref={dropdownRef}>
+          <button 
+            className={`board-action-btn ${showDropdown ? "board-action-btn--active" : ""}`} 
+            id="btn-columns"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            <i className="fa-solid fa-table-columns"></i>
+            {t("lang") === "vi" ? "Cột hiển thị" : "Columns"}
+          </button>
+          
+          {showDropdown && (
+            <div className="board-header__dropdown-menu">
+              <div className="dropdown-title">
+                {t("lang") === "vi" ? "Cột hiển thị" : "Show Columns"}
+              </div>
+              <label className="dropdown-item">
+                <input 
+                  type="checkbox" 
+                  checked={props.visibleColumns?.basic ?? true} 
+                  onChange={() => props.onToggleColumn("basic")}
+                />
+                <span>{t("lang") === "vi" ? "Giá cơ bản (TC/Trần/Sàn)" : "Basic Prices (Ref/Ceil/Floor)"}</span>
+              </label>
+              <label className="dropdown-item">
+                <input 
+                  type="checkbox" 
+                  checked={props.visibleColumns?.highLow ?? true} 
+                  onChange={() => props.onToggleColumn("highLow")}
+                />
+                <span>{t("lang") === "vi" ? "Biên độ ngày (Cao/Thấp)" : "Daily Range (High/Low)"}</span>
+              </label>
+              <label className="dropdown-item">
+                <input 
+                  type="checkbox" 
+                  checked={props.visibleColumns?.totalVol ?? true} 
+                  onChange={() => props.onToggleColumn("totalVol")}
+                />
+                <span>{t("lang") === "vi" ? "Tổng Khối Lượng" : "Total Volume"}</span>
+              </label>
+              <label className="dropdown-item">
+                <input 
+                  type="checkbox" 
+                  checked={props.visibleColumns?.foreign ?? true} 
+                  onChange={() => props.onToggleColumn("foreign")}
+                />
+                <span>{t("lang") === "vi" ? "Khối ngoại (Mua/Bán/Room)" : "Foreign Trades (Buy/Sell/Room)"}</span>
+              </label>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

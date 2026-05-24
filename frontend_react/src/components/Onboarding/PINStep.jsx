@@ -8,7 +8,7 @@ import { UserContext } from '../../context/UserContext';
 
 const PINStep = () => {
     const { t } = useTranslation();
-    const { updateUserStatus } = useContext(UserContext);
+    const { updateUserStatus, refreshBalance } = useContext(UserContext);
     const [pin, setPin] = useState(['', '', '', '', '', '']);
     const [loading, setLoading] = useState(false);
     const inputRefs = useRef([]);
@@ -44,8 +44,19 @@ const PINStep = () => {
         try {
             const response = await axios.post('/api/setup-pin', { pin: pinString });
             if (response && +response.EC === 0) {
-                toast.success(t("onboarding.toastPinSuccess"));
+                toast.success(
+                    <div>
+                        <strong style={{ fontSize: '13px' }}>{t("onboarding.toastPinSuccess")}</strong>
+                        <div style={{ marginTop: '6px', fontSize: '12px', color: '#ffeb3b', fontWeight: '500', lineHeight: '1.4' }}>
+                            💡 {t("onboarding.toastCapitalGrant")}
+                        </div>
+                    </div>, 
+                    { autoClose: 15000 }
+                );
                 updateUserStatus('ACTIVE');
+                if (refreshBalance) {
+                    refreshBalance();
+                }
                 // Chuyển hướng về trang chủ
                 navigate('/');
                 // Không cần reload nữa vì context đã được cập nhật
@@ -75,7 +86,7 @@ const PINStep = () => {
                     <input
                         key={index}
                         ref={(el) => (inputRefs.current[index] = el)}
-                        type="text"
+                        type="password"
                         inputMode="numeric"
                         maxLength="1"
                         value={digit}

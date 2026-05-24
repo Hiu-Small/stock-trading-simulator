@@ -99,7 +99,7 @@
                 list-style: none;
                 text-align: left;
                 width: 100%;
-                max-width: 300px;
+                max-width: 480px;
                 display: flex;
                 flex-direction: column;
                 gap: 25px;
@@ -126,10 +126,12 @@
                             display: block;
                             font-size: 16px;
                             margin-bottom: 2px;
+                            white-space: nowrap;
                         }
                         p {
                             font-size: 13px;
                             opacity: 0.7;
+                            white-space: nowrap;
                         }
                     }
                 }

@@ -40,6 +40,15 @@ const LoginModal = (props) => {
     }));
   };
 
+  const handleSocialClick = () => {
+    toast.info(t("login.socialUnderDev"));
+  };
+
+  const handleForgotPasswordClick = (e) => {
+    e.preventDefault();
+    toast.info(t("login.forgotPasswordUnderDev"));
+  };
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -139,7 +148,7 @@ const LoginModal = (props) => {
               </div>
 
               <div className="forgot-password">
-                <a href="#forgot">{t("login.forgotPassword")}</a>
+                <a href="#forgot" onClick={handleForgotPasswordClick}>{t("login.forgotPassword")}</a>
               </div>
 
               <button type="submit" className="btn-login-submit">
@@ -152,10 +161,10 @@ const LoginModal = (props) => {
             </div>
 
             <div className="social-actions">
-              <button className="btn-social google">
+              <button className="btn-social google" onClick={handleSocialClick} type="button">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google G Logo" />              
               </button>
-              <button className="btn-social facebook">
+              <button className="btn-social facebook" onClick={handleSocialClick} type="button">
                 <i className="fa-brands fa-facebook-f"></i>
               </button>
             </div>

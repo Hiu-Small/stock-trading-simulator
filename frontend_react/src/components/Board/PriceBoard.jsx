@@ -27,6 +27,36 @@ const PriceBoard = (props) => {
   const [isOnlyOrder, setIsOnlyOrder] = useState(false);
   const [contextMenu, setContextMenu] = useState(null); // { x, y, symbol }
 
+  const [visibleColumns, setVisibleColumns] = useState(() => {
+    try {
+      const saved = localStorage.getItem("iboard_visible_columns");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      // Ignore
+    }
+    return {
+      basic: true,
+      highLow: true,
+      totalVol: true,
+      foreign: true,
+    };
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("iboard_visible_columns", JSON.stringify(visibleColumns));
+    } catch (e) {
+      // Ignore
+    }
+  }, [visibleColumns]);
+
+  const handleToggleColumn = (columnKey) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [columnKey]: !prev[columnKey],
+    }));
+  };
+
   // Lấy selectedGroup và searchResults từ props (được quản lý ở MainContent)
   const selectedGroup = props.selectedGroup || "VN30";
   const searchResults = props.searchResults || null;
@@ -138,6 +168,8 @@ const PriceBoard = (props) => {
               toast.info("Đã hiển thị tất cả cổ phiếu");
             }
           }}
+          visibleColumns={visibleColumns}
+          onToggleColumn={handleToggleColumn}
         />
         <StockTable
           selectedGroup={selectedGroup}
@@ -147,6 +179,7 @@ const PriceBoard = (props) => {
           onUpdateStats={handleUpdateStats}
           showActiveOnly={showActiveOnly}
           stocks={searchResults}
+          visibleColumns={visibleColumns}
         />
       </div>
 

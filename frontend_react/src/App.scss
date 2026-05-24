@@ -14,3 +14,11 @@ html, body, #root {
 
 // Ensure toast is above modals
 .Toastify__toast-container { z-index: 99999 !important; }
+
+// Date picker calendar icon dark mode color fix
+[data-theme="dark"] {
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
+}

@@ -124,6 +124,13 @@ const StockTable = (props) => {
   const [marketOpen, setMarketOpen] = useState(checkIsMarketOpen());
   const [sortOrder, setSortOrder] = useState("asc");
 
+  const visibleColumns = props.visibleColumns || {
+    basic: true,
+    highLow: true,
+    totalVol: true,
+    foreign: true,
+  };
+
   const fetchBoard = async () => {
     setLoading(true);
     // Sử dụng props.selectedGroup thay vì hard-code "VN30"
@@ -220,15 +227,19 @@ const StockTable = (props) => {
                 {sortOrder === "asc" ? "↑" : "↓"}
               </span>
             </th>
-            <th className="th-price th-ref" rowSpan={2}>
-              {t("board.ref")}
-            </th>
-            <th className="th-price th-ceiling" rowSpan={2}>
-              {t("board.ceil")}
-            </th>
-            <th className="th-price th-floor" rowSpan={2}>
-              {t("board.floor")}
-            </th>
+            {visibleColumns.basic && (
+              <>
+                <th className="th-price th-ref" rowSpan={2}>
+                  {t("board.ref")}
+                </th>
+                <th className="th-price th-ceiling" rowSpan={2}>
+                  {t("board.ceil")}
+                </th>
+                <th className="th-price th-floor" rowSpan={2}>
+                  {t("board.floor")}
+                </th>
+              </>
+            )}
 
             {/* BID group */}
             <th className="th-group th-bid" colSpan={3}>
@@ -246,22 +257,30 @@ const StockTable = (props) => {
             </th>
 
             {/* Tổng KL */}
-            <th className="th-total-vol" rowSpan={2}>
-              {t("board.totalVol")}
-            </th>
+            {visibleColumns.totalVol && (
+              <th className="th-total-vol" rowSpan={2}>
+                {t("board.totalVol")}
+              </th>
+            )}
 
             {/* CAO / THẤP*/}
-            <th className="th-price" rowSpan={2}>
-              {t("board.high")}
-            </th>
-            <th className="th-price" rowSpan={2}>
-              {t("board.low")}
-            </th>
+            {visibleColumns.highLow && (
+              <>
+                <th className="th-price" rowSpan={2}>
+                  {t("board.high")}
+                </th>
+                <th className="th-price" rowSpan={2}>
+                  {t("board.low")}
+                </th>
+              </>
+            )}
 
             {/* FOREIGN */}
-            <th className="th-group th-foreign" colSpan={3}>
-              {t("board.foreign")}
-            </th>
+            {visibleColumns.foreign && (
+              <th className="th-group th-foreign" colSpan={3}>
+                {t("board.foreign")}
+              </th>
+            )}
           </tr>
 
           {/* Hàng thứ 2 của header */}
@@ -282,9 +301,13 @@ const StockTable = (props) => {
             <th className="th-sub th-ask">{t("lang") === "vi" ? "Giá 3 / KL 3" : "Price 3 / Vol 3"}</th>
 
             {/* FOREIGN sub-headers */}
-            <th className="th-sub th-foreign">{t("board.buy")}</th>
-            <th className="th-sub th-foreign">{t("board.sell")}</th>
-            <th className="th-sub th-foreign">{t("board.room")}</th>
+            {visibleColumns.foreign && (
+              <>
+                <th className="th-sub th-foreign">{t("board.buy")}</th>
+                <th className="th-sub th-foreign">{t("board.sell")}</th>
+                <th className="th-sub th-foreign">{t("board.room")}</th>
+              </>
+            )}
           </tr>
         </thead>
 
@@ -303,6 +326,7 @@ const StockTable = (props) => {
                 onRowClick={props.onRowClick}
                 onContextMenu={props.onContextMenu}
                 isSelected={props.selectedTicker === stock.symbol}
+                visibleColumns={visibleColumns}
               />
             ))}
         </tbody>

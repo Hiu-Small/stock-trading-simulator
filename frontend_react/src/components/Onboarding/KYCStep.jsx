@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import axios from '../../setup/axios';
 import { toast } from 'react-toastify';
 import { useTranslation } from '../../context/LanguageContext';
@@ -19,6 +19,19 @@ const KYCStep = (props) => {
         address: ''
     });
     const [loading, setLoading] = useState(false);
+
+    const [showGenderDropdown, setShowGenderDropdown] = useState(false);
+    const genderDropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (genderDropdownRef.current && !genderDropdownRef.current.contains(event.target)) {
+                setShowGenderDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const handleChange = (e) => {
         setFormData({
@@ -143,11 +156,52 @@ const KYCStep = (props) => {
                 </div>
                 <div className="form-group">
                     <label>{t("onboarding.genderLabel")} <span className="required">*</span></label>
-                    <select name="gender" value={formData.gender} onChange={handleChange}>
-                        <option value="Nam">{t("onboarding.genderMale")}</option>
-                        <option value="Nữ">{t("onboarding.genderFemale")}</option>
-                        <option value="Khác">{t("onboarding.genderOther")}</option>
-                    </select>
+                    <div className="custom-select-wrapper" ref={genderDropdownRef}>
+                        <div 
+                            className={`custom-select-trigger ${showGenderDropdown ? 'active' : ''}`}
+                            onClick={() => setShowGenderDropdown(!showGenderDropdown)}
+                        >
+                            <span>
+                                {formData.gender === "Nam" && t("onboarding.genderMale")}
+                                {formData.gender === "Nữ" && t("onboarding.genderFemale")}
+                                {formData.gender === "Khác" && t("onboarding.genderOther")}
+                            </span>
+                            <span className="select-arrow">
+                                <i className="fa-solid fa-chevron-down"></i>
+                            </span>
+                        </div>
+                        {showGenderDropdown && (
+                            <div className="custom-select-options">
+                                <div 
+                                    className={`custom-select-option ${formData.gender === 'Nam' ? 'selected' : ''}`}
+                                    onClick={() => {
+                                        setFormData({ ...formData, gender: 'Nam' });
+                                        setShowGenderDropdown(false);
+                                    }}
+                                >
+                                    {t("onboarding.genderMale")}
+                                </div>
+                                <div 
+                                    className={`custom-select-option ${formData.gender === 'Nữ' ? 'selected' : ''}`}
+                                    onClick={() => {
+                                        setFormData({ ...formData, gender: 'Nữ' });
+                                        setShowGenderDropdown(false);
+                                    }}
+                                >
+                                    {t("onboarding.genderFemale")}
+                                </div>
+                                <div 
+                                    className={`custom-select-option ${formData.gender === 'Khác' ? 'selected' : ''}`}
+                                    onClick={() => {
+                                        setFormData({ ...formData, gender: 'Khác' });
+                                        setShowGenderDropdown(false);
+                                    }}
+                                >
+                                    {t("onboarding.genderOther")}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

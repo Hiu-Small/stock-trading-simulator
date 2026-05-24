@@ -73,7 +73,16 @@ const translateNotificationText = (text, currentLang, t) => {
     const rawType = match[1];
     const type = rawType === "cộng thêm" ? t("nav.notifTemplates.adminAdd") : t("nav.notifTemplates.adminDeduct");
     const amount = match[2];
-    const reason = match[3];
+    let reason = match[3];
+
+    // Dịch động lý do chào mừng nếu ngôn ngữ không phải tiếng Việt
+    if (currentLang !== "vi") {
+      reason = reason.replace(
+        /Chào mừng bạn tham gia iBoard! Vì đây là trang web giả lập giao dịch chứng khoán dành cho người mới đầu tư, hệ thống đã cấp sẵn cho bạn ([0-9.,]+) ₫ vốn ảo để bắt đầu luyện tập\./gi,
+        "Welcome to iBoard! Since this is a stock trading simulator designed for beginners, the system has automatically credited your account with $1 ₫ in virtual capital to start practicing your investments."
+      );
+    }
+
     return t("nav.notifTemplates.adminAdjust")
       .replace("{type}", type)
       .replace("{amount}", amount)

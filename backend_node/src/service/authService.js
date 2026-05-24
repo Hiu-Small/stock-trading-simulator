@@ -156,13 +156,34 @@ const completeKYC = async (userId, kycData) => {
 
 const setupPIN = async (userId, pin) => {
     try {
-        const user = await db.UserAccount.findByPk(userId);
+        const user = await db.UserAccount.findByPk(userId, {
+            include: [{ model: db.Wallet, as: 'wallet' }]
+        });
         if (!user) return { EM: 'Người dùng không tồn tại', EC: 1, DT: '' };
 
         // Lưu mã PIN (có thể hash nếu cần bảo mật cao hơn)
         user.pin_code = pin;
+        
+        // Kiểm tra xem đây có phải lần đầu tiên kích hoạt ACTIVE không
+        const isFirstActivation = user.status !== 'ACTIVE';
         user.status = 'ACTIVE'; // Kích hoạt tài khoản sau khi xong mã PIN
         await user.save();
+
+        if (isFirstActivation) {
+            // Lấy số dư hiện tại trong ví hoặc mặc định 200.000.000
+            const balance = user.wallet ? user.wallet.balance : 200000000;
+            const formattedBalance = parseFloat(balance).toLocaleString('vi-VN');
+
+            // Tạo thông báo chào mừng & tặng vốn ảo trong lịch sử thông báo
+            await db.UserHistory.create({
+                user_id: userId,
+                field_name: 'balance',
+                old_value: '0',
+                new_value: `Tài khoản của bạn vừa được Admin cộng thêm ${formattedBalance} ₫ vốn ảo. Lý do: Chào mừng bạn tham gia iBoard! Vì đây là trang web giả lập giao dịch chứng khoán dành cho người mới đầu tư, hệ thống đã cấp sẵn cho bạn ${formattedBalance} ₫ vốn ảo để bắt đầu luyện tập.`,
+                change_type: 'SYSTEM_ADJUST_BALANCE',
+                is_read: false
+            });
+        }
 
         return { EM: 'Thiết lập mã PIN thành công', EC: 0, DT: '' };
     } catch (e) {
@@ -379,6 +400,40 @@ const getProfile = async (userId) => {
             attributes: { exclude: ['password', 'pin_code'] }
         });
         if (!user) return { EM: 'Người dùng không tồn tại', EC: 1, DT: '' };
+
+        // Backfill welcome grant notification if the user is ACTIVE but has no welcome history record
+        if (user.status === 'ACTIVE') {
+            const hasWelcomeNotif = await db.UserHistory.findOne({
+                where: {
+                    user_id: userId,
+                    change_type: 'SYSTEM_ADJUST_BALANCE',
+                    new_value: { [db.Sequelize.Op.like]: '%Chào mừng bạn tham gia iBoard%' }
+                }
+            });
+            
+            if (!hasWelcomeNotif) {
+                const balance = user.wallet ? user.wallet.balance : 200000000;
+                const formattedBalance = parseFloat(balance).toLocaleString('vi-VN');
+                
+                await db.UserHistory.create({
+                    user_id: userId,
+                    field_name: 'balance',
+                    old_value: '0',
+                    new_value: `Tài khoản của bạn vừa được Admin cộng thêm ${formattedBalance} ₫ vốn ảo. Lý do: Chào mừng bạn tham gia iBoard! Vì đây là trang web giả lập giao dịch chứng khoán dành cho người mới đầu tư, hệ thống đã cấp sẵn cho bạn ${formattedBalance} ₫ vốn ảo để bắt đầu luyện tập.`,
+                    change_type: 'SYSTEM_ADJUST_BALANCE',
+                    is_read: false
+                });
+                
+                // Reload histories for the user
+                const updatedHistories = await db.UserHistory.findAll({
+                    where: { user_id: userId },
+                    order: [['createdAt', 'DESC']],
+                    limit: 30
+                });
+                user.setDataValue('histories', updatedHistories);
+            }
+        }
+
         return { EM: 'Lấy thông tin thành công', EC: 0, DT: user };
     } catch (e) {
         console.log(e);

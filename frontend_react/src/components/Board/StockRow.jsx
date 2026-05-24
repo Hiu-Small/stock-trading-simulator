@@ -8,6 +8,12 @@ const StockRow = (props) => {
   if (!props.stock) return null;
 
   const { stock } = props;
+  const visibleColumns = props.visibleColumns || {
+    basic: true,
+    highLow: true,
+    totalVol: true,
+    foreign: true,
+  };
 
   // 1. TÍNH TOÁN SẴN THAY ĐỔI GIÁ (Change & Change Percent)
   const change = stock.matchPrice ? stock.matchPrice - stock.refPrice : "";
@@ -65,9 +71,13 @@ const StockRow = (props) => {
       </td>
 
       {/* ===== Giá Tham Chiếu / Trần / Sàn ===== */}
-      <td className="col-price price--ref">{formatPrice(stock.refPrice)}</td>
-      <td className="col-price price--ceiling">{formatPrice(stock.ceiling)}</td>
-      <td className="col-price price--floor">{formatPrice(stock.floor)}</td>
+      {visibleColumns.basic && (
+        <>
+          <td className="col-price price--ref">{formatPrice(stock.refPrice)}</td>
+          <td className="col-price price--ceiling">{formatPrice(stock.ceiling)}</td>
+          <td className="col-price price--floor">{formatPrice(stock.floor)}</td>
+        </>
+      )}
 
       {/* ===== BID: G3 → G1 ===== */}
       <td className={`col-bid ${getPriceColor(stock.bid3Price)}`}>
@@ -116,20 +126,30 @@ const StockRow = (props) => {
       </td>
 
       {/* ===== Tổng KL ===== */}
-      <td className="col-total-vol">{formatVolume(stock.totalVolume)}</td>
+      {visibleColumns.totalVol && (
+        <td className="col-total-vol">{formatVolume(stock.totalVolume)}</td>
+      )}
 
       {/* ===== CAO / THẤP===== */}
-      <td className={`col-price ${getPriceColor(stock.high)}`}>
-        {formatPrice(stock.high)}
-      </td>
-      <td className={`col-price ${getPriceColor(stock.low)}`}>
-        {formatPrice(stock.low)}
-      </td>
+      {visibleColumns.highLow && (
+        <>
+          <td className={`col-price ${getPriceColor(stock.high)}`}>
+            {formatPrice(stock.high)}
+          </td>
+          <td className={`col-price ${getPriceColor(stock.low)}`}>
+            {formatPrice(stock.low)}
+          </td>
+        </>
+      )}
 
       {/* ===== Khối ngoại ===== */}
-      <td className="col-foreign">{formatVolume(stock.foreignBuy)}</td>
-      <td className="col-foreign">{formatVolume(stock.foreignSell)}</td>
-      <td className="col-foreign">{formatVolume(stock.currentRoom)}</td>
+      {visibleColumns.foreign && (
+        <>
+          <td className="col-foreign">{formatVolume(stock.foreignBuy)}</td>
+          <td className="col-foreign">{formatVolume(stock.foreignSell)}</td>
+          <td className="col-foreign">{formatVolume(stock.currentRoom)}</td>
+        </>
+      )}
     </tr>
   );
 };
