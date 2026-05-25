@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import axios from '../../setup/axios';
 import { getUserProfile } from '../../services/userService';
 import { toast } from 'react-toastify';
 import { UserContext } from '../../context/UserContext';
