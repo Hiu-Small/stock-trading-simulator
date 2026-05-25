@@ -18,7 +18,15 @@ app.add_middleware(
 )
 
 # Cấu hình API Key cho vnstock (đã tích hợp từ trước)
-vnstock.change_api_key("vnstock_6f91e0ac6e8c2723329a928451f8633a")
+try:
+    vnstock.change_api_key("vnstock_6f91e0ac6e8c2723329a928451f8633a")
+except Exception as auth_e:
+    print(f"Warning: Failed to set vnstock API key directly: {auth_e}")
+    try:
+        from vnstock.core.utils.auth import change_api_key
+        change_api_key("vnstock_6f91e0ac6e8c2723329a928451f8633a")
+    except Exception as auth_e2:
+        print(f"Error: Deep import of change_api_key also failed: {auth_e2}")
 
 @app.get("/")
 def read_root():
@@ -1065,4 +1073,6 @@ def get_stock_profile(symbol: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
