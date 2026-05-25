@@ -13,6 +13,24 @@ const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess,
   const [userData, setUserData] = useState(null);
   const [account, setAccount] = useState("");
 
+  const getLocalizedMsg = (apiMsg, defaultKey, params = {}) => {
+    if (!apiMsg) return t(defaultKey, params);
+    const trimmed = apiMsg.trim();
+    if (trimmed.includes("không chính xác") || trimmed.includes("Mã PIN")) {
+      return t("trading.orderEntry.toasts.incorrectPin", params);
+    }
+    if (trimmed.includes("thành công")) {
+      return t("trading.orderEntry.toasts.orderSuccess", params);
+    }
+    if (trimmed.includes("thất bại") || trimmed.includes("Không thể đặt lệnh") || trimmed.includes("đang đóng cửa")) {
+      return t("trading.orderEntry.toasts.orderFailed", params);
+    }
+    if (trimmed.includes("Lỗi hệ thống")) {
+      return t("trading.orderEntry.toasts.systemError", params);
+    }
+    return apiMsg;
+  };
+
   const [quantity, setQuantity] = useState(100); // Mặc định 100 cổ
   const [price, setPrice] = useState(data?.matchPrice ? data.matchPrice / 1000 : 0);
   const [isAutoPrice, setIsAutoPrice] = useState(false);
@@ -356,24 +374,6 @@ const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess,
       return;
     }
 
-    const getLocalizedMsg = (apiMsg, defaultKey, params = {}) => {
-      if (!apiMsg) return t(defaultKey, params);
-      const trimmed = apiMsg.trim();
-      if (trimmed.includes("không chính xác") || trimmed.includes("Mã PIN")) {
-        return t("trading.orderEntry.toasts.incorrectPin", params);
-      }
-      if (trimmed.includes("thành công")) {
-        return t("trading.orderEntry.toasts.orderSuccess", params);
-      }
-      if (trimmed.includes("thất bại") || trimmed.includes("Không thể đặt lệnh") || trimmed.includes("đang đóng cửa")) {
-        return t("trading.orderEntry.toasts.orderFailed", params);
-      }
-      if (trimmed.includes("Lỗi hệ thống")) {
-        return t("trading.orderEntry.toasts.systemError", params);
-      }
-      return apiMsg;
-    };
-
     setSubmitting(true);
     try {
       // 1. Xác thực mã PIN thông qua API backend
@@ -500,15 +500,25 @@ const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess,
       try {
         const res = await placeOrderOnBehalf(targetUser.id, symbol, qty, numericPrice, orderSide, orderType);
         if (res && res.data?.EC === 0) {
-          toast.success(res.data?.EM || `Đã đặt lệnh ${orderSide === "BUY" ? "Mua" : "Bán"} ${qty} ${symbol} thành công!`);
+          const displaySide = orderSide === "BUY" ? (lang === "vi" ? "MUA" : "BUY") : (lang === "vi" ? "BÁN" : "SELL");
+          const displayPrice = (numericPrice * 1000).toLocaleString(lang === "vi" ? "vi-VN" : "en-US");
+          const displayQty = qty.toLocaleString(lang === "vi" ? "vi-VN" : "en-US");
+
+          toast.success(
+            getLocalizedMsg(res.data?.EM || res.EM, "trading.orderEntry.toasts.orderSuccess", {
+              side: displaySide,
+              price: displayPrice,
+              qty: displayQty,
+            })
+          );
           if (onSuccess) onSuccess();
           if (onClose) onClose();
         } else {
-          toast.error(res?.data?.EM || res?.EM || "Đặt lệnh thất bại");
+          toast.error(getLocalizedMsg(res?.data?.EM || res?.EM, "trading.orderEntry.toasts.orderFailed"));
         }
       } catch (err) {
         console.error("Order behalf error:", err);
-        toast.error("Lỗi kết nối máy chủ");
+        toast.error(getLocalizedMsg(err?.response?.data?.EM, "trading.orderEntry.toasts.systemError"));
       } finally {
         setSubmitting(false);
       }
