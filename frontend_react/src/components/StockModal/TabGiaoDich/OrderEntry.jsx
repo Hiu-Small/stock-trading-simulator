@@ -499,13 +499,13 @@ const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess,
       setSubmitting(true);
       try {
         const res = await placeOrderOnBehalf(targetUser.id, symbol, qty, numericPrice, orderSide, orderType);
-        if (res && res.data?.EC === 0) {
+        if (res && res.EC === 0) {
           const displaySide = orderSide === "BUY" ? (lang === "vi" ? "MUA" : "BUY") : (lang === "vi" ? "BÁN" : "SELL");
           const displayPrice = (numericPrice * 1000).toLocaleString(lang === "vi" ? "vi-VN" : "en-US");
           const displayQty = qty.toLocaleString(lang === "vi" ? "vi-VN" : "en-US");
 
           toast.success(
-            getLocalizedMsg(res.data?.EM || res.EM, "trading.orderEntry.toasts.orderSuccess", {
+            getLocalizedMsg(res.EM, "trading.orderEntry.toasts.orderSuccess", {
               side: displaySide,
               price: displayPrice,
               qty: displayQty,
@@ -514,7 +514,7 @@ const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess,
           if (onSuccess) onSuccess();
           if (onClose) onClose();
         } else {
-          toast.error(getLocalizedMsg(res?.data?.EM || res?.EM, "trading.orderEntry.toasts.orderFailed"));
+          toast.error(getLocalizedMsg(res?.EM, "trading.orderEntry.toasts.orderFailed"));
         }
       } catch (err) {
         console.error("Order behalf error:", err);
