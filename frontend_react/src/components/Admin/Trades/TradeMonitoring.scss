@@ -261,11 +261,9 @@
     .action-btns {
       display: flex;
       gap: 12px;
+
       .btn-action {
-        background: rgba(0, 0, 0, 0.04);
-        border: 1px solid rgba(0, 0, 0, 0.08);
         border-radius: 6px;
-        color: rgba(0, 0, 0, 0.55);
         cursor: pointer;
         padding: 6px 10px;
         font-size: 14px;
@@ -273,25 +271,40 @@
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
-        
-        &:hover {
-          color: #000;
-          background: rgba(0, 0, 0, 0.08);
-          border-color: rgba(0, 0, 0, 0.15);
-          &.cancel { 
-            color: $accent-red; 
-            background: rgba($accent-red, 0.12);
-            border-color: rgba($accent-red, 0.3);
+
+        &.cancel {
+          color: $accent-red;
+          background: rgba($accent-red, 0.12);
+          border: 1px solid rgba($accent-red, 0.3);
+
+          &:hover {
+            background: rgba($accent-red, 0.22);
+            border-color: rgba($accent-red, 0.5);
+            box-shadow: 0 0 8px rgba($accent-red, 0.25);
           }
-          &.match { 
-            color: $accent-green; 
-            background: rgba($accent-green, 0.12);
-            border-color: rgba($accent-green, 0.3);
+        }
+
+        &.match {
+          color: $accent-green;
+          background: rgba($accent-green, 0.12);
+          border: 1px solid rgba($accent-green, 0.3);
+
+          &:hover {
+            background: rgba($accent-green, 0.22);
+            border-color: rgba($accent-green, 0.5);
+            box-shadow: 0 0 8px rgba($accent-green, 0.25);
           }
-          &.modify { 
-            color: $accent-blue; 
-            background: rgba($accent-blue, 0.12);
-            border-color: rgba($accent-blue, 0.3);
+        }
+
+        &.modify {
+          color: $accent-blue;
+          background: rgba($accent-blue, 0.12);
+          border: 1px solid rgba($accent-blue, 0.3);
+
+          &:hover {
+            background: rgba($accent-blue, 0.22);
+            border-color: rgba($accent-blue, 0.5);
+            box-shadow: 0 0 8px rgba($accent-blue, 0.25);
           }
         }
       }
@@ -369,7 +382,7 @@
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--bg-overlay);
     backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
@@ -380,10 +393,10 @@
     .cancel-confirm-modal-content,
     .modify-confirm-modal-content {
       width: 420px;
-      background: #111827;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--dropdown-bg);
+      border: 1px solid var(--border-primary);
       border-radius: 16px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 20px 50px var(--shadow-lg);
       padding: 24px;
       display: flex;
       flex-direction: column;
@@ -415,7 +428,7 @@
           h2 {
             font-size: 18px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-primary);
             margin: 0;
           }
         }
@@ -423,12 +436,12 @@
         .btn-close-modal {
           background: transparent;
           border: none;
-          color: rgba(255, 255, 255, 0.4);
+          color: var(--text-muted);
           cursor: pointer;
           font-size: 16px;
           transition: color 0.15s;
 
-          &:hover { color: #fff; }
+          &:hover { color: var(--text-primary); }
         }
       }
 
@@ -439,15 +452,15 @@
 
         p {
           font-size: 13.5px;
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--text-secondary);
           margin: 0;
           line-height: 1.5;
           text-align: left;
         }
 
         .order-summary-box {
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          background: var(--bg-hover);
+          border: 1px solid var(--border-primary);
           border-radius: 10px;
           padding: 14px;
           display: flex;
@@ -460,9 +473,9 @@
             align-items: center;
             font-size: 13px;
 
-            span { color: rgba(255, 255, 255, 0.4); }
+            span { color: var(--text-muted); }
             strong {
-              color: #fff;
+              color: var(--text-primary);
               font-weight: 600;
 
               &.val-symbol {
@@ -478,21 +491,21 @@
           background: rgba(0, 0, 0, 0.2);
           border-radius: 8px;
           padding: 4px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid var(--border-primary);
 
           .toggle-btn {
             flex: 1;
             padding: 8px;
             border: none;
             background: transparent;
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
             font-size: 13.5px;
             font-weight: 600;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s;
 
-            &:hover { color: #fff; }
+            &:hover { color: var(--text-primary); }
 
             &.active {
               background: rgba(59, 130, 246, 0.15);
@@ -510,7 +523,7 @@
           label {
             font-size: 12px;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.4);
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
           }
@@ -518,8 +531,8 @@
           .number-input {
             display: flex;
             align-items: center;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-primary);
             border-radius: 8px;
             overflow: hidden;
 
@@ -528,12 +541,12 @@
               height: 44px;
               background: transparent;
               border: none;
-              color: #fff;
+              color: var(--text-primary);
               font-size: 18px;
               cursor: pointer;
               transition: background 0.15s;
 
-              &:hover { background: rgba(255, 255, 255, 0.05); }
+              &:hover { background: var(--bg-hover); }
             }
 
             input {
@@ -541,7 +554,7 @@
               height: 44px;
               background: transparent;
               border: none;
-              color: #fff;
+              color: var(--text-primary);
               text-align: center;
               font-size: 16px;
               font-weight: 600;
@@ -558,7 +571,7 @@
 
           .price-hint, .qty-hint {
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.4);
+            color: var(--text-muted);
           }
         }
       }
@@ -579,13 +592,13 @@
         }
 
         .btn-modal-back {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          color: rgba(255, 255, 255, 0.7);
+          background: var(--border-primary);
+          border: 1px solid var(--border-primary);
+          color: var(--text-secondary);
 
           &:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
+            background: var(--border-primary);
+            color: var(--text-primary);
           }
         }
 
@@ -604,6 +617,7 @@
           &.btn-modify-submit {
             background: #3b82f6;
             border-color: #3b82f6;
+            color: #fff;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 
             &:hover:not(:disabled) {

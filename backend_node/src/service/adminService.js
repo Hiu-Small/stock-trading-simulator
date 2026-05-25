@@ -20,7 +20,7 @@ const getAllUsers = async () => {
                 { 
                     model: db.Wallet, 
                     as: 'wallet',
-                    attributes: ['balance']
+                    attributes: ['balance', 'frozen_balance']
                 },
                 {
                     model: db.Holding,
@@ -101,6 +101,7 @@ const getAllUsers = async () => {
             }
 
             const virtualBalance = user.wallet ? parseFloat(user.wallet.balance) : 0;
+            const frozenBalance = user.wallet ? parseFloat(user.wallet.frozen_balance || 0) : 0;
             const portfolioValue = totalHoldingsValue;
 
             return {
@@ -110,6 +111,7 @@ const getAllUsers = async () => {
                 phone: user.phone,
                 role: user.role,
                 virtual_balance: virtualBalance,
+                frozen_balance: frozenBalance,
                 portfolio_value: portfolioValue,
                 status: user.status,
                 account_number: user.account_number,

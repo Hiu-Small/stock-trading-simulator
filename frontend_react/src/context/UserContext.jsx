@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { getUserProfile, markAllNotificationsRead, markNotificationRead } from '../services/userService';
+import { toast } from 'react-toastify';
 
 const UserContext = createContext({ name: '', auth: false });
 
@@ -66,7 +67,26 @@ const UserProvider = ({ children }) => {
                         setBalance(totalBalance - frozenBalance);
                     }
                     if (res.DT.histories) {
-                        setNotifications(res.DT.histories);
+                        setNotifications(prevNotifications => {
+                            // Only trigger toast if the previous state has been populated (i.e. not the initial page load/mount)
+                            if (prevNotifications && prevNotifications.length > 0) {
+                                const prevIds = new Set(prevNotifications.map(n => n.id));
+                                res.DT.histories.forEach(notif => {
+                                    if (!notif.is_read && !prevIds.has(notif.id)) {
+                                        toast.info(notif.new_value || "Bạn có thông báo mới", {
+                                            position: "top-right",
+                                            autoClose: 6000,
+                                            hideProgressBar: false,
+                                            closeOnClick: true,
+                                            pauseOnHover: true,
+                                            draggable: true,
+                                            theme: "colored"
+                                        });
+                                    }
+                                });
+                            }
+                            return res.DT.histories;
+                        });
                     }
                 }
             } catch (error) {

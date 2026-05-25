@@ -174,7 +174,7 @@ const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess,
         ...targetUser,
         wallet: {
           balance: targetUser.virtual_balance,
-          frozen_balance: 0,
+          frozen_balance: targetUser.frozen_balance || 0,
           pending_cash: 0
         }
       };
