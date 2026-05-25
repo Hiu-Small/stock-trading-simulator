@@ -269,7 +269,7 @@ export const translations = {
         toasts: {
           enterPin: "Vui lòng nhập đầy đủ 6 số PIN!",
           incorrectPin: "Mã PIN giao dịch không chính xác!",
-          orderSuccess: "Đặt lệnh thành công!",
+          orderSuccess: "Đặt lệnh {side} thành công! Lệnh đang chờ khớp với giá {price} × {qty} CP.",
           orderFailed: "Đặt lệnh thất bại!",
           systemError: "Lỗi hệ thống khi đặt lệnh!",
           invalidQty: "Vui lòng nhập khối lượng hợp lệ!",
@@ -973,7 +973,7 @@ export const translations = {
         toasts: {
           enterPin: "Please enter the full 6-digit PIN!",
           incorrectPin: "Incorrect transaction PIN!",
-          orderSuccess: "Order placed successfully!",
+          orderSuccess: "{side} order placed successfully! Order is pending match at {price} × {qty} shares.",
           orderFailed: "Order placement failed!",
           systemError: "System error placing order!",
           invalidQty: "Please enter a valid volume!",

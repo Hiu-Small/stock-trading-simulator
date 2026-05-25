@@ -356,12 +356,30 @@ const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess,
       return;
     }
 
+    const getLocalizedMsg = (apiMsg, defaultKey, params = {}) => {
+      if (!apiMsg) return t(defaultKey, params);
+      const trimmed = apiMsg.trim();
+      if (trimmed.includes("không chính xác") || trimmed.includes("Mã PIN")) {
+        return t("trading.orderEntry.toasts.incorrectPin", params);
+      }
+      if (trimmed.includes("thành công")) {
+        return t("trading.orderEntry.toasts.orderSuccess", params);
+      }
+      if (trimmed.includes("thất bại") || trimmed.includes("Không thể đặt lệnh") || trimmed.includes("đang đóng cửa")) {
+        return t("trading.orderEntry.toasts.orderFailed", params);
+      }
+      if (trimmed.includes("Lỗi hệ thống")) {
+        return t("trading.orderEntry.toasts.systemError", params);
+      }
+      return apiMsg;
+    };
+
     setSubmitting(true);
     try {
       // 1. Xác thực mã PIN thông qua API backend
       const pinRes = await verifyPin(pinCode);
       if (!pinRes || pinRes.EC !== 0) {
-        toast.error(pinRes?.EM || t("trading.orderEntry.toasts.incorrectPin"));
+        toast.error(getLocalizedMsg(pinRes?.EM, "trading.orderEntry.toasts.incorrectPin"));
         // Làm trống mã PIN để nhập lại
         setPinDigits(["", "", "", "", "", ""]);
         // Focus lại ô đầu tiên
@@ -376,7 +394,17 @@ const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess,
       const res = await placeOrder(symbol, qty, numericPrice, orderSide, orderType);
       
       if (res && res.EC === 0) {
-        toast.success(res.EM || t("trading.orderEntry.toasts.orderSuccess"));
+        const displaySide = orderSide === "BUY" ? (lang === "vi" ? "MUA" : "BUY") : (lang === "vi" ? "BÁN" : "SELL");
+        const displayPrice = (numericPrice * 1000).toLocaleString(lang === "vi" ? "vi-VN" : "en-US");
+        const displayQty = qty.toLocaleString(lang === "vi" ? "vi-VN" : "en-US");
+
+        toast.success(
+          getLocalizedMsg(res.EM, "trading.orderEntry.toasts.orderSuccess", {
+            side: displaySide,
+            price: displayPrice,
+            qty: displayQty,
+          })
+        );
         // Làm mới thông tin ví, số dư ở cả ô OrderEntry và Header (Vốn ảo)
         fetchUserData();
         refreshBalance();
@@ -386,11 +414,11 @@ const OrderEntry = ({ symbol, data, defaultSide, targetUser, isAdmin, onSuccess,
         setPendingOrder(null);
         setPinDigits(["", "", "", "", "", ""]);
       } else {
-        toast.error(res?.EM || t("trading.orderEntry.toasts.orderFailed"));
+        toast.error(getLocalizedMsg(res?.EM, "trading.orderEntry.toasts.orderFailed"));
       }
     } catch (err) {
       console.error("[OrderEntry] Lỗi đặt lệnh hoặc mã PIN:", err);
-      toast.error(err?.response?.data?.EM || t("trading.orderEntry.toasts.systemError"));
+      toast.error(getLocalizedMsg(err?.response?.data?.EM, "trading.orderEntry.toasts.systemError"));
     } finally {
       setSubmitting(false);
     }

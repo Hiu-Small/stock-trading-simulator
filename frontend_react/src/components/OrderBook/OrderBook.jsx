@@ -10,6 +10,33 @@ const OrderBook = () => {
     const { t, lang } = useTranslation();
     const { refreshBalance } = useContext(UserContext);
 
+    const getLocalizedMsg = (apiMsg, defaultKey) => {
+        if (!apiMsg) return t(defaultKey);
+        const trimmed = apiMsg.trim();
+        if (trimmed.includes("không chính xác") || trimmed.includes("Mã PIN")) {
+            return t('orderBook.toasts.incorrectPin');
+        }
+        if (trimmed.includes("Hủy lệnh thành công")) {
+            return t('orderBook.toasts.cancelSuccess');
+        }
+        if (trimmed.includes("Sửa lệnh thành công")) {
+            return t('orderBook.toasts.modifySuccess');
+        }
+        if (trimmed.includes("Không thể sửa lệnh") || trimmed.includes("thất bại")) {
+            return t('orderBook.toasts.modifyFailed');
+        }
+        if (trimmed.includes("Không thể hủy lệnh")) {
+            return t('orderBook.toasts.cancelFailed');
+        }
+        if (trimmed.includes("Lỗi hệ thống khi sửa")) {
+            return t('orderBook.toasts.modifyError');
+        }
+        if (trimmed.includes("Lỗi hệ thống khi hủy")) {
+            return t('orderBook.toasts.cancelError');
+        }
+        return apiMsg;
+    };
+
     const STATUS_LABELS = {
         PENDING: { label: t('orderBook.status.pending'), color: '#f59e0b' },
         PARTIAL_MATCHED: { label: t('orderBook.status.partial'), color: '#60a5fa' },
@@ -103,14 +130,14 @@ const OrderBook = () => {
         try {
             const res = await cancelOrder(orderId);
             if (res && res.EC === 0) {
-                toast.success(t('orderBook.toasts.cancelSuccess'));
+                toast.success(getLocalizedMsg(res.EM, 'orderBook.toasts.cancelSuccess'));
                 fetchOrders();
                 refreshBalance();
             } else {
-                toast.error(res?.EM || t('orderBook.toasts.cancelFailed'));
+                toast.error(getLocalizedMsg(res?.EM, 'orderBook.toasts.cancelFailed'));
             }
         } catch (e) {
-            toast.error(t('orderBook.toasts.cancelError'));
+            toast.error(getLocalizedMsg(e?.response?.data?.EM, 'orderBook.toasts.cancelError'));
         } finally {
             setCancellingId(null);
             setSelectedOrderId(null);
@@ -241,7 +268,7 @@ const OrderBook = () => {
             // 1. Xác thực mã PIN trước
             const verifyRes = await verifyPin(pin);
             if (!verifyRes || verifyRes.EC !== 0) {
-                toast.error(verifyRes?.EM || t('orderBook.toasts.incorrectPin'));
+                toast.error(getLocalizedMsg(verifyRes?.EM, 'orderBook.toasts.incorrectPin'));
                 setModifyingId(null);
                 return;
             }
@@ -256,16 +283,16 @@ const OrderBook = () => {
 
             const modifyRes = await modifyOrderAPI(selectedOrder.id, dataToSubmit.newPrice, dataToSubmit.newQuantity);
             if (modifyRes && modifyRes.EC === 0) {
-                toast.success(t('orderBook.toasts.modifySuccess'));
+                toast.success(getLocalizedMsg(modifyRes.EM, 'orderBook.toasts.modifySuccess'));
                 setShowModifyModal(false);
                 fetchOrders();
                 refreshBalance();
             } else {
-                toast.error(modifyRes?.EM || t('orderBook.toasts.modifyFailed'));
+                toast.error(getLocalizedMsg(modifyRes?.EM, 'orderBook.toasts.modifyFailed'));
             }
         } catch (error) {
             console.error("Error modifying order:", error);
-            toast.error(t('orderBook.toasts.modifyError'));
+            toast.error(getLocalizedMsg(error?.response?.data?.EM, 'orderBook.toasts.modifyError'));
         } finally {
             setModifyingId(null);
             setPinDigits(["", "", "", "", "", ""]);

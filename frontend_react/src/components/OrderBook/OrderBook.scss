@@ -711,7 +711,7 @@
             transition: all 0.2s;
 
             &:hover {
-              color: #ccc;
+              color: var(--text-primary);
             }
 
             &.active {
