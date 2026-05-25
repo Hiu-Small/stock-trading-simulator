@@ -43,8 +43,17 @@ const IndexCard = (props) => {
 
   if (!props.data) return null;
 
-  const isUp = props.data.change > 0;
-  const isDown = props.data.change < 0;
+  const hasNoStats = 
+    (props.data.advances || 0) === 0 && 
+    (props.data.declines || 0) === 0 && 
+    (props.data.ceilings || 0) === 0 && 
+    (props.data.floors || 0) === 0;
+
+  const displayChange = hasNoStats ? 0 : (props.data.change || 0);
+  const displayChangePercent = hasNoStats ? 0 : (props.data.changePercent || 0);
+
+  const isUp = !hasNoStats && displayChange > 0;
+  const isDown = !hasNoStats && displayChange < 0;
   const colorClass = isUp ? "price--up" : isDown ? "price--down" : "price--ref";
 
   const formatValue = (val) => {
@@ -59,6 +68,8 @@ const IndexCard = (props) => {
     return Number(vol).toLocaleString("vi-VN");
   };
 
+  const displayVolume = hasNoStats ? 0 : (props.data.volume || 0);
+
   return (
     <div className="index-card">
       {/* PHẦN 1: BIỂU ĐỒ (CHIẾM PHẦN LỚN) */}
@@ -66,7 +77,7 @@ const IndexCard = (props) => {
         <IndexMiniChart 
           id={props.data.id}
           data={intradayData} 
-          refPrice={props.data.refPrice || props.data.value - props.data.change} 
+          refPrice={props.data.refPrice || props.data.value - displayChange} 
           session={props.session}
         />
       </div>
@@ -83,7 +94,7 @@ const IndexCard = (props) => {
               {isUp ? "↑" : isDown ? "↓" : ""} {formatValue(props.data.value)}
             </span>
             <span className="change-info">
-              ({props.data.change > 0 ? "+" : ""}{props.data.change.toFixed(2)} {props.data.changePercent.toFixed(2)}%)
+              ({displayChange > 0 ? "+" : ""}{displayChange.toFixed(2)} {displayChangePercent.toFixed(2)}%)
             </span>
           </div>
         </div>
@@ -104,7 +115,7 @@ const IndexCard = (props) => {
             </span>
           </div>
           <div className="vol-info">
-            {t("marketSummary.volumeFormat", { volume: formatVolume(props.data.volume) })}
+            {t("marketSummary.volumeFormat", { volume: formatVolume(displayVolume) })}
           </div>
         </div>
       </div>
