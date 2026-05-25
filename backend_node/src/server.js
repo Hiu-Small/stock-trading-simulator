@@ -26,6 +26,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //init web routes
+app.get("/ping", (req, res) => {
+  res.status(200).send("ok");
+});
+
+app.get("/api/ping", (req, res) => {
+  res.status(200).send("ok");
+});
+
 app.get("/", (req, res) => {
   res.send("Server Node.js đã sẵn sàng!");
 });
