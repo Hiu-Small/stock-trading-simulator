@@ -69,6 +69,7 @@ const IndexCard = (props) => {
   };
 
   const displayVolume = hasNoStats ? 0 : (props.data.volume || 0);
+  const displayRefPrice = hasNoStats ? props.data.value : (props.data.refPrice || props.data.value - displayChange);
 
   return (
     <div className="index-card">
@@ -77,7 +78,7 @@ const IndexCard = (props) => {
         <IndexMiniChart 
           id={props.data.id}
           data={intradayData} 
-          refPrice={props.data.refPrice || props.data.value - displayChange} 
+          refPrice={displayRefPrice} 
           session={props.session}
         />
       </div>
