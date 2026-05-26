@@ -44,10 +44,8 @@ const IndexCard = (props) => {
   if (!props.data) return null;
 
   const hasNoStats = 
-    (props.data.advances || 0) === 0 && 
-    (props.data.declines || 0) === 0 && 
-    (props.data.ceilings || 0) === 0 && 
-    (props.data.floors || 0) === 0;
+    props.data.advances === undefined || props.data.advances === null ||
+    props.data.declines === undefined || props.data.declines === null;
 
   const displayChange = hasNoStats ? 0 : (props.data.change || 0);
   const displayChangePercent = hasNoStats ? 0 : (props.data.changePercent || 0);
