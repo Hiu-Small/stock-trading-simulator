@@ -73,7 +73,7 @@
     .header-actions {
       display: flex; gap: 12px; align-items: center;
       button { border: none; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; padding: 8px 16px; transition: all 0.2s;
-        &.btn-analysis { background-color: var(--bg-hover-strong); color: var(--text-primary); &:hover { background-color: var(--bg-elevated); } }
+        &.btn-analysis { background-color: var(--bg-hover-strong); color: var(--text-primary); border: 1px solid var(--border-primary); &:hover { background-color: var(--bg-elevated); } }
         &.btn-order { background-color: #00b050; color: #ffffff; &:hover { background-color: #00c805; } }
         &.btn-close { background-color: transparent; color: var(--text-secondary); padding: 8px; font-size: 20px; display: flex; align-items: center; justify-content: center; &:hover { color: var(--text-primary); background-color: var(--bg-hover); } }
       }

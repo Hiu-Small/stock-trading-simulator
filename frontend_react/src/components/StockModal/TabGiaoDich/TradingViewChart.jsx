@@ -300,6 +300,11 @@ const TradingViewChartInner = (props) => {
             timeVal = Math.floor(parsed / 1000);
           } else continue;
 
+          // Chuẩn hóa về 00:00:00 UTC của ngày đó để lightweight-charts hiển thị chính xác daily bars và khớp với real-time update
+          const dObj = new Date(timeVal * 1000);
+          const utcMidnight = Date.UTC(dObj.getUTCFullYear(), dObj.getUTCMonth(), dObj.getUTCDate());
+          timeVal = Math.floor(utcMidnight / 1000);
+
           const scalePrice = (p) => {
             if (!p || isNaN(Number(p))) return null;
             const n = Number(p);
