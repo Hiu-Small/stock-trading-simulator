@@ -9,7 +9,7 @@ import { SearchContext } from "../../context/SearchContext";
 import { useTranslation } from "../../context/LanguageContext";
 import useAllStocks from "../../hooks/useAllStocks";
 
-const translateNotificationText = (text, currentLang, t) => {
+export const translateNotificationText = (text, currentLang, t) => {
   if (!text || !t) return text;
 
   // 1. Đặt thành công lệnh MUA/BÁN

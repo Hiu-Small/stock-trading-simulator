@@ -1,10 +1,13 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { getUserProfile, markAllNotificationsRead, markNotificationRead } from '../services/userService';
 import { toast } from 'react-toastify';
+import { useTranslation } from './LanguageContext';
+import { translateNotificationText } from '../components/Layout/Nav';
 
 const UserContext = createContext({ name: '', auth: false });
 
 const UserProvider = ({ children }) => {
+    const { lang, t } = useTranslation();
     // Default user object
     const defaultUser = {
         isLoading: true,
@@ -73,7 +76,7 @@ const UserProvider = ({ children }) => {
                                 const prevIds = new Set(prevNotifications.map(n => n.id));
                                 res.DT.histories.forEach(notif => {
                                     if (!notif.is_read && !prevIds.has(notif.id)) {
-                                        toast.info(notif.new_value || "Bạn có thông báo mới", {
+                                        toast.info(translateNotificationText(notif.new_value, lang, t) || "Bạn có thông báo mới", {
                                             position: "top-right",
                                             autoClose: 6000,
                                             hideProgressBar: false,

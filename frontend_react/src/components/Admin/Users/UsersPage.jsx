@@ -211,34 +211,42 @@ const UsersPage = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const [expandedUser, setExpandedUser] = useState(null);
+  const [expandedUsers, setExpandedUsers] = useState({});
 
   const toggleExpand = (userId) => {
-    if (expandedUser === userId) {
-      setExpandedUser(null);
-    } else {
-      setExpandedUser(userId);
-    }
-  };
+    const isExpanding = !expandedUsers[userId];
+    setExpandedUsers(prev => ({
+      ...prev,
+      [userId]: isExpanding
+    }));
 
-  useEffect(() => {
-    if (location.state && location.state.expandUserId) {
-      setExpandedUser(location.state.expandUserId);
-      // clear navigation state to prevent re-expanding on back button or reload
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
-
-  useEffect(() => {
-    if (expandedUser && !loading) {
+    if (isExpanding) {
       setTimeout(() => {
-        const element = document.getElementById(`user-row-${expandedUser}`);
+        const element = document.getElementById(`user-row-${userId}`);
         if (element) {
           element.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 150);
     }
-  }, [expandedUser, loading]);
+  };
+
+  useEffect(() => {
+    if (location.state && location.state.expandUserId && !loading) {
+      const uId = location.state.expandUserId;
+      setExpandedUsers(prev => ({
+        ...prev,
+        [uId]: true
+      }));
+      setTimeout(() => {
+        const element = document.getElementById(`user-row-${uId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 150);
+      // clear navigation state to prevent re-expanding on back button or reload
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, loading]);
 
   return (
     <div className="admin-users-page">
@@ -353,11 +361,11 @@ const UsersPage = () => {
                 <React.Fragment key={index}>
                   <tr 
                     id={`user-row-${user.id}`}
-                    className={`user-row ${expandedUser === user.id ? 'active' : ''}`}
+                    className={`user-row ${expandedUsers[user.id] ? 'active' : ''}`}
                     onClick={() => toggleExpand(user.id)}
                   >
                     <td className="expand-icon">
-                      <i className={`fa-solid fa-chevron-${expandedUser === user.id ? 'down' : 'right'}`}></i>
+                      <i className={`fa-solid fa-chevron-${expandedUsers[user.id] ? 'down' : 'right'}`}></i>
                     </td>
                     <td className="user-id">#{user.account_number || user.id}</td>
                     <td className="user-name">{user.profile?.full_name || 'N/A'}</td>
@@ -381,7 +389,7 @@ const UsersPage = () => {
                       </button>
                     </td>
                   </tr>
-                  {expandedUser === user.id && (
+                  {expandedUsers[user.id] && (
                     <tr className="holdings-detail-row">
                       <td colSpan="8">
                         <div className="holdings-expand-container">

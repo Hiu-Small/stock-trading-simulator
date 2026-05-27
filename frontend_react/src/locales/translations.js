@@ -36,6 +36,7 @@ export const translations = {
       switchLangEn: "Switch to English",
       switchedVi: "Đã chuyển sang Tiếng Việt!",
       switchedEn: "Switched language to English!",
+      tickerWarning: "⚠️ LƯU Ý: Đây là hệ thống GIẢ LẬP giao dịch chứng khoán dành cho nhà đầu tư mới làm quen với thị trường. 🔹 Mọi giao dịch đều sử dụng TIỀN ẢO do hệ thống cấp phát, hoàn toàn miễn phí và không có rủi ro tài chính. 🔹 Nền tảng chỉ hỗ trợ mô phỏng giao dịch CỔ PHIẾU CƠ SỞ. 🔹 Trải nghiệm đặt lệnh, khớp lệnh được thiết kế giống 100% các công ty chứng khoán thực tế (như SSI, VPS, TCBS...). 🔹 Thời gian thị trường mở cửa: Sáng 09:00 - 11:30 | Chiều 13:00 - 15:00 (Từ Thứ 2 đến Thứ 6). 🔹 Hệ thống hiện đang trong giai đoạn phát triển (Beta). Nếu có bất kỳ sự cố hay lỗi nào xảy ra trong quá trình trải nghiệm, rất mong bạn thông cảm và vui lòng liên hệ với Admin để được hỗ trợ khắc phục kịp thời. 🔹 Chúc bạn thực hành đầu tư hiệu quả và tích lũy được nhiều kiến thức thực chiến!",
       notifTemplates: {
         successPlace: "Đặt thành công lệnh {side} {qty} CP {symbol} với giá {price}",
         expiredCancel: "Lệnh hết hạn cuối ngày: Đã tự động hủy lệnh {side} {qty} CP {symbol}",
@@ -740,6 +741,7 @@ export const translations = {
       switchLangEn: "Switch to English",
       switchedVi: "Đã chuyển sang Tiếng Việt!",
       switchedEn: "Switched language to English!",
+      tickerWarning: "⚠️ NOTE: This is a stock trading SIMULATION system for beginner investors to get familiar with the market. 🔹 All transactions use VIRTUAL MONEY provided by the system, completely free and with no financial risk. 🔹 The platform only supports simulated trading of UNDERLYING STOCKS. 🔹 The experience of placing and matching orders is designed to be 100% identical to actual securities firms (such as SSI, VPS, TCBS...). 🔹 Market trading hours: Morning 09:00 - 11:30 | Afternoon 13:00 - 15:00 (Monday to Friday). 🔹 The system is currently in the development phase (Beta). If any incidents or bugs occur during your experience, we ask for your understanding and please contact the Admin for timely support and troubleshooting. 🔹 Wish you effective investment practice and accumulate plenty of real-world combat knowledge!",
       notifTemplates: {
         successPlace: "Successfully placed {side} order of {qty} shares {symbol} at price {price}",
         expiredCancel: "End of day expired order: Automatically cancelled {side} order of {qty} shares {symbol}",

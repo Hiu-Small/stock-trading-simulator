@@ -401,38 +401,7 @@ const getProfile = async (userId) => {
         });
         if (!user) return { EM: 'Người dùng không tồn tại', EC: 1, DT: '' };
 
-        // Backfill welcome grant notification if the user is ACTIVE but has no welcome history record
-        if (user.status === 'ACTIVE') {
-            const hasWelcomeNotif = await db.UserHistory.findOne({
-                where: {
-                    user_id: userId,
-                    change_type: 'SYSTEM_ADJUST_BALANCE',
-                    new_value: { [db.Sequelize.Op.like]: '%Chào mừng bạn tham gia iBoard%' }
-                }
-            });
-            
-            if (!hasWelcomeNotif) {
-                const balance = user.wallet ? user.wallet.balance : 200000000;
-                const formattedBalance = parseFloat(balance).toLocaleString('vi-VN');
-                
-                await db.UserHistory.create({
-                    user_id: userId,
-                    field_name: 'balance',
-                    old_value: '0',
-                    new_value: `Tài khoản của bạn vừa được Admin cộng thêm ${formattedBalance} ₫ vốn ảo. Lý do: Chào mừng bạn tham gia iBoard! Vì đây là trang web giả lập giao dịch chứng khoán dành cho người mới đầu tư, hệ thống đã cấp sẵn cho bạn ${formattedBalance} ₫ vốn ảo để bắt đầu luyện tập.`,
-                    change_type: 'SYSTEM_ADJUST_BALANCE',
-                    is_read: false
-                });
-                
-                // Reload histories for the user
-                const updatedHistories = await db.UserHistory.findAll({
-                    where: { user_id: userId },
-                    order: [['createdAt', 'DESC']],
-                    limit: 30
-                });
-                user.setDataValue('histories', updatedHistories);
-            }
-        }
+
 
         return { EM: 'Lấy thông tin thành công', EC: 0, DT: user };
     } catch (e) {

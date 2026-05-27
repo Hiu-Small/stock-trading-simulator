@@ -212,142 +212,144 @@ const StockTable = (props) => {
         </div>
       )}
 
-      <table className={`stock-table ${loading ? "stock-table--loading" : ""}`}>
-        <thead className="stock-table__head">
-          <tr>
-            {/* Cột cơ bản */}
-            <th
-              className="th-ticker"
-              rowSpan={2}
-              onClick={() => handleSortSymbol()}
-              style={{ cursor: "pointer" }}
-            >
-              {t("board.ticker")}{" "}
-              <span className="sort-icon">
-                {sortOrder === "asc" ? "↑" : "↓"}
-              </span>
-            </th>
-            {visibleColumns.basic && (
-              <>
-                <th className="th-price th-ref" rowSpan={2}>
-                  {t("board.ref")}
-                </th>
-                <th className="th-price th-ceiling" rowSpan={2}>
-                  {t("board.ceil")}
-                </th>
-                <th className="th-price th-floor" rowSpan={2}>
-                  {t("board.floor")}
-                </th>
-              </>
-            )}
-
-            {/* BID group */}
-            <th className="th-group th-bid" colSpan={3}>
-              {t("board.bid")}
-            </th>
-
-            {/* MATCH group */}
-            <th className="th-group th-match" colSpan={3}>
-              {t("board.match")}
-            </th>
-
-            {/* ASK group */}
-            <th className="th-group th-ask" colSpan={3}>
-              {t("board.ask")}
-            </th>
-
-            {/* Tổng KL */}
-            {visibleColumns.totalVol && (
-              <th className="th-total-vol" rowSpan={2}>
-                {t("board.totalVol")}
+      <div className="stock-table-scroll-area">
+        <table className={`stock-table ${loading ? "stock-table--loading" : ""}`}>
+          <thead className="stock-table__head">
+            <tr>
+              {/* Cột cơ bản */}
+              <th
+                className="th-ticker"
+                rowSpan={2}
+                onClick={() => handleSortSymbol()}
+                style={{ cursor: "pointer" }}
+              >
+                {t("board.ticker")}{" "}
+                <span className="sort-icon">
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </span>
               </th>
-            )}
+              {visibleColumns.basic && (
+                <>
+                  <th className="th-price th-ref" rowSpan={2}>
+                    {t("board.ref")}
+                  </th>
+                  <th className="th-price th-ceiling" rowSpan={2}>
+                    {t("board.ceil")}
+                  </th>
+                  <th className="th-price th-floor" rowSpan={2}>
+                    {t("board.floor")}
+                  </th>
+                </>
+              )}
 
-            {/* CAO / THẤP*/}
-            {visibleColumns.highLow && (
-              <>
-                <th className="th-price" rowSpan={2}>
-                  {t("board.high")}
-                </th>
-                <th className="th-price" rowSpan={2}>
-                  {t("board.low")}
-                </th>
-              </>
-            )}
-
-            {/* FOREIGN */}
-            {visibleColumns.foreign && (
-              <th className="th-group th-foreign" colSpan={3}>
-                {t("board.foreign")}
+              {/* BID group */}
+              <th className="th-group th-bid" colSpan={3}>
+                {t("board.bid")}
               </th>
-            )}
-          </tr>
 
-          {/* Hàng thứ 2 của header */}
-          <tr>
-            {/* BID sub-headers */}
-            <th className="th-sub th-bid">{t("lang") === "vi" ? "Giá 3 / KL 3" : "Price 3 / Vol 3"}</th>
-            <th className="th-sub th-bid">{t("lang") === "vi" ? "Giá 2 / KL 2" : "Price 2 / Vol 2"}</th>
-            <th className="th-sub th-bid">{t("lang") === "vi" ? "Giá 1 / KL 1" : "Price 1 / Vol 1"}</th>
+              {/* MATCH group */}
+              <th className="th-group th-match" colSpan={3}>
+                {t("board.match")}
+              </th>
 
-            {/* MATCH sub-headers */}
-            <th className="th-sub th-match">{t("lang") === "vi" ? "Giá / KL" : "Price / Vol"}</th>
-            <th className="th-sub th-match">+/-</th>
-            <th className="th-sub th-match">+/- (%)</th>
+              {/* ASK group */}
+              <th className="th-group th-ask" colSpan={3}>
+                {t("board.ask")}
+              </th>
 
-            {/* ASK sub-headers */}
-            <th className="th-sub th-ask">{t("lang") === "vi" ? "Giá 1 / KL 1" : "Price 1 / Vol 1"}</th>
-            <th className="th-sub th-ask">{t("lang") === "vi" ? "Giá 2 / KL 2" : "Price 2 / Vol 2"}</th>
-            <th className="th-sub th-ask">{t("lang") === "vi" ? "Giá 3 / KL 3" : "Price 3 / Vol 3"}</th>
+              {/* Tổng KL */}
+              {visibleColumns.totalVol && (
+                <th className="th-total-vol" rowSpan={2}>
+                  {t("board.totalVol")}
+                </th>
+              )}
 
-            {/* FOREIGN sub-headers */}
-            {visibleColumns.foreign && (
-              <>
-                <th className="th-sub th-foreign">{t("board.buy")}</th>
-                <th className="th-sub th-foreign">{t("board.sell")}</th>
-                <th className="th-sub th-foreign">{t("board.room")}</th>
-              </>
-            )}
-          </tr>
-        </thead>
+              {/* CAO / THẤP*/}
+              {visibleColumns.highLow && (
+                <>
+                  <th className="th-price" rowSpan={2}>
+                    {t("board.high")}
+                  </th>
+                  <th className="th-price" rowSpan={2}>
+                    {t("board.low")}
+                  </th>
+                </>
+              )}
 
-        <tbody className="stock-table__body">
-          {displayStocks
-            .filter((stock) => {
-              if (props.showActiveOnly) {
-                return (stock.totalVolume || 0) > 0;
-              }
-              return true;
-            })
-            .map((stock, index) => (
-              <StockRow
-                key={stock.symbol || index}
-                stock={stock}
-                onRowClick={props.onRowClick}
-                onContextMenu={props.onContextMenu}
-                isSelected={props.selectedTicker === stock.symbol}
-                visibleColumns={visibleColumns}
-              />
-            ))}
-        </tbody>
-      </table>
+              {/* FOREIGN */}
+              {visibleColumns.foreign && (
+                <th className="th-group th-foreign" colSpan={3}>
+                  {t("board.foreign")}
+                </th>
+              )}
+            </tr>
 
-      {/* Footer tổng số mã */}
-      <div className="stock-table__footer">
-        {props.showActiveOnly ? (
-          <span>
-            {t("board.showingStocks", { 
-              activeCount: displayStocks.filter((s) => (s.totalVolume || 0) > 0).length, 
-              totalCount: displayStocks.length 
-            })}
-          </span>
-        ) : (
-          <span>
-            {t("board.showingStocksAll", { 
-              totalCount: displayStocks.length 
-            })}
-          </span>
-        )}
+            {/* Hàng thứ 2 của header */}
+            <tr>
+              {/* BID sub-headers */}
+              <th className="th-sub th-bid">{t("lang") === "vi" ? "Giá 3 / KL 3" : "Price 3 / Vol 3"}</th>
+              <th className="th-sub th-bid">{t("lang") === "vi" ? "Giá 2 / KL 2" : "Price 2 / Vol 2"}</th>
+              <th className="th-sub th-bid">{t("lang") === "vi" ? "Giá 1 / KL 1" : "Price 1 / Vol 1"}</th>
+
+              {/* MATCH sub-headers */}
+              <th className="th-sub th-match">{t("lang") === "vi" ? "Giá / KL" : "Price / Vol"}</th>
+              <th className="th-sub th-match">+/-</th>
+              <th className="th-sub th-match">+/- (%)</th>
+
+              {/* ASK sub-headers */}
+              <th className="th-sub th-ask">{t("lang") === "vi" ? "Giá 1 / KL 1" : "Price 1 / Vol 1"}</th>
+              <th className="th-sub th-ask">{t("lang") === "vi" ? "Giá 2 / KL 2" : "Price 2 / Vol 2"}</th>
+              <th className="th-sub th-ask">{t("lang") === "vi" ? "Giá 3 / KL 3" : "Price 3 / Vol 3"}</th>
+
+              {/* FOREIGN sub-headers */}
+              {visibleColumns.foreign && (
+                <>
+                  <th className="th-sub th-foreign">{t("board.buy")}</th>
+                  <th className="th-sub th-foreign">{t("board.sell")}</th>
+                  <th className="th-sub th-foreign">{t("board.room")}</th>
+                </>
+              )}
+            </tr>
+          </thead>
+
+          <tbody className="stock-table__body">
+            {displayStocks
+              .filter((stock) => {
+                if (props.showActiveOnly) {
+                  return (stock.totalVolume || 0) > 0;
+                }
+                return true;
+              })
+              .map((stock, index) => (
+                <StockRow
+                  key={stock.symbol || index}
+                  stock={stock}
+                  onRowClick={props.onRowClick}
+                  onContextMenu={props.onContextMenu}
+                  isSelected={props.selectedTicker === stock.symbol}
+                  visibleColumns={visibleColumns}
+                />
+              ))}
+          </tbody>
+        </table>
+
+        {/* Footer tổng số mã */}
+        <div className="stock-table__footer">
+          {props.showActiveOnly ? (
+            <span>
+              {t("board.showingStocks", { 
+                activeCount: displayStocks.filter((s) => (s.totalVolume || 0) > 0).length, 
+                totalCount: displayStocks.length 
+              })}
+            </span>
+          ) : (
+            <span>
+              {t("board.showingStocksAll", { 
+                totalCount: displayStocks.length 
+              })}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Nav from './Nav';
+import { useTranslation } from '../../context/LanguageContext';
+import "./MainLayout.scss";
 
 const MainLayout = ({ children }) => {
     const [marketStatus, setMarketStatus] = useState('OPEN'); // Default status
+    const { t } = useTranslation();
 
     // Logic to determine market status automatically based on time (VN Time)
     useEffect(() => {
@@ -45,6 +48,12 @@ const MainLayout = ({ children }) => {
 
     return (
         <div className="main-layout">
+            <div className="marquee-banner">
+                <div className="marquee-track">
+                    <span className="marquee-item">{t("nav.tickerWarning")}</span>
+                    <span className="marquee-item">{t("nav.tickerWarning")}</span>
+                </div>
+            </div>
             <Nav marketStatus={marketStatus} />
             <main className="content-area">
                 {children}
