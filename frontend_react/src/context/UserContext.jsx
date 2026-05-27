@@ -223,7 +223,8 @@ const UserProvider = ({ children }) => {
             notifications,
             setNotifications,
             markAllAsRead,
-            toggleReadStatus
+            toggleReadStatus,
+            socket: socketRef.current
         }}>
             {children}
         </UserContext.Provider>

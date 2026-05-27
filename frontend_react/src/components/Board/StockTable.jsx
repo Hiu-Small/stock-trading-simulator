@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "./StockTable.scss";
 import StockRow from "./StockRow";
 import { getBoardData } from "../../services/marketApi";
 import { checkIsMarketOpen, calculateMarketStats } from "../../utils/marketUtils";
 import { useTranslation } from "../../context/LanguageContext";
+import { UserContext } from "../../context/UserContext";
 
 // Dữ liệu mẫu để hiển thị cấu trúc bảng
 const mockStocks = [
@@ -118,6 +119,7 @@ const mockStocks = [
  * Nhận dữ liệu từ props
  */
 const StockTable = (props) => {
+  const { socket } = useContext(UserContext);
   const [displayStocks, setDisplayStocks] = useState(mockStocks);
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -153,7 +155,7 @@ const StockTable = (props) => {
     }
   }, [props.stocks]);
 
-  // 3. Gọi API trong useEffect
+  // 3. Gọi API trong useEffect ban đầu
   useEffect(() => {
     // Nếu cha đã truyền props.stocks xuống thì khỏi gọi API
     if (props.stocks) return;
@@ -163,7 +165,7 @@ const StockTable = (props) => {
     // Chỉ set interval nếu thị trường đang mở
     let interval;
     if (marketOpen) {
-      // Refresh mỗi 30 giây trong giờ giao dịch
+      // Refresh mỗi 30 giây trong giờ giao dịch (Fallback dự phòng)
       interval = setInterval(fetchBoard, 30000);
     }
 
@@ -171,6 +173,26 @@ const StockTable = (props) => {
       if (interval) clearInterval(interval);
     };
   }, [props.stocks, props.selectedGroup, marketOpen]); // Thêm marketOpen vào dependency array
+
+  // 4. Lắng nghe WebSocket board_update để cập nhật thời gian thực tức thì
+  useEffect(() => {
+    if (props.stocks) return;
+
+    if (socket) {
+      const handleBoardUpdate = (res) => {
+        const targetGroup = props.selectedGroup || "VN30";
+        if (res && res.group === targetGroup && res.data && res.data.length > 0) {
+          setDisplayStocks(res.data);
+        }
+      };
+
+      socket.on("board_update", handleBoardUpdate);
+
+      return () => {
+        socket.off("board_update", handleBoardUpdate);
+      };
+    }
+  }, [socket, props.selectedGroup, props.stocks]);
 
   useEffect(() => {
     const stats = calculateMarketStats(displayStocks);

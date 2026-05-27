@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./StockRow.scss";
 
 /**
@@ -8,6 +8,38 @@ const StockRow = (props) => {
   if (!props.stock) return null;
 
   const { stock } = props;
+  const [flashClass, setFlashClass] = useState({});
+  const prevPrices = useRef({});
+
+  useEffect(() => {
+    const fields = ['matchPrice', 'bid1Price', 'bid2Price', 'bid3Price', 'ask1Price', 'ask2Price', 'ask3Price'];
+    const newFlashes = {};
+    let hasChanges = false;
+
+    fields.forEach(field => {
+      const prevVal = prevPrices.current[field];
+      const newVal = stock[field];
+
+      // Chỉ nhấp nháy nếu giá trị trước đó có tồn tại, khác giá trị mới, và cả hai đều lớn hơn 0
+      if (prevVal !== undefined && prevVal !== newVal && newVal > 0 && prevVal > 0) {
+        newFlashes[field] = newVal > prevVal ? 'flash-up' : 'flash-down';
+        hasChanges = true;
+      }
+      prevPrices.current[field] = newVal;
+    });
+
+    if (hasChanges) {
+      setFlashClass(prev => ({ ...prev, ...newFlashes }));
+      const timer = setTimeout(() => {
+        setFlashClass(prev => {
+          const updated = { ...prev };
+          Object.keys(newFlashes).forEach(k => delete updated[k]);
+          return updated;
+        });
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [stock.matchPrice, stock.bid1Price, stock.bid2Price, stock.bid3Price, stock.ask1Price, stock.ask2Price, stock.ask3Price]);
   const visibleColumns = props.visibleColumns || {
     basic: true,
     highLow: true,
@@ -80,21 +112,21 @@ const StockRow = (props) => {
       )}
 
       {/* ===== BID: G3 → G1 ===== */}
-      <td className={`col-bid ${getPriceColor(stock.bid3Price)}`}>
+      <td className={`col-bid ${getPriceColor(stock.bid3Price)} ${flashClass.bid3Price || ''}`}>
         <div className="cell-price ">{formatPrice(stock.bid3Price)}</div>
         <div className="cell-vol">{formatVolume(stock.bid3Vol)}</div>
       </td>
-      <td className={`col-bid ${getPriceColor(stock.bid2Price)}`}>
+      <td className={`col-bid ${getPriceColor(stock.bid2Price)} ${flashClass.bid2Price || ''}`}>
         <div className="cell-price">{formatPrice(stock.bid2Price)}</div>
         <div className="cell-vol">{formatVolume(stock.bid2Vol)}</div>
       </td>
-      <td className={`col-bid ${getPriceColor(stock.bid1Price)}`}>
+      <td className={`col-bid ${getPriceColor(stock.bid1Price)} ${flashClass.bid1Price || ''}`}>
         <div className="cell-price">{formatPrice(stock.bid1Price)}</div>
         <div className="cell-vol">{formatVolume(stock.bid1Vol)}</div>
       </td>
 
       {/* ===== MATCH: Giá khớp, thay đổi ===== */}
-      <td className={`col-match ${getPriceColor(stock.matchPrice)}`}>
+      <td className={`col-match ${getPriceColor(stock.matchPrice)} ${flashClass.matchPrice || ''}`}>
         <div className="cell-price cell-price--bold">
           {formatPrice(stock.matchPrice)}
         </div>
@@ -102,25 +134,25 @@ const StockRow = (props) => {
       </td>
 
       {/* Cột Biến động giá tuyệt đối (+/-) */}
-      <td className={`col-change ${getPriceColor(stock.matchPrice)} `}>
+      <td className={`col-change ${getPriceColor(stock.matchPrice)} ${flashClass.matchPrice || ''}`}>
         {stock.matchPrice > 0 && <>{formatChange(change)}</>}
       </td>
 
       {/* Cột Biến động giá phần trăm (%) */}
-      <td className={`col-change-pct ${getPriceColor(stock.matchPrice)} `}>
+      <td className={`col-change-pct ${getPriceColor(stock.matchPrice)} ${flashClass.matchPrice || ''}`}>
         {stock.matchPrice > 0 && <>{changePercent.toFixed(2)}%</>}
       </td>
 
       {/* ===== ASK: G1 → G3 ===== */}
-      <td className={`col-ask ${getPriceColor(stock.ask1Price)}`}>
+      <td className={`col-ask ${getPriceColor(stock.ask1Price)} ${flashClass.ask1Price || ''}`}>
         <div className="cell-price">{formatPrice(stock.ask1Price)}</div>
         <div className="cell-vol">{formatVolume(stock.ask1Vol)}</div>
       </td>
-      <td className={`col-ask ${getPriceColor(stock.ask2Price)}`}>
+      <td className={`col-ask ${getPriceColor(stock.ask2Price)} ${flashClass.ask2Price || ''}`}>
         <div className="cell-price">{formatPrice(stock.ask2Price)}</div>
         <div className="cell-vol">{formatVolume(stock.ask2Vol)}</div>
       </td>
-      <td className={`col-ask ${getPriceColor(stock.ask3Price)}`}>
+      <td className={`col-ask ${getPriceColor(stock.ask3Price)} ${flashClass.ask3Price || ''}`}>
         <div className="cell-price">{formatPrice(stock.ask3Price)}</div>
         <div className="cell-vol">{formatVolume(stock.ask3Vol)}</div>
       </td>

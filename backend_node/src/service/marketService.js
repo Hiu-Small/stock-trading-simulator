@@ -12,7 +12,7 @@ import pythonService from "./pythonService.js";
 const CACHE_CONFIG = {
   INDEX_TTL: 30_000,   // Cache cho các chỉ số (VNINDEX, VN30...)
   INDEX_INTRADAY_TTL: 60_000, // Cache cho đồ thị phút chỉ số (1 phút)
-  BOARD_TTL: 30_000,   // Cache cho bảng giá nhóm (HOSE, VN30...)
+  BOARD_TTL: 2000,   // Cache cho bảng giá nhóm (HOSE, VN30...)
   STOCK_TTL: 30_000,   // Cache cho chi tiết mã cổ phiếu (AAA, FPT...)
 };
 

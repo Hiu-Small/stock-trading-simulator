@@ -300,19 +300,36 @@ const TradeMonitoring = () => {
 
   const isFiltered = startDate !== todayStr || endDate !== todayStr;
 
+  const getTabLabel = (key) => {
+    switch (key) {
+      case "All":
+        return t("admin.trades.tabAll");
+      case "Pending":
+        return t("admin.trades.tabPending");
+      case "Matched":
+        return t("admin.trades.tabMatched");
+      case "Canceled":
+        return t("admin.trades.tabCancelled");
+      case "Failed/Stuck":
+        return t("admin.trades.tabStuck");
+      default:
+        return key;
+    }
+  };
+
   return (
     <div className="admin-trades-page">
       <div className="page-header">
         <div className="header-top">
-          <h1>Live Order Book</h1>
+          <h1>{t("admin.trades.title")}</h1>
           <div className="live-badge">
             <div className="pulse-dot"></div>
-            <span>Live</span>
+            <span>{lang === "vi" ? "Trực tiếp" : "Live"}</span>
           </div>
         </div>
         <div className="refresh-info">
           <i className={`fa-solid fa-arrows-rotate ${isRefreshing ? "spinning" : ""}`}></i>
-          <span>Auto-refresh • Last update: {lastUpdate}</span>
+          <span>{t("admin.trades.lastUpdate", { time: lastUpdate })}</span>
         </div>
       </div>
 
@@ -331,7 +348,7 @@ const TradeMonitoring = () => {
                 className={tabClass}
                 onClick={() => setActiveFilter(tab.key)}
               >
-                <span className="label">{tab.label}</span>
+                <span className="label">{getTabLabel(tab.key)}</span>
                 <span className="count">{getStatusCount(tab.key)}</span>
               </button>
             );
@@ -408,14 +425,19 @@ const TradeMonitoring = () => {
                     <td className="col-user">#{order.userId}</td>
                     <td className="col-symbol"><strong>{order.symbol}</strong></td>
                     <td>
-                      <span className={`side-badge ${order.side.toLowerCase()}`}>{order.side}</span>
+                      <span className={`side-badge ${order.side.toLowerCase()}`}>
+                        {order.side === "BUY" ? (lang === "vi" ? "MUA" : "BUY") : (lang === "vi" ? "BÁN" : "SELL")}
+                      </span>
                     </td>
                     <td className="col-type">{order.type}</td>
                     <td className="col-vol">{order.volume}</td>
                     <td className="col-price">{order.price}</td>
                     <td>
                       <span className={`status-badge ${order.status.toLowerCase()}`}>
-                        {order.status}
+                        {order.status === "Pending" && t("admin.trades.tabPending")}
+                        {order.status === "Matched" && t("admin.trades.tabMatched")}
+                        {order.status === "Canceled" && t("admin.trades.tabCancelled")}
+                        {order.status === "Stuck" && t("admin.trades.tabStuck")}
                       </span>
                     </td>
                     <td className="col-actions">
@@ -423,14 +445,14 @@ const TradeMonitoring = () => {
                         <div className="action-btns">
                           <button 
                             className="btn-action cancel" 
-                            title="Force Cancel"
+                            title={lang === "vi" ? "Hủy cưỡng bức" : "Force Cancel"}
                             onClick={() => handleForceCancel(order.id)}
                           >
                             <i className="fa-solid fa-xmark"></i>
                           </button>
                           <button 
                             className="btn-action match" 
-                            title="Force Match"
+                            title={lang === "vi" ? "Khớp cưỡng bức" : "Force Match"}
                             onClick={() => handleForceMatch(order.id)}
                           >
                             <i className="fa-solid fa-check"></i>

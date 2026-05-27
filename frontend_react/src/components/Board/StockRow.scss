@@ -43,3 +43,21 @@
   .col-total-vol { font-size: 12px; font-weight: 600; color: var(--text-body); background-color: var(--table-col-accent); }
   .col-foreign { font-size: 12px; font-weight: 600; }
 }
+
+@keyframes flashGreen {
+  0% { background-color: rgba(38, 166, 154, 0.45); color: #fff; }
+  100% { background-color: transparent; }
+}
+
+@keyframes flashRed {
+  0% { background-color: rgba(239, 83, 80, 0.45); color: #fff; }
+  100% { background-color: transparent; }
+}
+
+.flash-up {
+  animation: flashGreen 0.8s ease-out !important;
+}
+
+.flash-down {
+  animation: flashRed 0.8s ease-out !important;
+}
