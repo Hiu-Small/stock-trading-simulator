@@ -472,6 +472,7 @@ const Nav = (props) => {
           <div className="action-icons">
             <div 
               className={`notification-wrapper ${showNotifDropdown ? "active" : ""}`}
+              data-tooltip={lang === "vi" ? "Thông báo" : "Notifications"}
               onClick={(e) => {
                 e.stopPropagation();
                 if (user?.isAuthenticated) {
@@ -552,6 +553,7 @@ const Nav = (props) => {
             </div>
             <div 
               className={`theme-toggle-wrapper ${showThemeDropdown ? "active" : ""}`}
+              data-tooltip={lang === "vi" ? "Màu nền" : "Theme"}
               onClick={(e) => {
                 e.stopPropagation();
                 setShowThemeDropdown(!showThemeDropdown);
