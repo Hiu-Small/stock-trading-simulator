@@ -61,12 +61,14 @@ const LoginModal = (props) => {
           isAuthenticated: true,
           token: response.DT.access_token,
           account: {
+            id: response.DT.user.id,
             username: response.DT.user.username,
             role: response.DT.user.role,
             status: response.DT.user.status,
           }
         };
         sessionStorage.setItem("account", JSON.stringify({
+          id: response.DT.user.id,
           token: data.token,
           username: data.account.username,
           role: data.account.role,

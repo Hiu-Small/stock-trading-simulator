@@ -36,6 +36,17 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Wallet',
+    hooks: {
+      afterUpdate: (wallet, options) => {
+        try {
+          const { sendBalanceUpdate } = require('../config/socket.js');
+          const availableCash = parseFloat(wallet.balance) - parseFloat(wallet.frozen_balance);
+          sendBalanceUpdate(wallet.user_id, availableCash);
+        } catch (err) {
+          console.error('[Wallet Hook] Error sending socket balance update:', err);
+        }
+      }
+    }
   });
   return Wallet;
 };

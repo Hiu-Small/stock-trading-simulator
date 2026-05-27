@@ -1,4 +1,6 @@
 import express from "express";
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import configViewEngine from "./config/viewEngine";
 import configCors from "./config/cors";
 require("dotenv").config();
@@ -9,11 +11,22 @@ import initAuthRoutes from "./routes/authRoutes";
 import initAdminRoutes from "./routes/adminRoutes";
 import initOrderRoutes from "./routes/orderRoutes";
 import startMatchingEngine from "./service/matchingEngine.js";
-import db from "./models";
+import { syncTotalInvested } from "./service/walletService.js";
+
+import { initSocket } from "./config/socket.js";
 
 const app = express();
+const httpServer = createServer(app);
 app.set('trust proxy', true);
 const PORT = process.env.PORT || 8080;
+
+// ==========================================
+// 1. CẤU HÌNH SOCKET.IO
+// ==========================================
+const io = initSocket(httpServer, ["http://localhost:5173", "https://stock-trading-simulator-silk.vercel.app/"]);
+
+// Chia sẻ đối tượng `io` ra toàn hệ thống qua Express app
+app.set('io', io);
 
 //config cors
 configCors(app);
@@ -51,31 +64,7 @@ initAuthRoutes(app);
 initAdminRoutes(app);
 initOrderRoutes(app);
 
-const syncTotalInvested = async () => {
-  try {
-    console.log("[System] 🔄 Khởi tạo đồng bộ total_invested cho ví...");
-    const wallets = await db.Wallet.findAll();
-    for (const wallet of wallets) {
-      const holdings = await db.Holding.findAll({
-        where: { user_id: wallet.user_id }
-      });
-      const total = holdings.reduce((sum, h) => {
-        return sum + (parseFloat(h.quantity) * parseFloat(h.average_price));
-      }, 0);
-      
-      // Chỉ cập nhật nếu giá trị lưu trong DB khác với thực tế tính được
-      if (parseFloat(wallet.total_invested || 0) !== total) {
-        await wallet.update({ total_invested: total });
-        console.log(`[System] 🔧 Đã sửa total_invested cho user #${wallet.user_id} thành ${total.toLocaleString('vi-VN')} ₫`);
-      }
-    }
-    console.log("[System] ✅ Đồng bộ total_invested hoàn tất!");
-  } catch (err) {
-    console.error("[System] ❌ Lỗi đồng bộ total_invested:", err);
-  }
-};
-
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log("backend_node is running on the port = ", PORT);
   // Khởi động Matching Engine sau khi server đã sẵn sàng
   startMatchingEngine();

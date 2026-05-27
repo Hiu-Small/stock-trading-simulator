@@ -1,4 +1,5 @@
-import React, { useState, useEffect, createContext } from 'react';
+import React, { useState, useEffect, createContext, useRef } from 'react';
+import { io } from 'socket.io-client';
 import { getUserProfile, markAllNotificationsRead, markNotificationRead } from '../services/userService';
 import { toast } from 'react-toastify';
 import { useTranslation } from './LanguageContext';
@@ -20,6 +21,7 @@ const UserProvider = ({ children }) => {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [balance, setBalance] = useState(0);
     const [notifications, setNotifications] = useState([]);
+    const socketRef = useRef(null);
 
     // Login updates the state and session storage
     const loginContext = (userData) => {
@@ -121,16 +123,53 @@ const UserProvider = ({ children }) => {
         }
     };
 
-    // Tự động tải và đồng bộ định kỳ (mỗi 5 giây) số dư & thông báo khi đăng nhập thành công
+    // Tự động kết nối WebSocket khi người dùng đăng nhập thành công
+    useEffect(() => {
+        if (user.isAuthenticated && user.account?.id) {
+            const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+            socketRef.current = io(backendUrl, {
+                withCredentials: true
+            });
+
+            socketRef.current.on('connect', () => {
+                console.log("🔌 Connected to WebSocket Server!");
+                socketRef.current.emit('register_user', user.account.id);
+            });
+
+            socketRef.current.on('balance_update', (data) => {
+                console.log("💰 Real-time balance update received:", data);
+                if (data && data.newBalance !== undefined) {
+                    setBalance(parseFloat(data.newBalance));
+                }
+            });
+
+            socketRef.current.on('new_notification', (data) => {
+                console.log("🔔 Real-time notification received:", data);
+                toast.info(translateNotificationText(data.message, lang, t) || "Bạn có thông báo mới", {
+                    position: "top-right",
+                    autoClose: 6000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "colored"
+                });
+                refreshBalance();
+            });
+
+            return () => {
+                if (socketRef.current) {
+                    socketRef.current.disconnect();
+                    socketRef.current = null;
+                }
+            };
+        }
+    }, [user.isAuthenticated, user.account?.id, lang]);
+
+    // Tự động tải số dư và danh mục ban đầu khi đăng nhập thành công
     useEffect(() => {
         if (user.isAuthenticated) {
             refreshBalance();
-
-            const interval = setInterval(() => {
-                refreshBalance();
-            }, 5000);
-
-            return () => clearInterval(interval);
         }
     }, [user.isAuthenticated]);
 
@@ -144,6 +183,7 @@ const UserProvider = ({ children }) => {
                     isAuthenticated: true,
                     token: data.token,
                     account: {
+                        id: data.id,
                         role: data.role,
                         username: data.username,
                         account_number: data.account_number || data.username,

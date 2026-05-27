@@ -30,6 +30,18 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'UserHistory',
+    hooks: {
+      afterCreate: (history, options) => {
+        try {
+          if (!history.is_read) {
+            const { sendNotification } = require('../config/socket.js');
+            sendNotification(history.user_id, history.new_value);
+          }
+        } catch (err) {
+          console.error('[UserHistory Hook] Error sending socket notification:', err);
+        }
+      }
+    }
   });
   return UserHistory;
 };
