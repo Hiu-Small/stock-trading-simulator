@@ -36,7 +36,7 @@ const StockRow = (props) => {
           Object.keys(newFlashes).forEach(k => delete updated[k]);
           return updated;
         });
-      }, 800);
+      }, 1800);
       return () => clearTimeout(timer);
     }
   }, [stock.matchPrice, stock.bid1Price, stock.bid2Price, stock.bid3Price, stock.ask1Price, stock.ask2Price, stock.ask3Price]);

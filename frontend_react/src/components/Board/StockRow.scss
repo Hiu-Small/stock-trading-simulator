@@ -45,19 +45,19 @@
 }
 
 @keyframes flashGreen {
-  0% { background-color: rgba(38, 166, 154, 0.45); color: #fff; }
+  0%, 30% { background-color: rgba(38, 166, 154, 0.55); color: #fff; }
   100% { background-color: transparent; }
 }
 
 @keyframes flashRed {
-  0% { background-color: rgba(239, 83, 80, 0.45); color: #fff; }
+  0%, 30% { background-color: rgba(239, 83, 80, 0.55); color: #fff; }
   100% { background-color: transparent; }
 }
 
 .flash-up {
-  animation: flashGreen 0.8s ease-out !important;
+  animation: flashGreen 1.8s ease-out !important;
 }
 
 .flash-down {
-  animation: flashRed 0.8s ease-out !important;
+  animation: flashRed 1.8s ease-out !important;
 }

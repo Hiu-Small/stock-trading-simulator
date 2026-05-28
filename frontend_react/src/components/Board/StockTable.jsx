@@ -134,7 +134,11 @@ const StockTable = (props) => {
   };
 
   const fetchBoard = async () => {
-    setLoading(true);
+    // Only show spinner on initial load when we don't have real data
+    const isInitial = displayStocks === mockStocks || displayStocks.length === 0;
+    if (isInitial) {
+      setLoading(true);
+    }
     // Sử dụng props.selectedGroup thay vì hard-code "VN30"
     const result = await getBoardData(props.selectedGroup || "VN30");
 
@@ -226,16 +230,8 @@ const StockTable = (props) => {
 
   return (
     <div className="stock-table-wrapper">
-      {/* Hiệu ứng Loading Overlay */}
-      {loading && (
-        <div className="stock-table-loading">
-          <div className="spinner"></div>
-          <span>{t("board.loading")}</span>
-        </div>
-      )}
-
       <div className="stock-table-scroll-area">
-        <table className={`stock-table ${loading ? "stock-table--loading" : ""}`}>
+        <table className="stock-table">
           <thead className="stock-table__head">
             <tr>
               {/* Cột cơ bản */}
