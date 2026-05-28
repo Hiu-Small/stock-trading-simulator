@@ -230,8 +230,16 @@ const StockTable = (props) => {
 
   return (
     <div className="stock-table-wrapper">
+      {/* Hiệu ứng Loading Overlay */}
+      {loading && (
+        <div className="stock-table-loading">
+          <div className="spinner"></div>
+          <span>{t("board.loading")}</span>
+        </div>
+      )}
+
       <div className="stock-table-scroll-area">
-        <table className="stock-table">
+        <table className={`stock-table ${loading ? "stock-table--loading" : ""}`}>
           <thead className="stock-table__head">
             <tr>
               {/* Cột cơ bản */}
