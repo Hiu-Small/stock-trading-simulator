@@ -252,7 +252,7 @@ const Nav = (props) => {
     logoutContext();
     setShowLoginModal(false);
     sessionStorage.removeItem("account");
-    toast.success("Đăng xuất thành công!");
+    toast.success(t("nav.logoutSuccess"));
     navigate("/");
   };
 

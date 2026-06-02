@@ -35,7 +35,13 @@ module.exports = (sequelize, DataTypes) => {
         try {
           if (!history.is_read) {
             const { sendNotification } = require('../config/socket.js');
-            sendNotification(history.user_id, history.new_value);
+            if (options.transaction) {
+              options.transaction.afterCommit(() => {
+                sendNotification(history.user_id, history.new_value);
+              });
+            } else {
+              sendNotification(history.user_id, history.new_value);
+            }
           }
         } catch (err) {
           console.error('[UserHistory Hook] Error sending socket notification:', err);

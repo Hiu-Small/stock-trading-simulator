@@ -1,6 +1,5 @@
 import express from "express";
 import { createServer } from 'http';
-import { Server } from 'socket.io';
 import configViewEngine from "./config/viewEngine";
 import configCors from "./config/cors";
 require("dotenv").config();

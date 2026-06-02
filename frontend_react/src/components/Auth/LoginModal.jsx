@@ -75,7 +75,7 @@ const LoginModal = (props) => {
           status: data.account.status
         }));
         loginContext(data); // Update global state
-        toast.success(response.EM);
+        toast.success(t("nav.loginSuccess") || response.EM);
         props.handleClose();
 
         if (data.account.role === "ADMIN") {
