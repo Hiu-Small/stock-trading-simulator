@@ -461,7 +461,7 @@ export const translations = {
       users: {
         title: "Quản lý tài khoản",
         subtitle: "Xem và quản lý thông tin tài khoản người dùng, số dư ví và trạng thái hoạt động.",
-        exportCsv: "Xuất dữ liệu Excel",
+        exportCsv: "Xuất dữ liệu ra Excel",
         searchPlaceholder: "Tìm kiếm theo STK, Họ tên, Email...",
         filterAll: "Tất cả trạng thái",
         filterActive: "Đang hoạt động",
