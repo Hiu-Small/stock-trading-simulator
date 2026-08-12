@@ -1,0 +1,27 @@
+name: Production CI/CD Trigger
+
+# 🎯 Chỉ chạy khi merge hoặc push code vào nhánh production
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  trigger-deploy:
+    name: Trigger Deploy to Render & Vercel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚀 1. Trigger Deploy Node.js Backend trên Render
+        run: |
+          echo "Đang gửi tín hiệu deploy Node.js Backend..."
+          curl -X POST "${{ secrets.RENDER_NODE_DEPLOY_HOOK }}"
+
+      - name: 🚀 2. Trigger Deploy Python Backend trên Render
+        run: |
+          echo "Đang gửi tín hiệu deploy Python Backend..."
+          curl -X POST "${{ secrets.RENDER_PYTHON_DEPLOY_HOOK }}"
+
+      - name: ✅ Hoàn tất kích hoạt CI/CD
+        run: |
+          echo "Tất cả các dịch vụ đang được tự động build và triển khai!"
